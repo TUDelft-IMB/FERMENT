@@ -22,10 +22,6 @@ data_list[["pH"]] <- data_list[["pH"]] %>%
 data_list[["pH"]] <- type.convert(data_list[["pH"]], as.is = TRUE)
 
 
-#colnames(data_list[["pH"]])<-data_list[["pH"]][1,]
-#data_list[["pH"]]<-data_list[["pH"]][-1,]
-
-
 View(data_list[["Notes"]])
 View(data_list[["Experimental_parameters"]])
 View(data_list[["Planning_preculture"]])
