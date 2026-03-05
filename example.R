@@ -4,12 +4,27 @@ library(tidyr)
 library(tidyverse)
 library(ggplot2)
 library(readxl)
+library(janitor)
 
-#file_path <- "..\\TT_Template_try1_wip.xlsx"
+file_path <- "..\\excel_files\\TT_Template_example_1_102.xlsx"
 sheets <- excel_sheets(file_path)
 data_list <- lapply(sheets, function(x) read_excel(file_path, sheet = x))
 names(data_list) <- sheets
 View(data_list)
+
+# Remove junk rows
+data_list[["Attenuation"]] <- data_list[["Attenuation"]] %>%
+  row_to_names(row_number = 1) # Promotes the first row to header
+data_list[["Attenuation"]] <- type.convert(data_list[["Attenuation"]], as.is = TRUE)
+
+data_list[["pH"]] <- data_list[["pH"]] %>%
+  row_to_names(row_number = 1) # Promotes the first row to header
+data_list[["pH"]] <- type.convert(data_list[["pH"]], as.is = TRUE)
+
+
+#colnames(data_list[["pH"]])<-data_list[["pH"]][1,]
+#data_list[["pH"]]<-data_list[["pH"]][-1,]
+
 
 View(data_list[["Notes"]])
 View(data_list[["Experimental_parameters"]])
@@ -21,6 +36,8 @@ View(data_list[["pH"]])
 View(data_list[["HPLC_raw"]])
 View(data_list[["HPLC"]])
 View(data_list[["GC"]])
+
+
 
 
 # Plots -------------------------------------------------------------------
@@ -312,16 +329,16 @@ ggplot(gck) +
 att <- data_list[["Attenuation"]]
 
 ggplot(att) +
-  geom_line(aes(x = `Time (h)`, y = `7`, colour = "yellow")) +
-  geom_point(aes(x = `Time (h)`, y = `7`, colour = "yellow")) +
-  geom_line(aes(x = `Time (h)`, y = `8`, colour = "sienna")) +
-  geom_point(aes(x = `Time (h)`, y = `8`, colour = "sienna")) +
+  geom_line(aes(x = `Time (h)`, y = `TT1`, colour = "skyblue")) +
+  geom_point(aes(x = `Time (h)`, y = `TT1`, colour = "skyblue")) +
+  geom_line(aes(x = `Time (h)`, y = `TT2`, colour = "sienna")) +
+  geom_point(aes(x = `Time (h)`, y = `TT2`, colour = "sienna")) +
   scale_colour_identity(name = "Attenuation",
                         guide = "legend",
-                        breaks = c("yellow",
+                        breaks = c("skyblue",
                                    "sienna"),
-                        labels = c("7",
-                                   "8")) +
+                        labels = c("TT1",
+                                   "TT2")) +
   labs(x = "Time (h)", y = "Attenuation (°P)") +
   theme(legend.position = "right") +
   theme_minimal()
@@ -331,17 +348,52 @@ ggplot(att) +
 ph <- data_list[["pH"]]
 
 ggplot(ph) +
-  geom_line(aes(x = `Time (h)`, y = `7`, colour = "yellow")) +
-  geom_point(aes(x = `Time (h)`, y = `7`, colour = "yellow")) +
-  geom_line(aes(x = `Time (h)`, y = `8`, colour = "sienna")) +
-  geom_point(aes(x = `Time (h)`, y = `7`, colour = "sienna")) +
+  geom_line(aes(x = `Time (h)`, y = `TT1`, colour = "yellow")) +
+  geom_point(aes(x = `Time (h)`, y = `TT1`, colour = "yellow")) +
+  geom_line(aes(x = `Time (h)`, y = `TT2`, colour = "sienna")) +
+  geom_point(aes(x = `Time (h)`, y = `TT2`, colour = "sienna")) +
   scale_colour_identity(name = "pH",
                         guide = "legend",
                         breaks = c("yellow",
                                    "sienna"),
-                        labels = c("7",
-                                   "8")) +
+                        labels = c("TT1",
+                                   "TT2")) +
   scale_y_continuous(limits = c(0, 7)) +
   labs(x = "Time (h)", y = "pH") +
   theme(legend.position = "right") +
   theme_minimal()
+
+viability <- data_list[["CellCount_Viability"]]
+
+ggplot(viability) +
+  geom_line(aes(x = `Time (h)`, y = `1 Total cells`, colour = "skyblue")) +
+  geom_point(aes(x = `Time (h)`, y = `1 Total cells`, colour = "skyblue")) +
+  geom_line(aes(x = `Time (h)`, y = `2 Total cells`, colour = "sienna")) +
+  geom_point(aes(x = `Time (h)`, y = `2 Total cells`, colour = "sienna")) +
+  scale_colour_identity(name = "Cell count",
+                        guide = "legend",
+                        breaks = c("skyblue",
+                                   "sienna"),
+                        labels = c("TT1",
+                                   "TT2")) +
+  #scale_y_continuous(limits = c(0, 7)) +
+  labs(x = "Time (h)", y = "Cell count (cells/ml)") +
+  theme(legend.position = "right") +
+  theme_minimal()
+
+ggplot(viability) +
+  geom_line(aes(x = `Time (h)`, y = `1 Viability (%)`, colour = "skyblue")) +
+  geom_point(aes(x = `Time (h)`, y = `1 Viability (%)`, colour = "skyblue")) +
+  geom_line(aes(x = `Time (h)`, y = `2 Viability (%)`, colour = "sienna")) +
+  geom_point(aes(x = `Time (h)`, y = `2 Viability (%)`, colour = "sienna")) +
+  scale_colour_identity(name = "Cell count",
+                        guide = "legend",
+                        breaks = c("skyblue",
+                                   "sienna"),
+                        labels = c("TT1",
+                                   "TT2")) +
+  scale_y_continuous(limits = c(0, 1)) +
+  labs(x = "Time (h)", y = "Viability (fraction)") +
+  theme(legend.position = "right") +
+  theme_minimal()
+
