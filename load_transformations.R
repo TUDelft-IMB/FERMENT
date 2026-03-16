@@ -56,3 +56,115 @@ df <-data_list[["pH"]]
 df <- df %>%
   mutate("avg_pH" = rowMeans(across(c("TT1", "TT2"))),"stdev_pH"= sqrt((.data[["TT1"]]-.data[["TT2"]])^2/2))
 transformed_data_list[["pH"]] <- df
+
+#HPLC
+df <-data_list[["HPLC"]]
+df <- df %>%
+  mutate("avg_maltotriose" = rowMeans(across(c("1 Maltotriose (g/L)", "2 Maltotriose (g/L)"))),"stdev_maltotriose"= sqrt((.data[["1 Maltotriose (g/L)"]]-.data[["2 Maltotriose (g/L)"]])^2/2))
+df <- df %>%
+  mutate("avg_maltose" = rowMeans(across(c("1 Maltose (g/L)", "2 Maltose (g/L)"))),"stdev_maltose"= sqrt((.data[["1 Maltose (g/L)"]]-.data[["2 Maltose (g/L)"]])^2/2))
+df <- df %>%
+  mutate("avg_glucose" = rowMeans(across(c("1 Glucose (g/L)", "2 Glucose (g/L)"))),"stdev_glucose"= sqrt((.data[["1 Glucose (g/L)"]]-.data[["2 Glucose (g/L)"]])^2/2))
+df <- df %>%
+  mutate("avg_fructose" = rowMeans(across(c("1 Fructose (g/L)", "2 Fructose (g/L)"))),"stdev_fructose"= sqrt((.data[["1 Fructose (g/L)"]]-.data[["2 Fructose (g/L)"]])^2/2))
+df <- df %>%
+  mutate("avg_glycerol" = rowMeans(across(c("1 Glycerol (g/L)", "2 Glycerol (g/L)"))),"stdev_glycerol"= sqrt((.data[["1 Glycerol (g/L)"]]-.data[["2 Glycerol (g/L)"]])^2/2))
+df <- df %>%
+  mutate("avg_ethanol" = rowMeans(across(c("1 Ethanol (g/L)", "2 Ethanol (g/L)"))),"stdev_ethanol"= sqrt((.data[["1 Ethanol (g/L)"]]-.data[["2 Ethanol (g/L)"]])^2/2))
+
+transformed_data_list[["HPLC"]] <- df
+
+#GC_esters
+df <-data_list[["GC_esters"]]
+df <- df %>%
+  mutate("avg_ethylacetate" = rowMeans(across(c("1 Ethyl acetate", "2 Ethyl acetate"))),"stdev_ethylacetate"= sqrt((.data[["1 Ethyl acetate"]]-.data[["2 Ethyl acetate"]])^2/2))
+df <- df %>%
+  mutate("avg_isobutylacetate" = rowMeans(across(c("1 Isobutyl acetate", "2 Isobutyl acetate"))),"stdev_isobutylacetate"= sqrt((.data[["1 Isobutyl acetate"]]-.data[["2 Isobutyl acetate"]])^2/2))
+df <- df %>%
+  mutate("avg_ethylbutyrate" = rowMeans(across(c("1 Ethyl Butyrate", "2 Ethyl Butyrate"))),"stdev_ethylbutyrate"= sqrt((.data[["1 Ethyl Butyrate"]]-.data[["2 Ethyl Butyrate"]])^2/2))
+df <- df %>%
+  mutate("avg_isobutanol" = rowMeans(across(c("1 Isobutanol", "2 Isobutanol"))),"stdev_isobutanol"= sqrt((.data[["1 Isobutanol"]]-.data[["2 Isobutanol"]])^2/2))
+df <- df %>%
+  mutate("avg_isoamylacetate" = rowMeans(across(c("1 Isoamyl acetate", "2 Isoamyl acetate"))),"stdev_isoamylacetate"= sqrt((.data[["1 Isoamyl acetate"]]-.data[["2 Isoamyl acetate"]])^2/2))
+df <- df %>%
+  mutate("avg_isoamylalcohol" = rowMeans(across(c("1 Isoamyl alcohol", "2 Isoamyl alcohol"))),"stdev_isoamylalcohol"= sqrt((.data[["1 Isoamyl alcohol"]]-.data[["2 Isoamyl alcohol"]])^2/2))
+df <- df %>%
+  mutate("avg_ethylhexanoate" = rowMeans(across(c("1 Ethyl hexanoate", "2 Ethyl hexanoate"))),"stdev_ethylhexanoate"= sqrt((.data[["1 Ethyl hexanoate"]]-.data[["2 Ethyl hexanoate"]])^2/2))
+df <- df %>%
+  mutate("avg_ethylocatanoate" = rowMeans(across(c("1 Ethyl octanoate", "2 Ethyl octanoate"))),"stdev_ethylocatanoate"= sqrt((.data[["1 Ethyl octanoate"]]-.data[["2 Ethyl octanoate"]])^2/2))
+df <- df %>%
+  mutate("avg_ethyldecanoate" = rowMeans(across(c("1 Ethyl decanoate", "2 Ethyl decanoate"))),"stdev_ethyldecanoate"= sqrt((.data[["1 Ethyl decanoate"]]-.data[["2 Ethyl decanoate"]])^2/2))
+
+final_vals<-list()
+final_vals_stdev <-list()
+
+for (col_name in grep("^(avg_)", names(df), value = TRUE)) {
+    # Discard all NA values, then take the last one
+    final_vals[[col_name]] <- df[[col_name]] %>% 
+    discard(is.na) %>%
+    last()
+}
+for (col_name in grep("^(stdev_)", names(df), value = TRUE)) {
+  # Discard all NA values, then take the last one
+  final_vals_stdev[[col_name]] <- df[[col_name]] %>% 
+    discard(is.na) %>%
+    last()
+}
+
+transformed_data_list[["GC_esters"]] <- df
+
+#GC_ketones
+df <-data_list[["GC_ketones"]]
+df <- df %>%
+  mutate("avg_diacetyl" = rowMeans(across(c("1 Diacetyl", "2 Diacetyl"))),"stdev_diacetyl"= sqrt((.data[["1 Diacetyl"]]-.data[["2 Diacetyl"]])^2/2))
+df <- df %>%
+  mutate("avg_23pentanedione" = rowMeans(across(c("1 2,3-Pentanedione", "2 2,3-Pentanedione"))),"stdev_23pentanedione"= sqrt((.data[["1 2,3-Pentanedione"]]-.data[["2 2,3-Pentanedione"]])^2/2))
+
+transformed_data_list[["GC_ketones"]] <- df
+
+for (col_name in grep("^(avg_)", names(df), value = TRUE)) {
+  # Discard all NA values, then take the last one
+  final_vals[[col_name]] <- df[[col_name]] %>% 
+    discard(is.na) %>%
+    last()
+}
+for (col_name in grep("^(stdev_)", names(df), value = TRUE)) {
+  # Discard all NA values, then take the last one
+  final_vals_stdev[[col_name]] <- df[[col_name]] %>% 
+    discard(is.na) %>%
+    last()
+}
+
+
+final_ethanol <- transformed_data_list[["HPLC"]] %>%
+  summarise(across(
+    .cols = matches("(avg_ethanol|stdev_ethanol)"),
+    .fns = ~ last(na.omit(.x))
+    ))
+
+df <- as.data.frame(final_vals)    
+final_vals_normalized <- df %>%
+  mutate(across(starts_with("avg"), ~ .x * 36.6/final_ethanol[["avg_ethanol"]][1]))
+
+
+
+final_vals_normalized <- df %>%
+  mutate(across(starts_with("stdev"), ~ .x * 36.6/final_ethanol[["avg_ethanol"]][1]))
+
+
+norm_stdev_ethylacetate = sqrt((stdev_ethylacetate/norm_ethylacetate)^2+(stdev_ethanol/ethanol)^2)
+
+#final_vals_normalized <- map(final_vals, ~.x*36.6/final_ethanol[["avg_ethanol"]][1])
+
+
+
+
+
+
+
+
+
+
+
+
+
