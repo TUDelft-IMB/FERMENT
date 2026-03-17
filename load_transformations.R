@@ -81,7 +81,7 @@ df <- df %>%
 df <- df %>%
   mutate("avg_isobutylacetate" = rowMeans(across(c("1 Isobutyl acetate", "2 Isobutyl acetate"))),"stdev_isobutylacetate"= sqrt((.data[["1 Isobutyl acetate"]]-.data[["2 Isobutyl acetate"]])^2/2))
 df <- df %>%
-  mutate("avg_ethylbutyrate" = rowMeans(across(c("1 Ethyl Butyrate", "2 Ethyl Butyrate"))),"stdev_ethylbutyrate"= sqrt((.data[["1 Ethyl Butyrate"]]-.data[["2 Ethyl Butyrate"]])^2/2))
+  mutate("avg_ethylbutyrate" = rowMeans(across(c("1 Ethyl butyrate", "2 Ethyl butyrate"))),"stdev_ethylbutyrate"= sqrt((.data[["1 Ethyl butyrate"]]-.data[["2 Ethyl butyrate"]])^2/2))
 df <- df %>%
   mutate("avg_isobutanol" = rowMeans(across(c("1 Isobutanol", "2 Isobutanol"))),"stdev_isobutanol"= sqrt((.data[["1 Isobutanol"]]-.data[["2 Isobutanol"]])^2/2))
 df <- df %>%
@@ -135,36 +135,23 @@ for (col_name in grep("^(stdev_)", names(df), value = TRUE)) {
     last()
 }
 
-
 final_ethanol <- transformed_data_list[["HPLC"]] %>%
   summarise(across(
     .cols = matches("(avg_ethanol|stdev_ethanol)"),
     .fns = ~ last(na.omit(.x))
     ))
+final_ethanol_val<-final_ethanol[["avg_ethanol"]][1]
+final_ethanol_stdev<-final_ethanol[["stdev_ethanol"]][1]
 
 df <- as.data.frame(final_vals)    
 final_vals_normalized <- df %>%
-  mutate(across(starts_with("avg"), ~ .x * 36.6/final_ethanol[["avg_ethanol"]][1]))
+  mutate(across(starts_with("avg"), ~ .x * 36.6/final_ethanol_val))
 
+final_vals_stdev<-as.data.frame(final_vals_stdev)
+final_vals<-as.data.frame(final_vals)
 
+final_stdev_normalized <- final_vals_normalized*sqrt((final_vals_stdev/final_vals)^2+(final_ethanol_stdev/final_ethanol_val)^2)
 
-final_vals_normalized <- df %>%
-  mutate(across(starts_with("stdev"), ~ .x * 36.6/final_ethanol[["avg_ethanol"]][1]))
-
-
-norm_stdev_ethylacetate = sqrt((stdev_ethylacetate/norm_ethylacetate)^2+(stdev_ethanol/ethanol)^2)
-
-#final_vals_normalized <- map(final_vals, ~.x*36.6/final_ethanol[["avg_ethanol"]][1])
-
-
-
-
-
-
-
-
-
-
-
-
+transformed_data_list[["GC_final_vals_normalized"]] <-final_vals_normalized
+transformed_data_list[["GC_final_stdev_normalized"]] <-final_stdev_normalized
 
