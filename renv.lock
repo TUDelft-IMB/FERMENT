@@ -2754,7 +2754,7 @@
     },
     "ragg": {
       "Package": "ragg",
-      "Version": "1.5.2",
+      "Version": "1.5.1",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Graphic Devices Based on AGG",
