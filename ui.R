@@ -6,13 +6,13 @@ ui <- fluidPage(
     sidebarPanel(
       width = 2,
       
-      selectInput("species",     "Species",     choices = c("A", "B")),
-      selectInput("strain",      "Strain",      choices = c("StrainA", "StrainB")),
-      selectInput("gravity",     "Gravity",     choices = c("A", "B")),
-      selectInput("inoculum",    "Inoculum",    choices = c("A", "B", "C")),
-      selectInput("temperature", "Temperature", choices = c("12C", "18C", "22C")),
-      selectInput("experiment",  "Experiments", choices = NULL),  # populated dynamically by server!
-      selectInput("other",       "Other",       choices = c("Default")),
+      selectInput("species",     "Species",     choices = NULL),
+      selectInput("strain",      "Strain",      choices = NULL),
+      selectInput("gravity",     "Gravity",     choices = NULL),
+      selectInput("inoculum",    "Inoculum",    choices = NULL),
+      selectInput("temperature", "Temperature", choices = NULL),
+      selectInput("experiment",  "Experiments", choices = NULL),
+      
       
       hr(),
       verbatimTextOutput("file_status")
