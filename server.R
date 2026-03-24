@@ -3,6 +3,7 @@ server <- function(input, output, session) {
   # Build metadata table from Experimental_parameters sheet
   file_metadata <- reactive({
     files <- list.files(EXCEL_DIR, pattern = "\\.xlsx$", full.names = FALSE)
+    files <- files[!grepl("^~\\$", files)]  # remove temp files before reading anything
     if (length(files) == 0) return(data.frame())
     
     do.call(rbind, lapply(files, function(f) {
