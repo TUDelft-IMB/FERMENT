@@ -33,7 +33,7 @@ library(purrr)
 # -----------------------------------------------------------------------------
 
 # Change path accordingly
-EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "/Users/edvinskis/Desktop/shinytest")
+EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "/PATH/PATH")
 
 # -----------------------------------------------------------------------------
 # LOAD DATA
