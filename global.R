@@ -33,7 +33,7 @@ library(purrr)
 # -----------------------------------------------------------------------------
 
 # Change path accordingly
-EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "/PATH/PATH")
+EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "/Users/rortizmerino/FERMENT")
 
 # -----------------------------------------------------------------------------
 # LOAD DATA
@@ -114,58 +114,57 @@ tt_labels  <- c("TT1", "TT2")
 # "StDev" columns hold the standard deviation used for the error bars.
 # -----------------------------------------------------------------------------
 
-## HPLC TT1 --------------------------------------------------------------
-
-plot_hplc_tt1 <- function(df) {
-  ggplot(df) +
-    geom_line(aes(x = `Time (h)`, y = `1 Maltotriose (g/L)`, colour = "skyblue")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Maltotriose (g/L)`, colour = "skyblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Maltotriose (g/L)` - `StDev 1 Maltotriose (g/L)`, ymax = `1 Maltotriose (g/L)` + `StDev 1 Maltotriose (g/L)`, width = 3, colour = "skyblue")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Maltose (g/L)`, colour = "maroon")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Maltose (g/L)`, colour = "maroon")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Maltose (g/L)` - `StDev 1 Maltose (g/L)`, ymax = `1 Maltose (g/L)` + `StDev 1 Maltose (g/L)`, width = 3, colour = "maroon")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Glucose (g/L)`, colour = "gold")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Glucose (g/L)`, colour = "gold")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Glucose (g/L)` - `StDev 1 Glucose (g/L)`, ymax = `1 Glucose (g/L)` + `StDev 1 Glucose (g/L)`, width = 3, colour = "gold")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Fructose (g/L)`, colour = "forestgreen")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Fructose (g/L)`, colour = "forestgreen")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Fructose (g/L)` - `StDev 1 Fructose (g/L)`, ymax = `1 Fructose (g/L)` + `StDev 1 Fructose (g/L)`, width = 3, colour = "forestgreen")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Glycerol (g/L)`, colour = "grey")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Glycerol (g/L)`, colour = "grey")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Glycerol (g/L)` - `StDev 1 Glycerol (g/L)`, ymax = `1 Glycerol (g/L)` + `StDev 1 Glycerol (g/L)`, width = 3, colour = "grey")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethanol (g/L)`, colour = "sienna")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethanol (g/L)`, colour = "sienna")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethanol (g/L)` - `StDev 1 Ethanol (g/L)`, ymax = `1 Ethanol (g/L)` + `StDev 1 Ethanol (g/L)`, width = 3, colour = "sienna")) +
-    scale_colour_identity(name = "Metabolites", guide = "legend", breaks = hplc_colours, labels = hplc_labels) +
-    labs(title = "HPLC TT1", x = "Time (h)", y = "Concentration (g/L)") +
-    theme_minimal() + theme(legend.position = "right")
-}
-
-## HPLC TT2 --------------------------------------------------------------
-
-plot_hplc_tt2 <- function(df) {
-  ggplot(df) +
-    geom_line(aes(x = `Time (h)`, y = `2 Maltotriose (g/L)`, colour = "skyblue")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Maltotriose (g/L)`, colour = "skyblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Maltotriose (g/L)` - `StDev 2 Maltotriose (g/L)`, ymax = `2 Maltotriose (g/L)` + `StDev 2 Maltotriose (g/L)`, width = 3, colour = "skyblue")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Maltose (g/L)`, colour = "maroon")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Maltose (g/L)`, colour = "maroon")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Maltose (g/L)` - `StDev 2 Maltose (g/L)`, ymax = `2 Maltose (g/L)` + `StDev 2 Maltose (g/L)`, width = 3, colour = "maroon")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Glucose (g/L)`, colour = "gold")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Glucose (g/L)`, colour = "gold")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Glucose (g/L)` - `StDev 2 Glucose (g/L)`, ymax = `2 Glucose (g/L)` + `StDev 2 Glucose (g/L)`, width = 3, colour = "gold")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Fructose (g/L)`, colour = "forestgreen")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Fructose (g/L)`, colour = "forestgreen")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Fructose (g/L)` - `StDev 2 Fructose (g/L)`, ymax = `2 Fructose (g/L)` + `StDev 2 Fructose (g/L)`, width = 3, colour = "forestgreen")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Glycerol (g/L)`, colour = "grey")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Glycerol (g/L)`, colour = "grey")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Glycerol (g/L)` - `StDev 2 Glycerol (g/L)`, ymax = `2 Glycerol (g/L)` + `StDev 2 Glycerol (g/L)`, width = 3, colour = "grey")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethanol (g/L)`, colour = "sienna")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethanol (g/L)`, colour = "sienna")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethanol (g/L)` - `StDev 2 Ethanol (g/L)`, ymax = `2 Ethanol (g/L)` + `StDev 2 Ethanol (g/L)`, width = 3, colour = "sienna")) +
-    scale_colour_identity(name = "Metabolites", guide = "legend", breaks = hplc_colours, labels = hplc_labels) +
-    labs(title = "HPLC TT2", x = "Time (h)", y = "Concentration (g/L)") +
-    theme_minimal() + theme(legend.position = "right")
+## HPLC TT1 & TT2 --------------------------------------------------------------
+plot_hplc_tube <- function(df, tube_num) {
+  # Map base metabolite names to their colors
+  metabolites_map <- c(
+    "Maltotriose (g/L)" = "skyblue",
+    "Maltose (g/L)"     = "maroon",
+    "Glucose (g/L)"     = "gold",
+    "Fructose (g/L)"    = "forestgreen",
+    "Glycerol (g/L)"    = "grey",
+    "Ethanol (g/L)"     = "sienna"
+  )
+  
+  # Initialize the base plot
+  p <- ggplot(df, aes(x = `Time (h)`))
+  
+  # Iterate over each base metabolite name
+  for (base_metab in names(metabolites_map)) {
+    
+    # Construct the column names based on the tube number
+    val_col <- paste(tube_num, base_metab) 
+    stdev_col <- paste("StDev", val_col) 
+    
+    # Add the layers. 
+    # Use !! (bang-bang) to inject the literal string of the metabolite name 
+    # into the aesthetic mapping right now, rather than evaluating it later.
+    p <- p +
+      geom_line(aes(y = .data[[val_col]], color = !!base_metab)) +
+      geom_point(aes(y = .data[[val_col]], color = !!base_metab)) +
+      geom_errorbar(aes(
+        ymin = .data[[val_col]] - .data[[stdev_col]],
+        ymax = .data[[val_col]] + .data[[stdev_col]],
+        color = !!base_metab
+      ), width = 3)
+  }
+  
+  # Add the final formatting
+  p <- p +
+    # Use scale_color_manual to map the names we injected above to their respective colors
+    scale_color_manual(
+      name = "Metabolites", 
+      values = metabolites_map
+    ) +
+    labs(
+      title = paste("HPLC TT", tube_num, sep = ""), 
+      x = "Time (h)", 
+      y = "Concentration (g/L)"
+    ) +
+    theme_minimal() + 
+    theme(legend.position = "right")
+  
+  return(p)
 }
 
 ##GC Esters TT1 ---------------------------------------------------------

@@ -165,8 +165,10 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
   
   # HPLC plots
-  output$hplcTT1Plot <- renderPlot({ req(hplc()); plot_hplc_tt1(hplc()) })
-  output$hplcTT2Plot <- renderPlot({ req(hplc()); plot_hplc_tt2(hplc()) })
+#  output$hplcTT1Plot <- renderPlot({ req(hplc()); plot_hplc_tt1(hplc()) })
+#  output$hplcTT2Plot <- renderPlot({ req(hplc()); plot_hplc_tt2(hplc()) })
+  output$hplcTT1Plot <- renderPlot({ req(hplc()); plot_hplc_tube(hplc(), tube_num = 1) })
+  output$hplcTT2Plot <- renderPlot({ req(hplc()); plot_hplc_tube(hplc(), tube_num = 2) })
   
   # GC Esters plots
   output$gcEstersTT1Plot <- renderPlot({ req(gc_esters()); plot_gc_esters_tt1(gc_esters()) })
