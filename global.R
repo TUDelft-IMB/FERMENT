@@ -33,7 +33,7 @@ library(purrr)
 # -----------------------------------------------------------------------------
 
 # Change path accordingly
-EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "/PATH/PATH")
+EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "/Users/eknibbe1/Ferment_local_datavis/excel_files")
 
 # -----------------------------------------------------------------------------
 # LOAD DATA
@@ -167,113 +167,109 @@ plot_hplc_tube <- function(df, tube_num) {
   return(p)
 }
 
-##GC Esters TT1 ---------------------------------------------------------
-
-plot_gc_esters_tt1 <- function(gc) {
-  ggplot(gc) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethyl acetate`, colour = "skyblue")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethyl acetate`, colour = "skyblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethyl acetate` - `StDev 1 Ethyl acetate`, ymax = `1 Ethyl acetate` + `StDev 1 Ethyl acetate`, width = 3, colour = "skyblue")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethanol`, colour = "maroon")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethanol`, colour = "maroon")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethanol` - `StDev 1 Ethanol`, ymax = `1 Ethanol` + `StDev 1 Ethanol`, width = 3, colour = "maroon")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Isobutyl acetate`, colour = "gold")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Isobutyl acetate`, colour = "gold")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Isobutyl acetate` - `StDev 1 Isobutyl acetate`, ymax = `1 Isobutyl acetate` + `StDev 1 Isobutyl acetate`, width = 3, colour = "gold")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethyl butyrate`, colour = "forestgreen")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethyl butyrate`, colour = "forestgreen")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethyl butyrate` - `StDev 1 Ethyl butyrate`, ymax = `1 Ethyl butyrate` + `StDev 1 Ethyl butyrate`, width = 3, colour = "forestgreen")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Isobutanol`, colour = "grey")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Isobutanol`, colour = "grey")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Isobutanol` - `StDev 1 Isobutanol`, ymax = `1 Isobutanol` + `StDev 1 Isobutanol`, width = 3, colour = "grey")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Isoamyl acetate`, colour = "sienna")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Isoamyl acetate`, colour = "sienna")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Isoamyl acetate` - `StDev 1 Isoamyl acetate`, ymax = `1 Isoamyl acetate` + `StDev 1 Isoamyl acetate`, width = 3, colour = "sienna")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Isoamyl alcohol`, colour = "darkred")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Isoamyl alcohol`, colour = "darkred")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Isoamyl alcohol` - `StDev 1 Isoamyl alcohol`, ymax = `1 Isoamyl alcohol` + `StDev 1 Isoamyl alcohol`, width = 3, colour = "darkred")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethyl hexanoate`, colour = "darkgreen")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethyl hexanoate`, colour = "darkgreen")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethyl hexanoate` - `StDev 1 Ethyl hexanoate`, ymax = `1 Ethyl hexanoate` + `StDev 1 Ethyl hexanoate`, width = 3, colour = "darkgreen")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethyl octanoate`, colour = "lavender")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethyl octanoate`, colour = "lavender")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethyl octanoate` - `StDev 1 Ethyl octanoate`, ymax = `1 Ethyl octanoate` + `StDev 1 Ethyl octanoate`, width = 3, colour = "lavender")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethyl decanoate`, colour = "darkblue")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethyl decanoate`, colour = "darkblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethyl decanoate` - `StDev 1 Ethyl decanoate`, ymax = `1 Ethyl decanoate` + `StDev 1 Ethyl decanoate`, width = 3, colour = "darkblue")) +
-    scale_colour_identity(name = "Metabolites", guide = "legend", breaks = gc_ester_colours, labels = gc_ester_labels) +
-    labs(title = "GC Esters TT1", x = "Time (h)", y = "Concentration (mg/L)") +
-    theme_minimal() + theme(legend.position = "right")
+## GC Esters TT1 & TT2 --------------------------------------------------------------
+plot_gc_esters_tube <- function(df, tube_num) {
+  # Map base metabolite names to their colors
+  metabolites_map <- c("Ethyl acetate"     = "skyblue",
+                       "Ethanol"           = "maroon",
+                       "Isobutyl acetate"  = "gold",
+                       "Ethyl butyrate"    = "forestgreen",
+                       "Isobutanol"        = "grey",
+                       "Isoamyl acetate"   = "sienna",
+                       "Isoamyl alcohol"   = "darkred",
+                       "Ethyl hexanoate"   = "darkgreen",
+                       "Ethyl octanoate"   = "lavender",
+                       "Ethyl decanoate"   = "darkblue"
+                       )
+  # Initialize the base plot
+  p <- ggplot(df, aes(x = `Time (h)`))
+  
+  # Iterate over each base metabolite name
+  for (base_metab in names(metabolites_map)) {
+    
+    # Construct the column names based on the tube number
+    val_col <- paste(tube_num, base_metab) 
+    stdev_col <- paste("StDev", val_col) 
+    
+    # Add the layers. 
+    # Use !! (bang-bang) to inject the literal string of the metabolite name 
+    # into the aesthetic mapping right now, rather than evaluating it later.
+    p <- p +
+      geom_line(aes(y = .data[[val_col]], color = !!base_metab)) +
+      geom_point(aes(y = .data[[val_col]], color = !!base_metab)) +
+      geom_errorbar(aes(
+        ymin = .data[[val_col]] - .data[[stdev_col]],
+        ymax = .data[[val_col]] + .data[[stdev_col]],
+        color = !!base_metab
+      ), width = 3)
+  }
+  
+  # Add the final formatting
+  p <- p +
+    # Use scale_color_manual to map the names we injected above to their respective colors
+    scale_color_manual(
+      name = "Metabolites", 
+      values = metabolites_map
+    ) +
+    labs(
+      title = paste("GC Esters TT", tube_num, sep = ""), 
+      x = "Time (h)", 
+      y = "Concentration (mg/L)"
+    ) +
+    theme_minimal() + 
+    theme(legend.position = "right")
+  
+  return(p)
 }
 
-## GC Esters TT2 -----------------------------------------------------------
 
-plot_gc_esters_tt2 <- function(gc) {
-  ggplot(gc) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethyl acetate`, colour = "skyblue")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethyl acetate`, colour = "skyblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethyl acetate` - `StDev 2 Ethyl acetate`, ymax = `2 Ethyl acetate` + `StDev 2 Ethyl acetate`, width = 3, colour = "skyblue")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethanol`, colour = "maroon")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethanol`, colour = "maroon")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethanol` - `StDev 2 Ethanol`, ymax = `2 Ethanol` + `StDev 2 Ethanol`, width = 3, colour = "maroon")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Isobutyl acetate`, colour = "gold")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Isobutyl acetate`, colour = "gold")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Isobutyl acetate` - `StDev 2 Isobutyl acetate`, ymax = `2 Isobutyl acetate` + `StDev 2 Isobutyl acetate`, width = 3, colour = "gold")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethyl butyrate`, colour = "forestgreen")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethyl butyrate`, colour = "forestgreen")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethyl butyrate` - `StDev 2 Ethyl butyrate`, ymax = `2 Ethyl butyrate` + `StDev 2 Ethyl butyrate`, width = 3, colour = "forestgreen")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Isobutanol`, colour = "grey")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Isobutanol`, colour = "grey")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Isobutanol` - `StDev 2 Isobutanol`, ymax = `2 Isobutanol` + `StDev 2 Isobutanol`, width = 3, colour = "grey")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Isoamyl acetate`, colour = "sienna")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Isoamyl acetate`, colour = "sienna")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Isoamyl acetate` - `StDev 2 Isoamyl acetate`, ymax = `2 Isoamyl acetate` + `StDev 2 Isoamyl acetate`, width = 3, colour = "sienna")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Isoamyl alcohol`, colour = "darkred")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Isoamyl alcohol`, colour = "darkred")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Isoamyl alcohol` - `StDev 2 Isoamyl alcohol`, ymax = `2 Isoamyl alcohol` + `StDev 2 Isoamyl alcohol`, width = 3, colour = "darkred")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethyl hexanoate`, colour = "darkgreen")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethyl hexanoate`, colour = "darkgreen")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethyl hexanoate` - `StDev 2 Ethyl hexanoate`, ymax = `2 Ethyl hexanoate` + `StDev 2 Ethyl hexanoate`, width = 3, colour = "darkgreen")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethyl octanoate`, colour = "lavender")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethyl octanoate`, colour = "lavender")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethyl octanoate` - `StDev 2 Ethyl octanoate`, ymax = `2 Ethyl octanoate` + `StDev 2 Ethyl octanoate`, width = 3, colour = "lavender")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethyl decanoate`, colour = "darkblue")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethyl decanoate`, colour = "darkblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethyl decanoate` - `StDev 2 Ethyl decanoate`, ymax = `2 Ethyl decanoate` + `StDev 2 Ethyl decanoate`, width = 3, colour = "darkblue")) +
-    scale_colour_identity(name = "Metabolites", guide = "legend", breaks = gc_ester_colours, labels = gc_ester_labels) +
-    labs(title = "GC Esters TT2", x = "Time (h)", y = "Concentration (mg/L)") +
-    theme_minimal() + theme(legend.position = "right")
-}
+## GC Ketones TT1 & TT2 --------------------------------------------------------------
+plot_gc_esters_tube <- function(df, tube_num) {
+  # Map base metabolite names to their colors
+  metabolites_map <- c("Diacetyl"          = "skyblue",
+                       "2,3-Pentanedione"  = "sienna"
+                       )
+  # Initialize the base plot
+  p <- ggplot(df, aes(x = `Time (h)`))
+  
+  # Iterate over each base metabolite name
+  for (base_metab in names(metabolites_map)) {
+    
+    # Construct the column names based on the tube number
+    val_col <- paste(tube_num, base_metab) 
+    stdev_col <- paste("StDev", val_col) 
+    
+    # Add the layers. 
+    # Use !! (bang-bang) to inject the literal string of the metabolite name 
+    # into the aesthetic mapping right now, rather than evaluating it later.
+    p <- p +
+      geom_line(aes(y = .data[[val_col]], color = !!base_metab)) +
+      geom_point(aes(y = .data[[val_col]], color = !!base_metab)) +
+      geom_errorbar(aes(
+        ymin = .data[[val_col]] - .data[[stdev_col]],
+        ymax = .data[[val_col]] + .data[[stdev_col]],
+        color = !!base_metab
+      ), width = 3)
+  }
+  
+  # Add the final formatting
+  p <- p +
+    # Use scale_color_manual to map the names we injected above to their respective colors
+    scale_color_manual(
+      name = "Metabolites", 
+      values = metabolites_map
+    ) +
+    labs(
+      title = paste("GC Ketones TT", tube_num, sep = ""), 
+      x = "Time (h)", 
+      y = "Concentration (mg/L)"
+    ) +
+    theme_minimal() + 
+    theme(legend.position = "right")
+  
+  return(p)
+  }
 
-## GC Ketones TT1 --------------------------------------------------------
-
-plot_gc_ketones_tt1 <- function(gck) {
-  ggplot(gck) +
-    geom_line(aes(x = `Time (h)`, y = `1 Diacetyl`, colour = "skyblue")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Diacetyl`, colour = "skyblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Diacetyl` - `StDev 1 Diacetyl`, ymax = `1 Diacetyl` + `StDev 1 Diacetyl`, width = 3, colour = "skyblue")) +
-    geom_line(aes(x = `Time (h)`, y = `1 2,3-Pentanedione`, colour = "sienna")) +
-    geom_point(aes(x = `Time (h)`, y = `1 2,3-Pentanedione`, colour = "sienna")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 2,3-Pentanedione` - `StDev 1 2,3-Pentanedione`, ymax = `1 2,3-Pentanedione` + `StDev 1 2,3-Pentanedione`, width = 3, colour = "sienna")) +
-    scale_colour_identity(name = "Diketones", guide = "legend", breaks = gc_ketone_colours, labels = gc_ketone_labels) +
-    labs(title = "GC Ketones TT1", x = "Time (h)", y = "Concentration (mg/L)") +
-    theme_minimal() + theme(legend.position = "right")
-}
-
-## GC Ketones TT2 --------------------------------------------------------
-
-plot_gc_ketones_tt2 <- function(gck) {
-  ggplot(gck) +
-    geom_line(aes(x = `Time (h)`, y = `2 Diacetyl`, colour = "skyblue")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Diacetyl`, colour = "skyblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Diacetyl` - `StDev 2 Diacetyl`, ymax = `2 Diacetyl` + `StDev 2 Diacetyl`, width = 3, colour = "skyblue")) +
-    geom_line(aes(x = `Time (h)`, y = `2 2,3-Pentanedione`, colour = "sienna")) +
-    geom_point(aes(x = `Time (h)`, y = `2 2,3-Pentanedione`, colour = "sienna")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 2,3-Pentanedione` - `StDev 2 2,3-Pentanedione`, ymax = `2 2,3-Pentanedione` + `StDev 2 2,3-Pentanedione`, width = 3, colour = "sienna")) +
-    scale_colour_identity(name = "Diketones", guide = "legend", breaks = gc_ketone_colours, labels = gc_ketone_labels) +
-    labs(title = "GC Ketones TT2", x = "Time (h)", y = "Concentration (mg/L)") +
-    theme_minimal() + theme(legend.position = "right")
-}
 
 ## Attenuation -----------------------------------------------------------
 
