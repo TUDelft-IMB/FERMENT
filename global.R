@@ -224,7 +224,7 @@ plot_gc_esters_tube <- function(df, tube_num) {
 
 
 ## GC Ketones TT1 & TT2 --------------------------------------------------------------
-plot_gc_esters_tube <- function(df, tube_num) {
+plot_gc_ketones_tube <- function(df, tube_num) {
   # Map base metabolite names to their colors
   metabolites_map <- c("Diacetyl"          = "skyblue",
                        "2,3-Pentanedione"  = "sienna"
