@@ -1,0 +1,2 @@
+# Set path to the folder that holds all .xlsx files.
+TT_EXCEL_DIR=/PATH/PATH
