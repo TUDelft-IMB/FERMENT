@@ -165,16 +165,24 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
   
   # HPLC plots
-  output$hplcTT1Plot <- renderPlot({ req(hplc()); plot_hplc_tt1(hplc()) })
-  output$hplcTT2Plot <- renderPlot({ req(hplc()); plot_hplc_tt2(hplc()) })
+#  output$hplcTT1Plot <- renderPlot({ req(hplc()); plot_hplc_tt1(hplc()) })
+#  output$hplcTT2Plot <- renderPlot({ req(hplc()); plot_hplc_tt2(hplc()) })
+  output$hplcTT1Plot <- renderPlot({ req(hplc()); plot_hplc_tube(hplc(), tube_num = 1) })
+  output$hplcTT2Plot <- renderPlot({ req(hplc()); plot_hplc_tube(hplc(), tube_num = 2) })
   
   # GC Esters plots
-  output$gcEstersTT1Plot <- renderPlot({ req(gc_esters()); plot_gc_esters_tt1(gc_esters()) })
-  output$gcEstersTT2Plot <- renderPlot({ req(gc_esters()); plot_gc_esters_tt2(gc_esters()) })
+  
+  #output$gcEstersTT1Plot <- renderPlot({ req(gc_esters()); plot_gc_esters_tt1(gc_esters()) })
+  #output$gcEstersTT2Plot <- renderPlot({ req(gc_esters()); plot_gc_esters_tt2(gc_esters()) })
+  output$gcEstersTT1Plot <- renderPlot({ req(gc_esters()); plot_gc_esters_tube(gc_esters(), tube_num = 1) })
+  output$gcEstersTT2Plot <- renderPlot({ req(gc_esters()); plot_gc_esters_tube(gc_esters(), tube_num = 2) })
+  
   
   # GC Ketones plots
-  output$gcKetonesTT1Plot <- renderPlot({ req(gc_ketones()); plot_gc_ketones_tt1(gc_ketones()) })
-  output$gcKetonesTT2Plot <- renderPlot({ req(gc_ketones()); plot_gc_ketones_tt2(gc_ketones()) })
+  #output$gcKetonesTT1Plot <- renderPlot({ req(gc_ketones()); plot_gc_ketones_tt1(gc_ketones()) })
+  #output$gcKetonesTT2Plot <- renderPlot({ req(gc_ketones()); plot_gc_ketones_tt2(gc_ketones()) })
+  output$gcKetonesTT1Plot <- renderPlot({ req(gc_ketones()); plot_gc_ketones_tube(gc_ketones(), tube_num = 1) })
+  output$gcKetonesTT2Plot <- renderPlot({ req(gc_ketones()); plot_gc_ketones_tube(gc_ketones(), tube_num = 2) })
   
   # Attenuation & pH plots
   output$attPlot <- renderPlot({ req(att()); plot_att(att()) })
