@@ -33,7 +33,8 @@ library(purrr)
 # -----------------------------------------------------------------------------
 
 # Change path accordingly
-EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "/Users/eknibbe1/Ferment_local_datavis/excel_files")
+
+EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "PATH/PATH")
 
 # -----------------------------------------------------------------------------
 # LOAD DATA
