@@ -93,7 +93,7 @@ ui <- fluidPage(
         # -------------------------------------------------------------------
         # AVERAGES TAB
         # Contains a multi-select for choosing experiments to overlay, then
-        # 10 sub-tabs (pill style) — one per analytical measurement.
+        # 9 sub-tabs (pill style) — one per analytical measurement.
         # The selectizeInput ID "avg_experiments" is populated by server.R.
         # The plotOutput IDs must exactly match the output$ names in server.R.
         # -------------------------------------------------------------------
