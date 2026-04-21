@@ -30,8 +30,9 @@ ui <- fluidPage(
       # -----------------------------------------------------------------------
       # Note to the last entry above:
       # Experiments dropdown: shows only files that match the filters above.
-      # The label shown is "Experiment #"; the value passed to the server is
-      # the actual filename (used to load the correct workbook).
+      # The labels shown are of the form "Experiment #<number>"; the value
+      # passed to the server is the actual filename (used to load the correct
+      # workbook).
       # -----------------------------------------------------------------------
       
       # visual separator
