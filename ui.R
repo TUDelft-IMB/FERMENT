@@ -30,8 +30,8 @@ ui <- fluidPage(
       # -----------------------------------------------------------------------
       # Note to the last entry above:
       # Experiments dropdown: shows only files that match the filters above.
-      # The label shown is "Experiment #<number>"; the value passed to the
-      # server is the actual filename (used to load the correct workbook).
+      # The label shown is "Experiment #"; the value passed to the server is
+      # the actual filename (used to load the correct workbook).
       # -----------------------------------------------------------------------
       
       # visual separator
@@ -51,6 +51,9 @@ ui <- fluidPage(
       
       tabsetPanel(
         
+        # -------------------------------------------------------------------
+        # SINGLE-EXPERIMENT TABS
+        # -------------------------------------------------------------------
         tabPanel("HPLC",
                  fluidRow(
                    column(6, plotOutput("hplcTT1Plot", height = "400px")),
@@ -74,8 +77,8 @@ ui <- fluidPage(
         
         tabPanel("Attenuation & pH",
                  fluidRow(
-                   column(6, plotOutput("attPlot",  height = "400px")),
-                   column(6, plotOutput("phPlot",   height = "400px"))
+                   column(6, plotOutput("attPlot", height = "400px")),
+                   column(6, plotOutput("phPlot",  height = "400px"))
                  )
         ),
         
@@ -84,8 +87,86 @@ ui <- fluidPage(
                    column(6, plotOutput("cellCountPlot", height = "400px")),
                    column(6, plotOutput("viabilityPlot", height = "400px"))
                  )
-        )
+        ),
         
+        # -------------------------------------------------------------------
+        # AVERAGES TAB
+        # Contains a multi-select for choosing experiments to overlay, then
+        # 10 sub-tabs (pill style) — one per analytical measurement.
+        # The selectizeInput ID "avg_experiments" is populated by server.R.
+        # The plotOutput IDs must exactly match the output$ names in server.R.
+        # -------------------------------------------------------------------
+        
+        tabPanel("Averages",
+                 br(),
+                 wellPanel(
+                   selectizeInput(
+                     inputId  = "avg_experiments",
+                     label    = "Select experiments to overlay:",
+                     choices  = NULL,
+                     multiple = TRUE,
+                     options  = list(placeholder = "Choose one or more experiments...")
+                   )
+                 ),
+                 tabsetPanel(
+                   type = "pills",
+                   
+                   tabPanel("Sugars & Ethanol",
+                            fluidRow(
+                              column(12, plotOutput("avgHplcPlot", height = "450px"))
+                            )
+                   ),
+                   
+                   tabPanel("Esters",
+                            fluidRow(
+                              column(6, plotOutput("avgEthylEstersBarPlot",   height = "450px")),
+                              column(6, plotOutput("avgAcetateEstersBarPlot", height = "450px"))
+                            )
+                   ),
+                   
+                   tabPanel("Higher Alcohols",
+                            fluidRow(
+                              column(12, plotOutput("avgHigherAlcoholsBarPlot", height = "450px"))
+                            )
+                   ),
+                   
+                   tabPanel("Vicinal Diketones",
+                            fluidRow(
+                              column(12, plotOutput("avgDiketonesPlot", height = "450px"))
+                            )
+                   ),
+                   
+                   tabPanel("Attenuation",
+                            fluidRow(
+                              column(12, plotOutput("avgAttenuationPlot", height = "450px"))
+                            )
+                   ),
+                   
+                   tabPanel("pH",
+                            fluidRow(
+                              column(12, plotOutput("avgPhPlot", height = "450px"))
+                            )
+                   ),
+                   
+                   tabPanel("Cell Count",
+                            fluidRow(
+                              column(12, plotOutput("avgCellCountPlot", height = "450px"))
+                            )
+                   ),
+                   
+                   tabPanel("Viability",
+                            fluidRow(
+                              column(12, plotOutput("avgViabilityPlot", height = "450px"))
+                            )
+                   ),
+                   
+                   tabPanel("Cone Viability",
+                            fluidRow(
+                              column(12, plotOutput("avgConeViabilityPlot", height = "450px"))
+                            )
+                   )
+                 )
+        )
       )
     )
   )
