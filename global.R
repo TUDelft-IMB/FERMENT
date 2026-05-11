@@ -595,7 +595,7 @@ plot_avg_viability <- function(df_list, exp_labels) {
 }
 
 # Ethyl esters stacked bar — uses ethyl_ester_labels and ethyl_ester_colours
-plot_avg_heavy_esters_bar <- function(df_list, exp_labels) {
+plot_avg_ethyl_esters_bar <- function(df_list, exp_labels) {
   plot_avg_stacked_bar(df_list, exp_labels,
     avg_cols     = c("Ethyl_butyrate_avg_normalized",  "Ethyl_hexanoate_avg_normalized",
                      "Ethyl_octanoate_avg_normalized", "Ethyl_decanoate_avg_normalized"),
