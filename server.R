@@ -96,28 +96,28 @@ server <- function(input, output, session) {
   output$total_experiments_count <- renderText({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return("0")
-    paste0("<h2 style='color: #2c3e50; margin: 0;'>", nrow(meta), "</h2>")
+    paste0(" ", nrow(meta), " ")
   })
   
   output$unique_strains_count <- renderText({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return("0")
     n_strains <- length(unique(meta$strain))
-    paste0("<h2 style='color: #2c3e50; margin: 0;'>", n_strains, "</h2>")
+    paste0(" ", n_strains, " ")
   })
   
   output$unique_species_count <- renderText({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return("0")
     n_species <- length(unique(meta$species))
-    paste0("<h2 style='color: #2c3e50; margin: 0;'>", n_species, "</h2>")
+    paste0(" ", n_species, " ")
   })
   
   output$unique_temps_count <- renderText({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return("0")
     n_temps <- length(unique(meta$temperature))
-    paste0("<h2 style='color: #2c3e50; margin: 0;'>", n_temps, "</h2>")
+    paste0(" ", n_temps, " ")
   })
   
   output$experiments_per_strain_plot <- renderPlot({
