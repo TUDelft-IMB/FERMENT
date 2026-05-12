@@ -24,6 +24,7 @@ library(tidyr)
 library(ggplot2)
 library(janitor)
 library(purrr)
+library(scales)   # percent_format() used in cone viability plot
 
 # -----------------------------------------------------------------------------
 # CONFIG
@@ -33,15 +34,14 @@ library(purrr)
 # -----------------------------------------------------------------------------
 
 # Change path accordingly
-EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "/PATH/PATH")
+
+#EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "PATH/PATH")
+
 
 # -----------------------------------------------------------------------------
 # LOAD DATA
-# read_tt_workbook() reads every sheet from a single Excel workbook into a
-# named list, so each sheet becomes one data frame accessible by name.
-# The "Attenuation" and "pH" sheets need special treatment: their first
-# data row is actually a second header, so row_to_names() promotes it and
-# type.convert() makes all columns the correct data type automatically.
+# read_tt_workbook() reads every sheet from a single workbook into a named list.
+# Attenuation and pH sheets have a second header row that needs promoting.
 # -----------------------------------------------------------------------------
 
 read_tt_workbook <- function(file_path) {
@@ -71,11 +71,18 @@ read_tt_workbook <- function(file_path) {
   data_list
 }
 
+# read_avg_sheet() reads only the averages_to_plot sheet.
+# Returns NULL silently if the sheet is missing
+# [TODO] - decide on this functionality!
+read_avg_sheet <- function(file_path) {
+  tryCatch(
+    read_excel(file_path, sheet = "averages_to_plot", col_names = TRUE),
+    error = function(e) NULL
+  )
+}
+
 # -----------------------------------------------------------------------------
-# COLOUR HELPERS
-# These vectors map colours to metabolite/compound names and are reused
-# across all plot functions to keep the legend consistent everywhere.
-# Each colour at position [i] corresponds to the label at position [i].
+# COLOUR HELPERS — single-experiment plots
 # -----------------------------------------------------------------------------
 
 # HPLC: 6 metabolites
@@ -95,186 +102,187 @@ gc_ketone_labels  <- c("Diacetyl", "2,3-Pentanedione")
 tt_colours <- c("skyblue", "sienna")
 tt_labels  <- c("TT1", "TT2")
 
+# -----------------------------------------------------------------------------
+# COLOUR HELPERS — averages plots
+# -----------------------------------------------------------------------------
+# One linetype per selected experiment; compounds stay colour-coded
+exp_linetypes_palette <- c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash")
+
+# Ethyl esters stacked bar
+ethyl_ester_colours <- c("darkblue", "sienna", "darkgreen", "skyblue")
+ethyl_ester_labels  <- c("Ethyl butyrate", "Ethyl hexanoate", "Ethyl octanoate", "Ethyl decanoate")
+
+# Acetate esters stacked bar
+acetate_colours <- c("skyblue", "orange", "forestgreen")
+acetate_labels  <- c("Ethyl acetate", "Isobutyl acetate", "Isoamyl acetate")
+
+# Higher alcohols stacked bar
+alcohol_colours <- c("darkblue", "orange")
+alcohol_labels  <- c("Isobutanol", "Isoamyl alcohol")
 
 # -----------------------------------------------------------------------------
-# PLOT FUNCTIONS
-# Each function takes a single data frame (one sheet from the workbook) and
-# returns a ggplot object. All plots follow the same pattern:
-#   1. geom_line  — draw connecting lines between time points
-#   2. geom_point — draw dots at each measured time point
-#   3. geom_errorbar — draw ± standard deviation bars around each point
-#   4. scale_colour_identity — tell ggplot the colour strings ARE the colours
-#      (not a factor), and build a legend from the breaks/labels vectors above
-#   5. labs — set title and axis labels
-#   6. theme_minimal + legend.position — clean look, legend on the right
-#
-# TT1 = Tall Tube 1, TT2 = Tall Tube 2
-#
-# Column names prefixed with "1 " belong to TT1, "2 " to TT2.
-# "StDev" columns hold the standard deviation used for the error bars.
+# PLOT FUNCTIONS — SINGLE EXPERIMENT
+# Each function takes one data frame and returns a ggplot object.
+# TT1/TT2 column names are constructed from tube_num inside the loop.
 # -----------------------------------------------------------------------------
 
-## HPLC TT1 --------------------------------------------------------------
+## HPLC -----------------------------------------------------------------------
 
-plot_hplc_tt1 <- function(df) {
-  ggplot(df) +
-    geom_line(aes(x = `Time (h)`, y = `1 Maltotriose (g/L)`, colour = "skyblue")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Maltotriose (g/L)`, colour = "skyblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Maltotriose (g/L)` - `StDev 1 Maltotriose (g/L)`, ymax = `1 Maltotriose (g/L)` + `StDev 1 Maltotriose (g/L)`, width = 3, colour = "skyblue")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Maltose (g/L)`, colour = "maroon")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Maltose (g/L)`, colour = "maroon")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Maltose (g/L)` - `StDev 1 Maltose (g/L)`, ymax = `1 Maltose (g/L)` + `StDev 1 Maltose (g/L)`, width = 3, colour = "maroon")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Glucose (g/L)`, colour = "gold")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Glucose (g/L)`, colour = "gold")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Glucose (g/L)` - `StDev 1 Glucose (g/L)`, ymax = `1 Glucose (g/L)` + `StDev 1 Glucose (g/L)`, width = 3, colour = "gold")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Fructose (g/L)`, colour = "forestgreen")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Fructose (g/L)`, colour = "forestgreen")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Fructose (g/L)` - `StDev 1 Fructose (g/L)`, ymax = `1 Fructose (g/L)` + `StDev 1 Fructose (g/L)`, width = 3, colour = "forestgreen")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Glycerol (g/L)`, colour = "grey")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Glycerol (g/L)`, colour = "grey")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Glycerol (g/L)` - `StDev 1 Glycerol (g/L)`, ymax = `1 Glycerol (g/L)` + `StDev 1 Glycerol (g/L)`, width = 3, colour = "grey")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethanol (g/L)`, colour = "sienna")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethanol (g/L)`, colour = "sienna")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethanol (g/L)` - `StDev 1 Ethanol (g/L)`, ymax = `1 Ethanol (g/L)` + `StDev 1 Ethanol (g/L)`, width = 3, colour = "sienna")) +
-    scale_colour_identity(name = "Metabolites", guide = "legend", breaks = hplc_colours, labels = hplc_labels) +
-    labs(title = "HPLC TT1", x = "Time (h)", y = "Concentration (g/L)") +
-    theme_minimal() + theme(legend.position = "right")
+plot_hplc_tube <- function(df, tube_num) {
+  # Map base metabolite names to their colors
+  metabolites_map <- c(
+    "Maltotriose (g/L)" = "skyblue",
+    "Maltose (g/L)"     = "maroon",
+    "Glucose (g/L)"     = "gold",
+    "Fructose (g/L)"    = "forestgreen",
+    "Glycerol (g/L)"    = "grey",
+    "Ethanol (g/L)"     = "sienna"
+  )
+  
+  # Initialize the base plot
+  p <- ggplot(df, aes(x = `Time (h)`))
+  
+  # Iterate over each base metabolite name
+  for (base_metab in names(metabolites_map)) {
+    
+    # Construct the column names based on the tube number
+    val_col <- paste(tube_num, base_metab) 
+    stdev_col <- paste("StDev", val_col) 
+    
+    # Add the layers. 
+    # Use !! (bang-bang) to inject the literal string of the metabolite name 
+    # into the aesthetic mapping right now, rather than evaluating it later.
+    p <- p +
+      geom_line(aes(y = .data[[val_col]], color = !!base_metab)) +
+      geom_point(aes(y = .data[[val_col]], color = !!base_metab)) +
+      geom_errorbar(aes(
+        ymin = .data[[val_col]] - .data[[stdev_col]],
+        ymax = .data[[val_col]] + .data[[stdev_col]],
+        color = !!base_metab
+      ), width = 3)
+  }
+  
+  # Add the final formatting
+  p <- p +
+    # Use scale_color_manual to map the names we injected above to their respective colors
+    scale_color_manual(
+      name = "Metabolites", 
+      values = metabolites_map
+    ) +
+    labs(
+      title = paste("HPLC TT", tube_num, sep = ""), 
+      x = "Time (h)", 
+      y = "Concentration (g/L)"
+    ) +
+    theme_minimal() + 
+    theme(legend.position = "right")
+  
+  return(p)
 }
 
-## HPLC TT2 --------------------------------------------------------------
-
-plot_hplc_tt2 <- function(df) {
-  ggplot(df) +
-    geom_line(aes(x = `Time (h)`, y = `2 Maltotriose (g/L)`, colour = "skyblue")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Maltotriose (g/L)`, colour = "skyblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Maltotriose (g/L)` - `StDev 2 Maltotriose (g/L)`, ymax = `2 Maltotriose (g/L)` + `StDev 2 Maltotriose (g/L)`, width = 3, colour = "skyblue")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Maltose (g/L)`, colour = "maroon")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Maltose (g/L)`, colour = "maroon")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Maltose (g/L)` - `StDev 2 Maltose (g/L)`, ymax = `2 Maltose (g/L)` + `StDev 2 Maltose (g/L)`, width = 3, colour = "maroon")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Glucose (g/L)`, colour = "gold")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Glucose (g/L)`, colour = "gold")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Glucose (g/L)` - `StDev 2 Glucose (g/L)`, ymax = `2 Glucose (g/L)` + `StDev 2 Glucose (g/L)`, width = 3, colour = "gold")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Fructose (g/L)`, colour = "forestgreen")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Fructose (g/L)`, colour = "forestgreen")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Fructose (g/L)` - `StDev 2 Fructose (g/L)`, ymax = `2 Fructose (g/L)` + `StDev 2 Fructose (g/L)`, width = 3, colour = "forestgreen")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Glycerol (g/L)`, colour = "grey")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Glycerol (g/L)`, colour = "grey")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Glycerol (g/L)` - `StDev 2 Glycerol (g/L)`, ymax = `2 Glycerol (g/L)` + `StDev 2 Glycerol (g/L)`, width = 3, colour = "grey")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethanol (g/L)`, colour = "sienna")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethanol (g/L)`, colour = "sienna")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethanol (g/L)` - `StDev 2 Ethanol (g/L)`, ymax = `2 Ethanol (g/L)` + `StDev 2 Ethanol (g/L)`, width = 3, colour = "sienna")) +
-    scale_colour_identity(name = "Metabolites", guide = "legend", breaks = hplc_colours, labels = hplc_labels) +
-    labs(title = "HPLC TT2", x = "Time (h)", y = "Concentration (g/L)") +
-    theme_minimal() + theme(legend.position = "right")
+## GC Esters ------------------------------------------------------------------
+plot_gc_esters_tube <- function(df, tube_num) {
+  # Map base metabolite names to their colors
+  metabolites_map <- c("Ethyl acetate"     = "skyblue",
+                       "Ethanol"           = "maroon",
+                       "Isobutyl acetate"  = "gold",
+                       "Ethyl butyrate"    = "forestgreen",
+                       "Isobutanol"        = "grey",
+                       "Isoamyl acetate"   = "sienna",
+                       "Isoamyl alcohol"   = "darkred",
+                       "Ethyl hexanoate"   = "darkgreen",
+                       "Ethyl octanoate"   = "lavender",
+                       "Ethyl decanoate"   = "darkblue"
+                       )
+  # Initialize the base plot
+  p <- ggplot(df, aes(x = `Time (h)`))
+  
+  # Iterate over each base metabolite name
+  for (base_metab in names(metabolites_map)) {
+    
+    # Construct the column names based on the tube number
+    val_col <- paste(tube_num, base_metab) 
+    stdev_col <- paste("StDev", val_col) 
+    
+    # Add the layers. 
+    # Use !! (bang-bang) to inject the literal string of the metabolite name 
+    # into the aesthetic mapping right now, rather than evaluating it later.
+    p <- p +
+      geom_line(aes(y = .data[[val_col]], color = !!base_metab)) +
+      geom_point(aes(y = .data[[val_col]], color = !!base_metab)) +
+      geom_errorbar(aes(
+        ymin = .data[[val_col]] - .data[[stdev_col]],
+        ymax = .data[[val_col]] + .data[[stdev_col]],
+        color = !!base_metab
+      ), width = 3)
+  }
+  
+  # Add the final formatting
+  p <- p +
+    # Use scale_color_manual to map the names we injected above to their respective colors
+    scale_color_manual(
+      name = "Metabolites", 
+      values = metabolites_map
+    ) +
+    labs(
+      title = paste("GC Esters TT", tube_num, sep = ""), 
+      x = "Time (h)", 
+      y = "Concentration (mg/L)"
+    ) +
+    theme_minimal() + 
+    theme(legend.position = "right")
+  
+  return(p)
 }
 
-##GC Esters TT1 ---------------------------------------------------------
 
-plot_gc_esters_tt1 <- function(gc) {
-  ggplot(gc) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethyl acetate`, colour = "skyblue")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethyl acetate`, colour = "skyblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethyl acetate` - `StDev 1 Ethyl acetate`, ymax = `1 Ethyl acetate` + `StDev 1 Ethyl acetate`, width = 3, colour = "skyblue")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethanol`, colour = "maroon")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethanol`, colour = "maroon")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethanol` - `StDev 1 Ethanol`, ymax = `1 Ethanol` + `StDev 1 Ethanol`, width = 3, colour = "maroon")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Isobutyl acetate`, colour = "gold")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Isobutyl acetate`, colour = "gold")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Isobutyl acetate` - `StDev 1 Isobutyl acetate`, ymax = `1 Isobutyl acetate` + `StDev 1 Isobutyl acetate`, width = 3, colour = "gold")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethyl butyrate`, colour = "forestgreen")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethyl butyrate`, colour = "forestgreen")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethyl butyrate` - `StDev 1 Ethyl butyrate`, ymax = `1 Ethyl butyrate` + `StDev 1 Ethyl butyrate`, width = 3, colour = "forestgreen")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Isobutanol`, colour = "grey")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Isobutanol`, colour = "grey")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Isobutanol` - `StDev 1 Isobutanol`, ymax = `1 Isobutanol` + `StDev 1 Isobutanol`, width = 3, colour = "grey")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Isoamyl acetate`, colour = "sienna")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Isoamyl acetate`, colour = "sienna")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Isoamyl acetate` - `StDev 1 Isoamyl acetate`, ymax = `1 Isoamyl acetate` + `StDev 1 Isoamyl acetate`, width = 3, colour = "sienna")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Isoamyl alcohol`, colour = "darkred")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Isoamyl alcohol`, colour = "darkred")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Isoamyl alcohol` - `StDev 1 Isoamyl alcohol`, ymax = `1 Isoamyl alcohol` + `StDev 1 Isoamyl alcohol`, width = 3, colour = "darkred")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethyl hexanoate`, colour = "darkgreen")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethyl hexanoate`, colour = "darkgreen")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethyl hexanoate` - `StDev 1 Ethyl hexanoate`, ymax = `1 Ethyl hexanoate` + `StDev 1 Ethyl hexanoate`, width = 3, colour = "darkgreen")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethyl octanoate`, colour = "lavender")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethyl octanoate`, colour = "lavender")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethyl octanoate` - `StDev 1 Ethyl octanoate`, ymax = `1 Ethyl octanoate` + `StDev 1 Ethyl octanoate`, width = 3, colour = "lavender")) +
-    geom_line(aes(x = `Time (h)`, y = `1 Ethyl decanoate`, colour = "darkblue")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Ethyl decanoate`, colour = "darkblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Ethyl decanoate` - `StDev 1 Ethyl decanoate`, ymax = `1 Ethyl decanoate` + `StDev 1 Ethyl decanoate`, width = 3, colour = "darkblue")) +
-    scale_colour_identity(name = "Metabolites", guide = "legend", breaks = gc_ester_colours, labels = gc_ester_labels) +
-    labs(title = "GC Esters TT1", x = "Time (h)", y = "Concentration (mg/L)") +
-    theme_minimal() + theme(legend.position = "right")
-}
+## GC Ketones -----------------------------------------------------------------
+plot_gc_ketones_tube <- function(df, tube_num) {
+  # Map base metabolite names to their colors
+  metabolites_map <- c("Diacetyl"          = "skyblue",
+                       "2,3-Pentanedione"  = "sienna"
+                       )
+  # Initialize the base plot
+  p <- ggplot(df, aes(x = `Time (h)`))
+  
+  # Iterate over each base metabolite name
+  for (base_metab in names(metabolites_map)) {
+    
+    # Construct the column names based on the tube number
+    val_col <- paste(tube_num, base_metab) 
+    stdev_col <- paste("StDev", val_col) 
+    
+    # Add the layers. 
+    # Use !! (bang-bang) to inject the literal string of the metabolite name 
+    # into the aesthetic mapping right now, rather than evaluating it later.
+    p <- p +
+      geom_line(aes(y = .data[[val_col]], color = !!base_metab)) +
+      geom_point(aes(y = .data[[val_col]], color = !!base_metab)) +
+      geom_errorbar(aes(
+        ymin = .data[[val_col]] - .data[[stdev_col]],
+        ymax = .data[[val_col]] + .data[[stdev_col]],
+        color = !!base_metab
+      ), width = 3)
+  }
+  
+  # Add the final formatting
+  p <- p +
+    # Use scale_color_manual to map the names we injected above to their respective colors
+    scale_color_manual(
+      name = "Metabolites", 
+      values = metabolites_map
+    ) +
+    labs(
+      title = paste("GC Ketones TT", tube_num, sep = ""), 
+      x = "Time (h)", 
+      y = "Concentration (mg/L)"
+    ) +
+    theme_minimal() + 
+    theme(legend.position = "right")
+  
+  return(p)
+  }
 
-## GC Esters TT2 -----------------------------------------------------------
-
-plot_gc_esters_tt2 <- function(gc) {
-  ggplot(gc) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethyl acetate`, colour = "skyblue")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethyl acetate`, colour = "skyblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethyl acetate` - `StDev 2 Ethyl acetate`, ymax = `2 Ethyl acetate` + `StDev 2 Ethyl acetate`, width = 3, colour = "skyblue")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethanol`, colour = "maroon")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethanol`, colour = "maroon")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethanol` - `StDev 2 Ethanol`, ymax = `2 Ethanol` + `StDev 2 Ethanol`, width = 3, colour = "maroon")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Isobutyl acetate`, colour = "gold")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Isobutyl acetate`, colour = "gold")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Isobutyl acetate` - `StDev 2 Isobutyl acetate`, ymax = `2 Isobutyl acetate` + `StDev 2 Isobutyl acetate`, width = 3, colour = "gold")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethyl butyrate`, colour = "forestgreen")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethyl butyrate`, colour = "forestgreen")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethyl butyrate` - `StDev 2 Ethyl butyrate`, ymax = `2 Ethyl butyrate` + `StDev 2 Ethyl butyrate`, width = 3, colour = "forestgreen")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Isobutanol`, colour = "grey")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Isobutanol`, colour = "grey")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Isobutanol` - `StDev 2 Isobutanol`, ymax = `2 Isobutanol` + `StDev 2 Isobutanol`, width = 3, colour = "grey")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Isoamyl acetate`, colour = "sienna")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Isoamyl acetate`, colour = "sienna")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Isoamyl acetate` - `StDev 2 Isoamyl acetate`, ymax = `2 Isoamyl acetate` + `StDev 2 Isoamyl acetate`, width = 3, colour = "sienna")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Isoamyl alcohol`, colour = "darkred")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Isoamyl alcohol`, colour = "darkred")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Isoamyl alcohol` - `StDev 2 Isoamyl alcohol`, ymax = `2 Isoamyl alcohol` + `StDev 2 Isoamyl alcohol`, width = 3, colour = "darkred")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethyl hexanoate`, colour = "darkgreen")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethyl hexanoate`, colour = "darkgreen")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethyl hexanoate` - `StDev 2 Ethyl hexanoate`, ymax = `2 Ethyl hexanoate` + `StDev 2 Ethyl hexanoate`, width = 3, colour = "darkgreen")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethyl octanoate`, colour = "lavender")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethyl octanoate`, colour = "lavender")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethyl octanoate` - `StDev 2 Ethyl octanoate`, ymax = `2 Ethyl octanoate` + `StDev 2 Ethyl octanoate`, width = 3, colour = "lavender")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Ethyl decanoate`, colour = "darkblue")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Ethyl decanoate`, colour = "darkblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Ethyl decanoate` - `StDev 2 Ethyl decanoate`, ymax = `2 Ethyl decanoate` + `StDev 2 Ethyl decanoate`, width = 3, colour = "darkblue")) +
-    scale_colour_identity(name = "Metabolites", guide = "legend", breaks = gc_ester_colours, labels = gc_ester_labels) +
-    labs(title = "GC Esters TT2", x = "Time (h)", y = "Concentration (mg/L)") +
-    theme_minimal() + theme(legend.position = "right")
-}
-
-## GC Ketones TT1 --------------------------------------------------------
-
-plot_gc_ketones_tt1 <- function(gck) {
-  ggplot(gck) +
-    geom_line(aes(x = `Time (h)`, y = `1 Diacetyl`, colour = "skyblue")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Diacetyl`, colour = "skyblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 Diacetyl` - `StDev 1 Diacetyl`, ymax = `1 Diacetyl` + `StDev 1 Diacetyl`, width = 3, colour = "skyblue")) +
-    geom_line(aes(x = `Time (h)`, y = `1 2,3-Pentanedione`, colour = "sienna")) +
-    geom_point(aes(x = `Time (h)`, y = `1 2,3-Pentanedione`, colour = "sienna")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `1 2,3-Pentanedione` - `StDev 1 2,3-Pentanedione`, ymax = `1 2,3-Pentanedione` + `StDev 1 2,3-Pentanedione`, width = 3, colour = "sienna")) +
-    scale_colour_identity(name = "Diketones", guide = "legend", breaks = gc_ketone_colours, labels = gc_ketone_labels) +
-    labs(title = "GC Ketones TT1", x = "Time (h)", y = "Concentration (mg/L)") +
-    theme_minimal() + theme(legend.position = "right")
-}
-
-## GC Ketones TT2 --------------------------------------------------------
-
-plot_gc_ketones_tt2 <- function(gck) {
-  ggplot(gck) +
-    geom_line(aes(x = `Time (h)`, y = `2 Diacetyl`, colour = "skyblue")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Diacetyl`, colour = "skyblue")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 Diacetyl` - `StDev 2 Diacetyl`, ymax = `2 Diacetyl` + `StDev 2 Diacetyl`, width = 3, colour = "skyblue")) +
-    geom_line(aes(x = `Time (h)`, y = `2 2,3-Pentanedione`, colour = "sienna")) +
-    geom_point(aes(x = `Time (h)`, y = `2 2,3-Pentanedione`, colour = "sienna")) +
-    geom_errorbar(aes(x = `Time (h)`, ymin = `2 2,3-Pentanedione` - `StDev 2 2,3-Pentanedione`, ymax = `2 2,3-Pentanedione` + `StDev 2 2,3-Pentanedione`, width = 3, colour = "sienna")) +
-    scale_colour_identity(name = "Diketones", guide = "legend", breaks = gc_ketone_colours, labels = gc_ketone_labels) +
-    labs(title = "GC Ketones TT2", x = "Time (h)", y = "Concentration (mg/L)") +
-    theme_minimal() + theme(legend.position = "right")
-}
 
 ## Attenuation -----------------------------------------------------------
 
@@ -330,3 +338,211 @@ plot_viability <- function(viability) {
     theme_minimal() + theme(legend.position = "right")
 }
 
+# =============================================================================
+# PLOT FUNCTIONS — AVERAGES (averages_to_plot sheet)
+# Accept a list of data frames (one per selected experiment) plus a matching
+# vector of labels. Colour = compound, linetype = experiment.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Generic line overlay helper
+# -----------------------------------------------------------------------------
+
+plot_averages <- function(df_list, exp_labels,
+                          avg_cols, sd_cols,
+                          comp_colours, comp_labels,
+                          title = "", y_label = "", y_limits = NULL) {
+  
+  linetypes <- exp_linetypes_palette[seq_along(df_list)]
+  
+  plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    do.call(rbind, lapply(seq_along(avg_cols), function(i) {
+      avg_col <- avg_cols[i]
+      sd_col  <- if (!is.null(sd_cols)) sd_cols[i] else NA_character_
+      data.frame(
+        time       = df[["Time (h)"]],
+        value      = if (avg_col %in% names(df)) as.numeric(df[[avg_col]]) else NA_real_,
+        sd         = if (!is.na(sd_col) && sd_col %in% names(df)) as.numeric(df[[sd_col]]) else NA_real_,
+        compound   = comp_labels[i],
+        colour     = comp_colours[i],
+        experiment = exp_labels[e],
+        linetype   = linetypes[e],
+        stringsAsFactors = FALSE
+      )
+    }))
+  }))
+  plot_data <- plot_data[!is.na(plot_data$value), ]
+  
+  p <- ggplot(plot_data,
+              aes(x = time, y = value,
+                  colour   = colour,
+                  linetype = linetype,
+                  group    = interaction(compound, experiment))) +
+    geom_line() +
+    geom_point() +
+    geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
+    scale_colour_identity(name = "Compound", guide = "legend",
+                          breaks = comp_colours, labels = comp_labels) +
+    scale_linetype_identity(name = "Experiment", guide = "legend",
+                            breaks = linetypes[seq_along(df_list)], labels = exp_labels) +
+    labs(title = title, x = "Time (h)", y = y_label) +
+    theme_minimal() + theme(legend.position = "right")
+  
+  if (!is.null(y_limits)) p <- p + scale_y_continuous(limits = y_limits)
+  p
+}
+
+# -----------------------------------------------------------------------------
+# Generic stacked bar helper — uses last non-NA value (fermentation endpoint)
+# -----------------------------------------------------------------------------
+
+plot_avg_stacked_bar <- function(df_list, exp_labels,
+                                 avg_cols, comp_colours, comp_labels,
+                                 title = "", y_label = "") {
+  
+  bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    do.call(rbind, lapply(seq_along(avg_cols), function(i) {
+      vals     <- as.numeric(df[[avg_cols[i]]])
+      last_val <- if (any(!is.na(vals))) tail(vals[!is.na(vals)], 1) else NA_real_
+      data.frame(experiment = exp_labels[e],
+                 compound   = comp_labels[i],
+                 value      = last_val,
+                 stringsAsFactors = FALSE)
+    }))
+  }))
+  bar_data <- bar_data[!is.na(bar_data$value), ]
+  bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
+  bar_data$compound   <- factor(bar_data$compound,   levels = comp_labels)
+  
+  ggplot(bar_data, aes(x = "", y = value, fill = compound)) +
+    geom_col(position = "stack", width = 0.6) +
+    facet_wrap(~ experiment, nrow = 1) +
+    scale_fill_manual(name   = "Compound",
+                      values = setNames(comp_colours, comp_labels)) +
+    labs(title = title, x = NULL, y = y_label) +
+    theme_minimal() +
+    theme(legend.position = "bottom",
+          axis.text.x     = element_blank(),
+          axis.ticks.x    = element_blank(),
+          strip.text      = element_text(size = 10))
+}
+
+# -----------------------------------------------------------------------------
+# Specific averages plot functions
+# -----------------------------------------------------------------------------
+
+plot_avg_cell_count <- function(df_list, exp_labels) {
+  plot_averages(df_list, exp_labels,
+                avg_cols     = "CellCount_average",
+                sd_cols      = "CellCount_stdev",
+                comp_colours = "skyblue",
+                comp_labels  = "Cell Count",
+                title        = "Cell Count",
+                y_label      = "Cell count (cells/ml)")
+}
+
+plot_avg_viability <- function(df_list, exp_labels) {
+  plot_averages(df_list, exp_labels,
+                avg_cols     = "Viability_average",
+                sd_cols      = "Viability_stdev",
+                comp_colours = "forestgreen",
+                comp_labels  = "Viability",
+                title        = "Viability",
+                y_label      = "Viability (fraction)",
+                y_limits     = c(0, 1))
+}
+
+plot_avg_cone_viability <- function(df_list, exp_labels) {
+  bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    data.frame(
+      experiment = exp_labels[e],
+      value      = as.numeric(df[["Cone_viability_average"]][1]),
+      sd         = as.numeric(df[["Stdev_cone_viability"]][1]),
+      stringsAsFactors = FALSE
+    )
+  }))
+  bar_data <- bar_data[!is.na(bar_data$value), ]
+  bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
+  
+  ggplot(bar_data, aes(x = experiment, y = value, fill = experiment)) +
+    geom_col(width = 0.6) +
+    geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 0.15) +
+    scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
+    labs(title = "Cone Viability", x = "Experiment", y = "Cone Viability (%)") +
+    theme_minimal() + theme(legend.position = "none")
+}
+
+plot_avg_attenuation <- function(df_list, exp_labels) {
+  plot_averages(df_list, exp_labels,
+                avg_cols     = "Attenuation_average",
+                sd_cols      = "Attenuation_stdev",
+                comp_colours = "skyblue",
+                comp_labels  = "Attenuation",
+                title        = "Attenuation",
+                y_label      = "Attenuation (degrees P)")
+}
+
+plot_avg_ph <- function(df_list, exp_labels) {
+  plot_averages(df_list, exp_labels,
+                avg_cols     = "pH_average",
+                sd_cols      = "pH_stdev",
+                comp_colours = "gold",
+                comp_labels  = "pH",
+                title        = "pH",
+                y_label      = "pH",
+                y_limits     = c(0, 7))
+}
+
+plot_avg_hplc <- function(df_list, exp_labels) {
+  plot_averages(df_list, exp_labels,
+                avg_cols     = c("Maltotriose_avg","Maltose_avg","Glucose_avg",
+                                 "Fructose_avg","Glycerol_avg","Ethanol_avg"),
+                sd_cols      = c("Maltotriose_stdev","Maltose_stdev","Glucose_stdev",
+                                 "Fructose_stdev","Glycerol_stdev","Ethanol_stdev"),
+                comp_colours = hplc_colours,
+                comp_labels  = hplc_labels,
+                title        = "Sugars & Ethanol",
+                y_label      = "Concentration (g/L)")
+}
+
+plot_avg_diketones <- function(df_list, exp_labels) {
+  plot_averages(df_list, exp_labels,
+                avg_cols     = c("Diacetyl_avg","2,3-pentanedione_avg"),
+                sd_cols      = c("Diacetyl_stdev","2,3-pentanedione_stdev"),
+                comp_colours = gc_ketone_colours,
+                comp_labels  = gc_ketone_labels,
+                title        = "Vicinal Diketones",
+                y_label      = "Concentration (mg/L)")
+}
+
+plot_avg_ethyl_esters_bar <- function(df_list, exp_labels) {
+  plot_avg_stacked_bar(df_list, exp_labels,
+                       avg_cols     = c("Ethyl_butyrate_avg_normalized","Ethyl_hexanoate_avg_normalized",
+                                        "Ethyl_octanoate_avg_normalized","Ethyl_decanoate_avg_normalized"),
+                       comp_colours = ethyl_ester_colours,
+                       comp_labels  = ethyl_ester_labels,
+                       title        = "Ethyl Esters",
+                       y_label      = "Concentration (mg/L, normalised)")
+}
+
+plot_avg_acetate_esters_bar <- function(df_list, exp_labels) {
+  plot_avg_stacked_bar(df_list, exp_labels,
+                       avg_cols     = c("Ethyl_acetate_avg_normalized","Isobutyl_acetate_avg_normalized",
+                                        "Isoamyl_acetate_avg_normalized"),
+                       comp_colours = acetate_colours,
+                       comp_labels  = acetate_labels,
+                       title        = "Acetates",
+                       y_label      = "Concentration (mg/L, normalised)")
+}
+
+plot_avg_higher_alcohols_bar <- function(df_list, exp_labels) {
+  plot_avg_stacked_bar(df_list, exp_labels,
+                       avg_cols     = c("Isobutanol_avg_normalized","Isoamyl_alcohol_avg_normalized"),
+                       comp_colours = alcohol_colours,
+                       comp_labels  = alcohol_labels,
+                       title        = "Higher Alcohols",
+                       y_label      = "Concentration (mg/L, normalised)")
+}
