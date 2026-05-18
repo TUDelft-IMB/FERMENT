@@ -6,6 +6,10 @@
 #   input   - a list of current values from all UI inputs
 #   output  - a list where you assign rendered objects (plots, text, etc.)
 #   session - used to update UI elements (e.g. dropdowns)
+#
+# ALL plots are rendered with renderPlotly(ggplotly(...)) so every chart is
+# interactive. The ggplot functions live in global.R; this file just wraps
+# them in ggplotly() before handing them to the UI.
 # =============================================================================
 
 server <- function(input, output, session) {
@@ -18,15 +22,15 @@ server <- function(input, output, session) {
   # It returns a data frame with one row per experiment file, containing the
   # key experimental conditions used to populate and filter the dropdowns.
   #
-  # reactive() means this code re-runs automatically if EXCEL_DIR ever changes.
-  # In practice it runs once on startup.
+  # reactive() means this code re-runs automatically if EXCEL_DIR changes.
+  # In practice it runs once at startup.
   # ---------------------------------------------------------------------------
   
   # Build metadata table from Experimental_parameters sheet
   file_metadata <- reactive({
     # List all .xlsx files in the configured folder (filenames only, not paths)
     files <- list.files(EXCEL_DIR, pattern = "\\.xlsx$", full.names = FALSE)
-    # remove temp files before reading anything
+    # Strip out temp files created by Excel while a file is open
     files <- files[!grepl("^~\\$", files)]
     # If the folder is empty, return an empty data frame
     if (length(files) == 0) return(data.frame())
@@ -68,168 +72,46 @@ server <- function(input, output, session) {
   })
   
   # ---------------------------------------------------------------------------
-  # Step 2: Populate all filter dropdowns with the unique values found in
-  # the metadata table. "All" is prepended for each dropdown.
-  # Also populates avg_experiments with every available experiment.
+  # Step 2: Populate all filter dropdowns and the averages multi-select.
+  #
+  # This observe() block runs once when file_metadata() is first ready.
+  # "All" is prepended to each filter so the user can opt out of filtering
+  # by a particular condition. The averages multi-select gets every available
+  # experiment as a named choice (label = "Experiment #N", value = filename).
   # ---------------------------------------------------------------------------
-  
-  # Populate all dropdowns from actual data
   observe({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return()
+    
+    # Single-experiment filter dropdowns
     updateSelectInput(session, "species",     choices = c("All", sort(unique(meta$species))))
     updateSelectInput(session, "strain",      choices = c("All", sort(unique(meta$strain))))
     updateSelectInput(session, "gravity",     choices = c("All", sort(unique(meta$gravity))))
     updateSelectInput(session, "inoculum",    choices = c("All", sort(unique(meta$inoculum))))
     updateSelectInput(session, "temperature", choices = c("All", sort(unique(meta$temperature))))
     
-    # Averages multi-select: label = "Experiment #N", value = filename
+    # Averages multi-select: label shown = "Experiment #N", value sent to
+    # server = the actual filename (used to load the averages sheet)
     avg_choices <- setNames(meta$filename, paste0("Experiment #", meta$exp_number))
     updateSelectizeInput(session, "avg_experiments", choices = avg_choices, server = TRUE)
   })
   
   # ---------------------------------------------------------------------------
-  # Step 2.5: Overview Tab Metrics
-  # Compute summary statistics from the metadata for the Overview tab
-  # ---------------------------------------------------------------------------
-  
-  output$total_experiments_count <- renderText({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) return("0")
-    paste0(" ", nrow(meta), " ")
-  })
-  
-  output$unique_strains_count <- renderText({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) return("0")
-    n_strains <- length(unique(meta$strain))
-    paste0(" ", n_strains, " ")
-  })
-  
-  output$unique_species_count <- renderText({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) return("0")
-    n_species <- length(unique(meta$species))
-    paste0(" ", n_species, " ")
-  })
-  
-  output$unique_temps_count <- renderText({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) return("0")
-    n_temps <- length(unique(meta$temperature))
-    paste0(" ", n_temps, " ")
-  })
-  
-  output$experiments_per_strain_plot <- renderPlot({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) return(NULL)
-    
-    strain_counts <- meta %>%
-      group_by(strain) %>%
-      summarise(n = n(), .groups = 'drop') %>%
-      arrange(desc(n))
-    
-    ggplot(strain_counts, aes(x = reorder(strain, -n), y = n, fill = strain)) +
-      geom_bar(stat = "identity") +
-      theme_minimal() +
-      labs(x = "Strain", y = "Number of Experiments") +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1),
-            legend.position = "none",
-            panel.grid.major.y = element_line(colour = "gray90"))
-  })
-  
-  output$experiments_per_species_plot <- renderPlot({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) return(NULL)
-    
-    species_counts <- meta %>%
-      group_by(species) %>%
-      summarise(n = n(), .groups = 'drop') %>%
-      arrange(desc(n))
-    
-    ggplot(species_counts, aes(x = reorder(species, -n), y = n, fill = species)) +
-      geom_bar(stat = "identity") +
-      theme_minimal() +
-      labs(x = "Species", y = "Number of Experiments") +
-      theme(legend.position = "none",
-            panel.grid.major.y = element_line(colour = "gray90"))
-  })
-  
-  output$temperature_distribution_plot <- renderPlot({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) return(NULL)
-    
-    # Convert temperature to numeric for plotting (if stored as character)
-    temp_data <- meta %>%
-      mutate(temperature = as.numeric(temperature)) %>%
-      filter(!is.na(temperature)) %>%
-      group_by(temperature) %>%
-      summarise(n = n(), .groups = 'drop') %>%
-      arrange(temperature)
-    
-    ggplot(temp_data, aes(x = as.factor(temperature), y = n, fill = temperature)) +
-      geom_bar(stat = "identity") +
-      scale_fill_gradient(low = "lightblue", high = "darkred") +
-      theme_minimal() +
-      labs(x = "Temperature (°C)", y = "Number of Experiments") +
-      theme(legend.position = "none",
-            panel.grid.major.y = element_line(colour = "gray90"))
-  })
-  
-  output$gravity_distribution_plot <- renderPlot({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) return(NULL)
-    
-    # Convert gravity to numeric for plotting (if stored as character)
-    gravity_data <- meta %>%
-      mutate(gravity = as.numeric(gravity)) %>%
-      filter(!is.na(gravity)) %>%
-      group_by(gravity) %>%
-      summarise(n = n(), .groups = 'drop') %>%
-      arrange(gravity)
-    
-    ggplot(gravity_data, aes(x = as.factor(gravity), y = n, fill = gravity)) +
-      geom_bar(stat = "identity") +
-      scale_fill_gradient(low = "lightyellow", high = "darkgoldenrod") +
-      theme_minimal() +
-      labs(x = "Starting Gravity (SG)", y = "Number of Experiments") +
-      theme(legend.position = "none",
-            panel.grid.major.y = element_line(colour = "gray90"))
-  })
-  
-  output$conditions_summary_table <- renderTable({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) return(NULL)
-    
-    summary_table <- meta %>%
-      group_by(species, strain, gravity, temperature, inoculum) %>%
-      summarise(
-        `Exp Count` = n(),
-        `Exp Numbers` = paste(unique(exp_number), collapse = ", "),
-        .groups = 'drop'
-      ) %>%
-      arrange(species, strain, as.numeric(gravity), as.numeric(temperature))
-    
-    summary_table
-  }, striped = TRUE, hover = TRUE, spacing = 'xs', width = "100%")
-
-  # ---------------------------------------------------------------------------
-  # Step 3: Filter the list of experiments based on the current dropdown values.
+  # Step 3: Filter the single-experiment dropdown.
   #
-  # Each filter is only applied if the user has chosen something other than "All".
-  # This lets filter by any combination of conditions.
+  # Returns a named vector of filenames that match all active filter values.
+  # Each filter is only applied when the user has chosen something other
+  # than "All", so any combination of conditions is supported.
   # ---------------------------------------------------------------------------
-  
-  # Filter experiment list based on sidebar selections
   filtered_files <- reactive({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(character(0))
     
     matched <- meta
-    if (input$species     != "All") matched <- matched[matched$species     == input$species,     ]
-    if (input$strain      != "All") matched <- matched[matched$strain      == input$strain,      ]
-    if (input$gravity     != "All") matched <- matched[matched$gravity     == input$gravity,     ]
-    if (input$inoculum    != "All") matched <- matched[matched$inoculum    == input$inoculum,    ]
+    if (input$species     != "All") matched <- matched[matched$species     == input$species, ]
+    if (input$strain      != "All") matched <- matched[matched$strain      == input$strain, ]
+    if (input$gravity     != "All") matched <- matched[matched$gravity     == input$gravity, ]
+    if (input$inoculum    != "All") matched <- matched[matched$inoculum    == input$inoculum, ]
     if (input$temperature != "All") matched <- matched[matched$temperature == input$temperature, ]
     
     if (nrow(matched) == 0) return(character(0))
@@ -238,28 +120,35 @@ server <- function(input, output, session) {
   })
   
   # ---------------------------------------------------------------------------
-  # Steps 4-7: Experiment dropdown, workbook path, loading, and status
+  # Step 4: Keep the experiment dropdown in sync with the active filters.
   # ---------------------------------------------------------------------------
-  
-  # Experiments dropdown menu
   observe({
     updateSelectInput(session, "experiment", choices = filtered_files())
   })
   
-  # Build full path from selected filename
+  # ---------------------------------------------------------------------------
+  # Step 5: Build the full file path for the selected experiment.
+  # req() silently stops execution until the user has made a selection.
+  # ---------------------------------------------------------------------------
   workbook_path <- reactive({
-    req(input$experiment) # do nothing until user has selected an experiment
+    req(input$experiment)
     file.path(EXCEL_DIR, input$experiment)
   })
   
-  # Load workbook reactively (load the selected workbook using read_tt_workbook() from global.R)
+  # ---------------------------------------------------------------------------
+  # Step 6: Load the selected workbook using read_tt_workbook() from global.R.
+  # Returns NULL if the file doesn't exist (e.g. was deleted after startup).
+  # ---------------------------------------------------------------------------
   tt_data <- reactive({
     path <- workbook_path()
     if (!file.exists(path)) return(NULL)
     read_tt_workbook(path)
   })
   
-  # File status indicator in sidebar
+  # ---------------------------------------------------------------------------
+  # Step 7: Show a short status message in the sidebar confirming whether
+  # the selected file loaded successfully.
+  # ---------------------------------------------------------------------------
   output$file_status <- renderText({
     path <- workbook_path()
     if (is.null(tt_data())) {
@@ -270,136 +159,174 @@ server <- function(input, output, session) {
   })
   
   # ---------------------------------------------------------------------------
-  # Step 8: Sheet accessors — single experiment
-  # req() ensures plots only render after a workbook is loaded.
+  # Step 8: Sheet accessors — single experiment.
+  #
+  # Each reactive extracts one named sheet from the loaded workbook.
+  # req() ensures the downstream plot code only runs once a workbook is loaded.
   # Sheet names must exactly match those in the Excel files.
   # ---------------------------------------------------------------------------
-  
-  # Sheet accessors
-  hplc      <- reactive({ req(tt_data()); tt_data()[["HPLC"]]                   })
-  gc_esters <- reactive({ req(tt_data()); tt_data()[["GC_esters"]]              })
-  gc_ketones<- reactive({ req(tt_data()); tt_data()[["GC_ketones"]]             })
-  att       <- reactive({ req(tt_data()); tt_data()[["Attenuation"]]            })
-  ph        <- reactive({ req(tt_data()); tt_data()[["pH"]]                     })
-  viability <- reactive({ req(tt_data()); tt_data()[["CellCount_Viability"]]    })
-  
+  hplc       <- reactive({ req(tt_data()); tt_data()[["HPLC"]] })
+  gc_esters  <- reactive({ req(tt_data()); tt_data()[["GC_esters"]] })
+  gc_ketones <- reactive({ req(tt_data()); tt_data()[["GC_ketones"]] })
+  att        <- reactive({ req(tt_data()); tt_data()[["Attenuation"]] })
+  ph         <- reactive({ req(tt_data()); tt_data()[["pH"]] })
+  viability  <- reactive({ req(tt_data()); tt_data()[["CellCount_Viability"]] })
   
   # ---------------------------------------------------------------------------
-  # Step 9: Render plots
-  # Each renderPlot() calls the corresponding plot function from global.R,
-  # passing in the relevant sheet data frame. The output ID (e.g. "hplcTT1Plot")
-  # must match the plotOutput() ID in ui.R exactly.
-  # renderPlot() re-runs automatically whenever its reactive data changes.
+  # Step 9: Render single-experiment plots.
+  #
+  # Each output calls the matching ggplot function from global.R, then wraps
+  # it in ggplotly() so the chart is interactive:
+  #   - Hover over any point to see its exact value
+  #   - Click legend entries to show/hide individual compounds
+  #   - Drag to zoom, double-click to reset zoom
+  #
+  # The output ID (e.g. "hplcTT1Plot") must match plotlyOutput() in ui.R.
+  # renderPlotly() re-runs automatically whenever its reactive data changes.
   # ---------------------------------------------------------------------------
   
-  # HPLC plots
-
-  output$hplcTT1Plot <- renderPlot({ req(hplc()); plot_hplc_tube(hplc(), tube_num = 1) })
-  output$hplcTT2Plot <- renderPlot({ req(hplc()); plot_hplc_tube(hplc(), tube_num = 2) })
+  # HPLC: sugars and ethanol over time, TT1 and TT2 side by side
+  output$hplcTT1Plot <- renderPlotly({
+    req(hplc())
+    ggplotly(plot_hplc_tube(hplc(), tube_num = 1))
+  })
+  output$hplcTT2Plot <- renderPlotly({
+    req(hplc())
+    ggplotly(plot_hplc_tube(hplc(), tube_num = 2))
+  })
   
-  # GC Esters plots
+  # GC Esters: volatile esters over time, TT1 and TT2 side by side
+  output$gcEstersTT1Plot <- renderPlotly({
+    req(gc_esters())
+    ggplotly(plot_gc_esters_tube(gc_esters(), tube_num = 1))
+  })
+  output$gcEstersTT2Plot <- renderPlotly({
+    req(gc_esters())
+    ggplotly(plot_gc_esters_tube(gc_esters(), tube_num = 2))
+  })
   
-  output$gcEstersTT1Plot <- renderPlot({ req(gc_esters()); plot_gc_esters_tube(gc_esters(), tube_num = 1) })
-  output$gcEstersTT2Plot <- renderPlot({ req(gc_esters()); plot_gc_esters_tube(gc_esters(), tube_num = 2) })
+  # GC Ketones: diacetyl and 2,3-pentanedione over time, TT1 and TT2
+  output$gcKetonesTT1Plot <- renderPlotly({
+    req(gc_ketones())
+    ggplotly(plot_gc_ketones_tube(gc_ketones(), tube_num = 1))
+  })
+  output$gcKetonesTT2Plot <- renderPlotly({
+    req(gc_ketones())
+    ggplotly(plot_gc_ketones_tube(gc_ketones(), tube_num = 2))
+  })
   
+  # Attenuation and pH: one line per tube (TT1 and TT2)
+  output$attPlot <- renderPlotly({
+    req(att())
+    ggplotly(plot_att(att()))
+  })
+  output$phPlot <- renderPlotly({
+    req(ph())
+    ggplotly(plot_ph(ph()))
+  })
   
-  # GC Ketones plots
-
-  output$gcKetonesTT1Plot <- renderPlot({ req(gc_ketones()); plot_gc_ketones_tube(gc_ketones(), tube_num = 1) })
-  output$gcKetonesTT2Plot <- renderPlot({ req(gc_ketones()); plot_gc_ketones_tube(gc_ketones(), tube_num = 2) })
-  
-  # Attenuation & pH plots
-  output$attPlot <- renderPlot({ req(att()); plot_att(att()) })
-  output$phPlot  <- renderPlot({ req(ph());  plot_ph(ph())   })
-  
-  # Cell Count & Viability plots
-  output$cellCountPlot <- renderPlot({ req(viability()); plot_cell_count(viability()) })
-  output$viabilityPlot <- renderPlot({ req(viability()); plot_viability(viability())  })
+  # Cell Count and Viability: one line per tube (TT1 and TT2)
+  output$cellCountPlot <- renderPlotly({
+    req(viability())
+    ggplotly(plot_cell_count(viability()))
+  })
+  output$viabilityPlot <- renderPlotly({
+    req(viability())
+    ggplotly(plot_viability(viability()))
+  })
   
   # ---------------------------------------------------------------------------
   # Step 10: Averages — load data for all selected experiments
   #
-  # avg_data_list() maps input$avg_experiments (a vector of filenames) to a
-  # list of data frames, one per selected experiment, by calling
-  # read_avg_sheet() from global.R. Files where the sheet is missing are
-  # silently dropped so they don't break the plots.
+  # avg_data_list() reads the "averages_to_plot" sheet from each selected
+  # file using read_avg_sheet() from global.R. Files where that sheet is
+  # missing are silently dropped so they don't cause plot errors.
+  # [TODO - decide on behaviour]!
   #
-  # avg_exp_labels() returns the matching human-readable labels
-  # ("Experiment #N") used in plot legends.
+  # avg_exp_labels() builds the human-readable "Experiment #N" label for
+  # each loaded file, preserving the order the user selected them in.
+  # These labels are passed to the plotting functions as legend text.
   # ---------------------------------------------------------------------------
-  
   avg_data_list <- reactive({
     req(input$avg_experiments)
     result <- lapply(input$avg_experiments, function(f) {
       read_avg_sheet(file.path(EXCEL_DIR, f))
     })
     names(result) <- input$avg_experiments
-    # Drop any files where the sheet was missing
+    # Drop entries where the sheet was missing (read_avg_sheet returned NULL)
     result[!sapply(result, is.null)]
   })
   
   avg_exp_labels <- reactive({
     req(avg_data_list())
-    meta <- file_metadata()
+    meta      <- file_metadata()
     filenames <- names(avg_data_list())
     matched   <- meta[meta$filename %in% filenames, ]
-    # Preserve the order the user selected
+    # Match labels to filenames in the exact order the user selected them
     paste0("Experiment #", matched$exp_number[match(filenames, matched$filename)])
   })
   
   # ---------------------------------------------------------------------------
   # Step 11: Render averages plots
+  #
+  # Same pattern as Step 9: each output calls a ggplot function from global.R
+  # then wraps it in ggplotly(). This gives the Averages page the same
+  # interactive behaviour as the single-experiment plots, plus clickable
+  # legend items to toggle individual experiments on/off.
+  #
   # req() on avg_data_list() ensures nothing renders until at least one
   # experiment with a valid averages_to_plot sheet has been selected.
   # ---------------------------------------------------------------------------
   
-  output$avgHplcPlot <- renderPlot({
+  # Sugars & Ethanol: one line per compound per experiment
+  output$avgHplcPlot <- renderPlotly({
     req(avg_data_list())
-    plot_avg_hplc(avg_data_list(), avg_exp_labels())
+    ggplotly(plot_avg_hplc(avg_data_list(), avg_exp_labels()))
   })
   
-  output$avgEthylEstersBarPlot <- renderPlot({
+  # GC Esters: stacked bar charts — ethyl esters and acetate esters
+  output$avgEthylEstersBarPlot <- renderPlotly({
     req(avg_data_list())
-    plot_avg_ethyl_esters_bar(avg_data_list(), avg_exp_labels())
+    ggplotly(plot_avg_ethyl_esters_bar(avg_data_list(), avg_exp_labels()))
+  })
+  output$avgAcetateEstersBarPlot <- renderPlotly({
+    req(avg_data_list())
+    ggplotly(plot_avg_acetate_esters_bar(avg_data_list(), avg_exp_labels()))
   })
   
-  output$avgAcetateEstersBarPlot <- renderPlot({
+  # Higher Alcohols: stacked bar chart
+  output$avgHigherAlcoholsBarPlot <- renderPlotly({
     req(avg_data_list())
-    plot_avg_acetate_esters_bar(avg_data_list(), avg_exp_labels())
+    ggplotly(plot_avg_higher_alcohols_bar(avg_data_list(), avg_exp_labels()))
   })
   
-  output$avgHigherAlcoholsBarPlot <- renderPlot({
+  # Vicinal Diketones: diacetyl and 2,3-pentanedione over time
+  output$avgDiketonesPlot <- renderPlotly({
     req(avg_data_list())
-    plot_avg_higher_alcohols_bar(avg_data_list(), avg_exp_labels())
+    ggplotly(plot_avg_diketones(avg_data_list(), avg_exp_labels()))
   })
   
-  output$avgDiketonesPlot <- renderPlot({
+  # Attenuation, pH, Cell Count, Viability: one line per experiment
+  output$avgAttenuationPlot <- renderPlotly({
     req(avg_data_list())
-    plot_avg_diketones(avg_data_list(), avg_exp_labels())
+    ggplotly(plot_avg_attenuation(avg_data_list(), avg_exp_labels()))
+  })
+  output$avgPhPlot <- renderPlotly({
+    req(avg_data_list())
+    ggplotly(plot_avg_ph(avg_data_list(), avg_exp_labels()))
+  })
+  output$avgCellCountPlot <- renderPlotly({
+    req(avg_data_list())
+    ggplotly(plot_avg_cell_count(avg_data_list(), avg_exp_labels()))
+  })
+  output$avgViabilityPlot <- renderPlotly({
+    req(avg_data_list())
+    ggplotly(plot_avg_viability(avg_data_list(), avg_exp_labels()))
   })
   
-  output$avgAttenuationPlot <- renderPlot({
+  # Cone Viability: one bar per experiment with error bars
+  output$avgConeViabilityPlot <- renderPlotly({
     req(avg_data_list())
-    plot_avg_attenuation(avg_data_list(), avg_exp_labels())
-  })
-  
-  output$avgPhPlot <- renderPlot({
-    req(avg_data_list())
-    plot_avg_ph(avg_data_list(), avg_exp_labels())
-  })
-  
-  output$avgCellCountPlot <- renderPlot({
-    req(avg_data_list())
-    plot_avg_cell_count(avg_data_list(), avg_exp_labels())
-  })
-  
-  output$avgViabilityPlot <- renderPlot({
-    req(avg_data_list())
-    plot_avg_viability(avg_data_list(), avg_exp_labels())
-  })
-  
-  output$avgConeViabilityPlot <- renderPlot({
-    req(avg_data_list())
-    plot_avg_cone_viability(avg_data_list(), avg_exp_labels())
+    ggplotly(plot_avg_cone_viability(avg_data_list(), avg_exp_labels()))
   })
 }
