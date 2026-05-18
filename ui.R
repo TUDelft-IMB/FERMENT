@@ -15,6 +15,11 @@
 
 ui <- navbarPage(
   title = "FERMENT",
+  theme = bs_theme(
+    bootswatch = "minty",
+    primary = "#0072B2",
+    secondary = "#009E73"
+  ),
   
   # ===========================================================================
   # PAGE 1: SINGLE EXPERIMENT
