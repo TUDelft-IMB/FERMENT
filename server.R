@@ -97,6 +97,131 @@ server <- function(input, output, session) {
   })
   
   # ---------------------------------------------------------------------------
+  # Step 2.5: Overview Tab Metrics
+  # Compute summary statistics from the metadata for the Overview tab
+  # ---------------------------------------------------------------------------
+  
+  output$total_experiments_count <- renderText({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return("0")
+    paste0(" ", nrow(meta), " ")
+  })
+  
+  output$unique_strains_count <- renderText({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return("0")
+    n_strains <- length(unique(meta$strain))
+    paste0(" ", n_strains, " ")
+  })
+  
+  output$unique_species_count <- renderText({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return("0")
+    n_species <- length(unique(meta$species))
+    paste0(" ", n_species, " ")
+  })
+  
+  output$unique_temps_count <- renderText({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return("0")
+    n_temps <- length(unique(meta$temperature))
+    paste0(" ", n_temps, " ")
+  })
+  
+  output$experiments_per_strain_plot <- renderPlot({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return(NULL)
+    
+    strain_counts <- meta %>%
+      group_by(strain) %>%
+      summarise(n = n(), .groups = 'drop') %>%
+      arrange(desc(n))
+    
+    ggplot(strain_counts, aes(x = reorder(strain, -n), y = n, fill = strain)) +
+      geom_bar(stat = "identity") +
+      theme_minimal() +
+      labs(x = "Strain", y = "Number of Experiments") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "none",
+            panel.grid.major.y = element_line(colour = "gray90"))
+  })
+  
+  output$experiments_per_species_plot <- renderPlot({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return(NULL)
+    
+    species_counts <- meta %>%
+      group_by(species) %>%
+      summarise(n = n(), .groups = 'drop') %>%
+      arrange(desc(n))
+    
+    ggplot(species_counts, aes(x = reorder(species, -n), y = n, fill = species)) +
+      geom_bar(stat = "identity") +
+      theme_minimal() +
+      labs(x = "Species", y = "Number of Experiments") +
+      theme(legend.position = "none",
+            panel.grid.major.y = element_line(colour = "gray90"))
+  })
+  
+  output$temperature_distribution_plot <- renderPlot({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return(NULL)
+    
+    # Convert temperature to numeric for plotting (if stored as character)
+    temp_data <- meta %>%
+      mutate(temperature = as.numeric(temperature)) %>%
+      filter(!is.na(temperature)) %>%
+      group_by(temperature) %>%
+      summarise(n = n(), .groups = 'drop') %>%
+      arrange(temperature)
+    
+    ggplot(temp_data, aes(x = as.factor(temperature), y = n, fill = temperature)) +
+      geom_bar(stat = "identity") +
+      scale_fill_gradient(low = "lightblue", high = "darkred") +
+      theme_minimal() +
+      labs(x = "Temperature (°C)", y = "Number of Experiments") +
+      theme(legend.position = "none",
+            panel.grid.major.y = element_line(colour = "gray90"))
+  })
+  
+  output$gravity_distribution_plot <- renderPlot({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return(NULL)
+    
+    # Convert gravity to numeric for plotting (if stored as character)
+    gravity_data <- meta %>%
+      mutate(gravity = as.numeric(gravity)) %>%
+      filter(!is.na(gravity)) %>%
+      group_by(gravity) %>%
+      summarise(n = n(), .groups = 'drop') %>%
+      arrange(gravity)
+    
+    ggplot(gravity_data, aes(x = as.factor(gravity), y = n, fill = gravity)) +
+      geom_bar(stat = "identity") +
+      scale_fill_gradient(low = "lightyellow", high = "darkgoldenrod") +
+      theme_minimal() +
+      labs(x = "Starting Gravity (SG)", y = "Number of Experiments") +
+      theme(legend.position = "none",
+            panel.grid.major.y = element_line(colour = "gray90"))
+  })
+  
+  output$conditions_summary_table <- renderTable({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return(NULL)
+    
+    summary_table <- meta %>%
+      group_by(species, strain, gravity, temperature, inoculum) %>%
+      summarise(
+        `Exp Count` = n(),
+        `Exp Numbers` = paste(unique(exp_number), collapse = ", "),
+        .groups = 'drop'
+      ) %>%
+      arrange(species, strain, as.numeric(gravity), as.numeric(temperature))
+    
+    summary_table
+  }, striped = TRUE, hover = TRUE, spacing = 'xs', width = "100%")
+  
+  # ---------------------------------------------------------------------------
   # Step 3: Filter the single-experiment dropdown.
   #
   # Returns a named vector of filenames that match all active filter values.
