@@ -46,6 +46,7 @@ server <- function(input, output, session) {
         read_excel(path, sheet = "Experimental_parameters", col_names = TRUE),
         error = function(e) NULL
       )
+      
       # Skip this file if the sheet couldn't be read or has no data rows
       if (is.null(params) || nrow(params) < 1) return(NULL)
       
@@ -95,13 +96,14 @@ server <- function(input, output, session) {
     avg_choices <- setNames(meta$filename, paste0("Experiment #", meta$exp_number))
     updateSelectizeInput(session, "avg_experiments", choices = avg_choices, server = TRUE)
     
-    # Compare filter dropdowns — separate input IDs from Single Experiment so
-    # the two tabs don't interfere with each other
-    updateSelectInput(session, "cmp_species",     choices = c("All", sort(unique(meta$species))))
-    updateSelectInput(session, "cmp_strain",      choices = c("All", sort(unique(meta$strain))))
-    updateSelectInput(session, "cmp_gravity",     choices = c("All", sort(unique(meta$gravity))))
-    updateSelectInput(session, "cmp_inoculum",    choices = c("All", sort(unique(meta$inoculum))))
-    updateSelectInput(session, "cmp_temperature", choices = c("All", sort(unique(meta$temperature))))
+    # Compare filter multi-selects — no "All" option needed; an empty selection
+    # already means "no filter applied" (all experiments visible). Separate input
+    # IDs from Single Experiment so the two tabs don't interfere with each other.
+    updateSelectizeInput(session, "cmp_species",     choices = sort(unique(meta$species)),     server = TRUE)
+    updateSelectizeInput(session, "cmp_strain",      choices = sort(unique(meta$strain)),      server = TRUE)
+    updateSelectizeInput(session, "cmp_gravity",     choices = sort(unique(meta$gravity)),     server = TRUE)
+    updateSelectizeInput(session, "cmp_inoculum",    choices = sort(unique(meta$inoculum)),    server = TRUE)
+    updateSelectizeInput(session, "cmp_temperature", choices = sort(unique(meta$temperature)), server = TRUE)
   })
   
   # ---------------------------------------------------------------------------
@@ -473,14 +475,17 @@ server <- function(input, output, session) {
   cmp_filtered_files <- reactive({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(character(0))
-  
+    
+    # Multi-select filters: if the user has chosen one or more values, keep only
+    # rows that match any of them. An empty selection (length 0) means no filter
+    # is applied for that dimension — all values pass through.
     matched <- meta
-    if (input$cmp_species     != "All") matched <- matched[matched$species     == input$cmp_species, ]
-    if (input$cmp_strain      != "All") matched <- matched[matched$strain      == input$cmp_strain, ]
-    if (input$cmp_gravity     != "All") matched <- matched[matched$gravity     == input$cmp_gravity, ]
-    if (input$cmp_inoculum    != "All") matched <- matched[matched$inoculum    == input$cmp_inoculum, ]
-    if (input$cmp_temperature != "All") matched <- matched[matched$temperature == input$cmp_temperature, ]
-  
+    if (length(input$cmp_species)     > 0) matched <- matched[matched$species     %in% input$cmp_species, ]
+    if (length(input$cmp_strain)      > 0) matched <- matched[matched$strain      %in% input$cmp_strain, ]
+    if (length(input$cmp_gravity)     > 0) matched <- matched[matched$gravity     %in% input$cmp_gravity, ]
+    if (length(input$cmp_inoculum)    > 0) matched <- matched[matched$inoculum    %in% input$cmp_inoculum, ]
+    if (length(input$cmp_temperature) > 0) matched <- matched[matched$temperature %in% input$cmp_temperature, ]
+    
     if (nrow(matched) == 0) return(character(0))
     setNames(matched$filename, paste0("Experiment #", matched$exp_number))
   })
@@ -620,4 +625,4 @@ server <- function(input, output, session) {
     subplot(vb_tt1, vb_tt2, nrows = 1, shareY = TRUE, titleX = TRUE)
   })
   
-  } # end server
+} # end server

@@ -192,56 +192,99 @@ ui <- navbarPage(
   
   # ===========================================================================
   # PAGE 2: COMPARE
-  # Overlay raw data from multiple experiments on the same axes.
-  #
-  # Works like Single Experiment but:
-  #   - Sidebar has a multi-select instead of a single dropdown.
-  #   - Each selected experiment appears as a distinct colour in every plot.
-  #   - Data is read directly from the raw workbook sheets (not averages).
-  #   - TT1 and TT2 are still plotted separately side by side, but each chart
-  #     now has one line per selected experiment.
-  #
-  # Filter dropdowns on the sidebar narrow the pool of experiments available
-  # in the multi-select below them — same logic as Single Experiment.
+  # The user narrows down the experiment pool using multi-select filter inputs
+  # (one or more values per dimension), then picks which of the matching
+  # experiments to overlay from the resulting list.
+  # Each analytical tab then shows the same charts as Single Experiment but
+  # with one line/trace per selected experiment.
+  
+  # Filter logic (server.R Step 12):
+  # - Leaving a filter empty = no filter applied for that dimension (all pass).
+  # - Selecting one or more values = only experiments matching ANY of those
+  #   values are included (OR within a dimension, AND across dimensions).
+  
+  # All plotlyOutput() IDs must match output$ names in server.R exactly.
   # ===========================================================================
   tabPanel(
-    title = "Compare Experiments",
+    title = "Compare",
     sidebarLayout(
       sidebarPanel(
-        width = 2,
+        width = 3,
         
-        # Filter dropdowns — same as Single Experiment; populated by server.R.
-        # Narrowing these filters also narrows the cmp_experiments choices.
-        selectInput("cmp_species",     "Species",     choices = NULL),
-        selectInput("cmp_strain",      "Strain",      choices = NULL),
-        selectInput("cmp_gravity",     "Gravity",     choices = NULL),
-        selectInput("cmp_inoculum",    "Inoculum",    choices = NULL),
-        selectInput("cmp_temperature", "Temperature", choices = NULL),
-        
-        hr(),
-        
-        # Multi-select: any number of experiments can be overlaid.
-        # Label = "Experiment #N"; value = filename.
+        # -------------------------------------------------------------------
+        # Multi-select filter inputs
+        # Choices start as NULL — server.R populates them at startup.
+        # Leaving a filter empty shows all experiments for that dimension.
+        # Selecting multiple values shows experiments matching ANY of them.
+        # -------------------------------------------------------------------
         selectizeInput(
-          inputId  = "cmp_experiments",
-          label    = "Experiments to overlay:",
+          inputId  = "cmp_species",
+          label    = "Species",
           choices  = NULL,
           multiple = TRUE,
-          options  = list(placeholder = "Choose one or more...")
+          options  = list(placeholder = "All species...")
+        ),
+        selectizeInput(
+          inputId  = "cmp_strain",
+          label    = "Strain",
+          choices  = NULL,
+          multiple = TRUE,
+          options  = list(placeholder = "All strains...")
+        ),
+        selectizeInput(
+          inputId  = "cmp_gravity",
+          label    = "Gravity",
+          choices  = NULL,
+          multiple = TRUE,
+          options  = list(placeholder = "All gravities...")
+        ),
+        selectizeInput(
+          inputId  = "cmp_inoculum",
+          label    = "Inoculum",
+          choices  = NULL,
+          multiple = TRUE,
+          options  = list(placeholder = "All inocula...")
+        ),
+        selectizeInput(
+          inputId  = "cmp_temperature",
+          label    = "Temperature",
+          choices  = NULL,
+          multiple = TRUE,
+          options  = list(placeholder = "All temperatures...")
         ),
         
         hr(),
         
-        # Shows how many experiments are currently selected.
-        textOutput("cmp_status")
+        # -------------------------------------------------------------------
+        # Experiment multi-select
+        # Populated dynamically by server.R (Step 13) with only the
+        # experiments that pass the active filters above.
+        # The user picks which of those to actually overlay on the plots.
+        # -------------------------------------------------------------------
+        selectizeInput(
+          inputId  = "cmp_experiments",
+          label    = "Experiments to compare:",
+          choices  = NULL,
+          multiple = TRUE,
+          options  = list(placeholder = "Choose experiments...")
+        ),
+        
+        hr(),
+        
+        # Short status line: how many experiments are currently loaded.
+        # Content set by output$cmp_status in server.R.
+        verbatimTextOutput("cmp_status")
       ),
       
       mainPanel(
-        width = 10,
+        width = 9,
         
-        # Same sub-tab structure as Single Experiment.
-        # Each plot shows all selected experiments overlaid, TT1 and TT2 separate.
-        # Output IDs use the prefix "cmp" to avoid clashing with Single Experiment.
+        # -------------------------------------------------------------------
+        # Analytical tabs — mirror the Single Experiment layout.
+        # Attenuation, pH, Cell Count, and Viability each use a single
+        # plotlyOutput that server.R fills with a subplot() of TT1 and TT2
+        # side by side, so only one output ID is needed per metric.
+        # -------------------------------------------------------------------
         tabsetPanel(
           
           tabPanel("HPLC",
@@ -266,6 +309,7 @@ ui <- navbarPage(
           ),
           
           tabPanel("Attenuation & pH",
+                   # Each plotlyOutput holds a subplot() of TT1 and TT2 side by side.
                    fluidRow(
                      column(6, plotlyOutput("cmpAttPlot",  height = "400px")),
                      column(6, plotlyOutput("cmpPhPlot",   height = "400px"))
