@@ -189,9 +189,104 @@ ui <- navbarPage(
       )
     )
   ),
+
+# ===========================================================================
+# PAGE 2: COMPARE
+# Overlay raw data from multiple experiments on the same axes.
+#
+# Works like Single Experiment but:
+#   - Sidebar has a multi-select instead of a single dropdown.
+#   - Each selected experiment appears as a distinct colour in every plot.
+#   - Data is read directly from the raw workbook sheets (not averages).
+#   - TT1 and TT2 are still plotted separately side by side, but each chart
+#     now has one line per selected experiment.
+#
+# Filter dropdowns on the sidebar narrow the pool of experiments available
+# in the multi-select below them — same logic as Single Experiment.
+# ===========================================================================
+tabPanel(
+  title = "Compare Experiments",
+  sidebarLayout(
+    sidebarPanel(
+      width = 2,
+      
+      # Filter dropdowns — same as Single Experiment; populated by server.R.
+      # Narrowing these filters also narrows the cmp_experiments choices.
+      selectInput("cmp_species",     "Species",     choices = NULL),
+      selectInput("cmp_strain",      "Strain",      choices = NULL),
+      selectInput("cmp_gravity",     "Gravity",     choices = NULL),
+      selectInput("cmp_inoculum",    "Inoculum",    choices = NULL),
+      selectInput("cmp_temperature", "Temperature", choices = NULL),
+      
+      hr(),
+      
+      # Multi-select: any number of experiments can be overlaid.
+      # Label = "Experiment #N"; value = filename.
+      selectizeInput(
+        inputId  = "cmp_experiments",
+        label    = "Experiments to overlay:",
+        choices  = NULL,
+        multiple = TRUE,
+        options  = list(placeholder = "Choose one or more...")
+      ),
+      
+      hr(),
+      
+      # Shows how many experiments are currently selected.
+      textOutput("cmp_status")
+    ),
+    
+    mainPanel(
+      width = 10,
+      
+      # Same sub-tab structure as Single Experiment.
+      # Each plot shows all selected experiments overlaid, TT1 and TT2 separate.
+      # Output IDs use the prefix "cmp" to avoid clashing with Single Experiment.
+      tabsetPanel(
+        
+        tabPanel("HPLC",
+                 fluidRow(
+                   column(6, plotlyOutput("cmpHplcTT1Plot",  height = "400px")),
+                   column(6, plotlyOutput("cmpHplcTT2Plot",  height = "400px"))
+                 )
+        ),
+        
+        tabPanel("GC Esters",
+                 fluidRow(
+                   column(6, plotlyOutput("cmpGcEstersTT1Plot",  height = "400px")),
+                   column(6, plotlyOutput("cmpGcEstersTT2Plot",  height = "400px"))
+                 )
+        ),
+        
+        tabPanel("GC Ketones",
+                 fluidRow(
+                   column(6, plotlyOutput("cmpGcKetonesTT1Plot", height = "400px")),
+                   column(6, plotlyOutput("cmpGcKetonesTT2Plot", height = "400px"))
+                 )
+        ),
+        
+        tabPanel("Attenuation & pH",
+                 fluidRow(
+                   column(6, plotlyOutput("cmpAttPlot",  height = "400px")),
+                   column(6, plotlyOutput("cmpPhPlot",   height = "400px"))
+                 )
+        ),
+        
+        tabPanel("Cell Count & Viability",
+                 fluidRow(
+                   column(6, plotlyOutput("cmpCellCountPlot",  height = "400px")),
+                   column(6, plotlyOutput("cmpViabilityPlot",  height = "400px"))
+                 )
+        )
+        
+      ) # end tabsetPanel
+    )   # end mainPanel
+  )     # end sidebarLayout
+),      # end tabPanel "Compare"
+
   
   # ===========================================================================
-  # PAGE 2: AVERAGES
+  # PAGE 3: AVERAGES
   # No sidebar here — the page is full-width.
   # The user first selects which experiments to overlay using the multi-select
   # at the top, then navigates through the pill tabs to view different metrics.
