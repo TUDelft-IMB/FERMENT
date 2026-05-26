@@ -668,27 +668,23 @@ plot_avg_cone_viability <- function(df_list, exp_labels) {
 # averages) and a matching character vector of experiment labels, and returns
 # a ggplot object. server.R wraps the return value in ggplotly().
 
-# The visual encoding uses the same colour-per-compound logic as sections 5
-# and 6, with one key difference: TT1 and TT2 are kept on separate charts
-# (same as Single Experiment) but each chart now overlays N experiments.
+# The visual encoding:
+# HPLC / GC Esters / GC Ketones:
+#   colour   = compound  (from section 4 palettes)
+#   linetype = experiment (from exp_linetypes_palette)
+#   Both TT1 and TT2 appear on separate side-by-side charts, mirroring the
+#   Single Experiment layout.
 
-# Experiment identity is encoded by colour; the compound dimension does not
-# apply here because each chart already shows a fixed set of compounds in
-# their section 4 colours. To distinguish experiments we use a second named
-# colour palette — cmp_exp_colours — defined in section 4 below.
-
-# HPLC, GC Esters, and GC Ketones: one line per compound per experiment,
-# mapped as colour = compound, linetype = experiment (same strategy as
-# plot_averages() in section 6, but reading raw sheet columns instead of
-# averaged columns from the averages sheet).
-
-# Attenuation, pH, Cell Count, and Viability: TT1 and TT2 are still
-# separate charts; within each chart one line per experiment is drawn,
-# colour-coded by experiment using cmp_exp_colours.
+# Attenuation / pH / Cell Count / Viability:
+#   ONE chart per metric — both TT1 and TT2 are plotted together so the
+#   user can see within-experiment tube agreement alongside cross-experiment
+#   differences.
+#   colour   = experiment (from cmp_exp_colours, colourblind-safe)
+#   linetype = tube       (solid = TT1, dashed = TT2)
+#   Legend key = "Experiment #N TT1" / "Experiment #N TT2"
 
 # --- Compare: experiment colour palette (one colour per experiment) ----------
-# Used by attenuation, pH, cell count, and viability compare plots where
-# each chart shows a single tube and one line per experiment.
+# Used by attenuation, pH, cell count, and viability compare plots.
 # Up to 8 experiments can be overlaid before colours repeat.
 # [TODO_LATER] decide on behaviour when > 8 experiments are selected
 cmp_exp_colours <- c(
@@ -699,11 +695,7 @@ cmp_exp_colours <- c(
 # -----------------------------------------------------------------------------
 # plot_cmp_hplc_tube()
 # Overlay N experiments on a single HPLC chart for one tube.
-# df_list   : named list of workbook lists (each element is the return value
-#             of read_tt_workbook()); names are filenames
-# exp_labels: "Experiment #N" labels matching df_list order
-# tube_num  : 1 or 2
-# Colour = compound (from section 4), linetype = experiment.
+# colour = compound, linetype = experiment.
 # -----------------------------------------------------------------------------
 plot_cmp_hplc_tube <- function(df_list, exp_labels, tube_num) {
   metabolites_map  <- setNames(hplc_colours, hplc_labels)
@@ -738,11 +730,7 @@ plot_cmp_hplc_tube <- function(df_list, exp_labels, tube_num) {
     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
     scale_colour_manual(name = "Metabolites", values = metabolites_map) +
     scale_linetype_manual(name = "Experiment", values = linetype_map) +
-    labs(
-      title = paste0("HPLC TT", tube_num),
-      x     = "Time (h)",
-      y     = "Concentration (g/L)"
-    ) +
+    labs(title = paste0("HPLC TT", tube_num), x = "Time (h)", y = "Concentration (g/L)") +
     theme_minimal() +
     theme(legend.position = "right")
 }
@@ -750,7 +738,6 @@ plot_cmp_hplc_tube <- function(df_list, exp_labels, tube_num) {
 # -----------------------------------------------------------------------------
 # plot_cmp_gc_esters_tube()
 # Overlay N experiments on a single GC Esters chart for one tube.
-# Same structure as plot_cmp_hplc_tube(); reads from the GC_esters sheet.
 # -----------------------------------------------------------------------------
 plot_cmp_gc_esters_tube <- function(df_list, exp_labels, tube_num) {
   metabolites_map  <- setNames(gc_ester_colours, gc_ester_labels)
@@ -784,11 +771,7 @@ plot_cmp_gc_esters_tube <- function(df_list, exp_labels, tube_num) {
     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
     scale_colour_manual(name = "Metabolites", values = metabolites_map) +
     scale_linetype_manual(name = "Experiment", values = linetype_map) +
-    labs(
-      title = paste0("GC Esters TT", tube_num),
-      x     = "Time (h)",
-      y     = "Concentration (mg/L)"
-    ) +
+    labs(title = paste0("GC Esters TT", tube_num), x = "Time (h)", y = "Concentration (mg/L)") +
     theme_minimal() +
     theme(legend.position = "right")
 }
@@ -796,7 +779,6 @@ plot_cmp_gc_esters_tube <- function(df_list, exp_labels, tube_num) {
 # -----------------------------------------------------------------------------
 # plot_cmp_gc_ketones_tube()
 # Overlay N experiments on a single GC Ketones chart for one tube.
-# Same structure; reads from the GC_ketones sheet.
 # -----------------------------------------------------------------------------
 plot_cmp_gc_ketones_tube <- function(df_list, exp_labels, tube_num) {
   metabolites_map  <- setNames(gc_ketone_colours, gc_ketone_labels)
@@ -830,146 +812,168 @@ plot_cmp_gc_ketones_tube <- function(df_list, exp_labels, tube_num) {
     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
     scale_colour_manual(name = "Metabolites", values = metabolites_map) +
     scale_linetype_manual(name = "Experiment", values = linetype_map) +
-    labs(
-      title = paste0("GC Ketones TT", tube_num),
-      x     = "Time (h)",
-      y     = "Concentration (mg/L)"
-    ) +
+    labs(title = paste0("GC Ketones TT", tube_num), x = "Time (h)", y = "Concentration (mg/L)") +
     theme_minimal() +
     theme(legend.position = "right")
 }
 
 # -----------------------------------------------------------------------------
 # plot_cmp_att()
-# Attenuation over time — one line per experiment per tube.
-# tube_col  : column name in the Attenuation sheet ("TT1" or "TT2")
-# tube_label: display label for the plot title ("TT1" or "TT2")
-# Colour = experiment (from cmp_exp_colours); no compound dimension here.
+# Attenuation over time — BOTH tubes for ALL experiments in one chart.
+# colour   = experiment (cmp_exp_colours)
+# linetype = tube       (solid = TT1, dashed = TT2)
+# Legend labels: "Experiment #N TT1", "Experiment #N TT2"
 # -----------------------------------------------------------------------------
-plot_cmp_att <- function(df_list, exp_labels, tube_col, tube_label) {
-  colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
+plot_cmp_att <- function(df_list, exp_labels) {
+  tube_cols   <- c("TT1", "TT2")
+  tube_lty    <- c("TT1" = "solid", "TT2" = "dashed")
+  colour_map  <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
   
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["Attenuation"]]
-    data.frame(
-      time       = as.numeric(df[["Time (h)"]]),
-      value      = if (tube_col %in% names(df)) as.numeric(df[[tube_col]]) else NA_real_,
-      experiment = exp_labels[e],
-      stringsAsFactors = FALSE
-    )
+    do.call(rbind, lapply(tube_cols, function(tc) {
+      data.frame(
+        time       = as.numeric(df[["Time (h)"]]),
+        value      = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
+        experiment = exp_labels[e],
+        tube       = tc,
+        # trace_id used for the group aesthetic so lines don't cross tubes
+        trace_id   = paste(exp_labels[e], tc),
+        stringsAsFactors = FALSE
+      )
+    }))
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
   
-  ggplot(plot_data, aes(x = time, y = value, colour = experiment, group = experiment)) +
+  ggplot(plot_data,
+         aes(x = time, y = value,
+             colour   = experiment,
+             linetype = tube,
+             group    = trace_id)) +
     geom_line() +
     geom_point() +
     scale_colour_manual(name = "Experiment", values = colour_map) +
-    labs(
-      title = paste0("Attenuation ", tube_label),
-      x     = "Time (h)",
-      y     = "Attenuation (degrees P)"
-    ) +
+    scale_linetype_manual(name = "TT", values = tube_lty) +
+    labs(title = "Attenuation", x = "Time (h)", y = "Attenuation (degrees P)") +
     theme_minimal() +
     theme(legend.position = "right")
 }
 
 # -----------------------------------------------------------------------------
 # plot_cmp_ph()
-# pH over time — one line per experiment per tube.
-# Y-axis fixed at 0-7. Same structure as plot_cmp_att().
+# Y-axis fixed at 0-7. Same encoding as plot_cmp_att().
 # -----------------------------------------------------------------------------
-plot_cmp_ph <- function(df_list, exp_labels, tube_col, tube_label) {
+plot_cmp_ph <- function(df_list, exp_labels) {
+  tube_cols  <- c("TT1", "TT2")
+  tube_lty   <- c("TT1" = "solid", "TT2" = "dashed")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
   
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["pH"]]
-    data.frame(
-      time       = as.numeric(df[["Time (h)"]]),
-      value      = if (tube_col %in% names(df)) as.numeric(df[[tube_col]]) else NA_real_,
-      experiment = exp_labels[e],
-      stringsAsFactors = FALSE
-    )
+    do.call(rbind, lapply(tube_cols, function(tc) {
+      data.frame(
+        time       = as.numeric(df[["Time (h)"]]),
+        value      = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
+        experiment = exp_labels[e],
+        tube       = tc,
+        trace_id   = paste(exp_labels[e], tc),
+        stringsAsFactors = FALSE
+      )
+    }))
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
   
-  ggplot(plot_data, aes(x = time, y = value, colour = experiment, group = experiment)) +
+  ggplot(plot_data,
+         aes(x = time, y = value,
+             colour   = experiment,
+             linetype = tube,
+             group    = trace_id)) +
     geom_line() +
     geom_point() +
     scale_colour_manual(name = "Experiment", values = colour_map) +
+    scale_linetype_manual(name = "TT", values = tube_lty) +
     scale_y_continuous(limits = c(0, 7)) +
-    labs(
-      title = paste0("pH ", tube_label),
-      x     = "Time (h)",
-      y     = "pH"
-    ) +
+    labs(title = "pH", x = "Time (h)", y = "pH") +
     theme_minimal() +
     theme(legend.position = "right")
 }
 
 # -----------------------------------------------------------------------------
 # plot_cmp_cell_count()
-# Total cell count over time — one line per experiment per tube.
-# tube_col  : "1 Total cells" or "2 Total cells"
-# tube_label: "TT1" or "TT2"
+# Total cell count over time — BOTH tubes for ALL experiments in one chart.
+# tube_col_tt1 / tube_col_tt2: column names in the CellCount_Viability sheet.
 # -----------------------------------------------------------------------------
-plot_cmp_cell_count <- function(df_list, exp_labels, tube_col, tube_label) {
+plot_cmp_cell_count <- function(df_list, exp_labels) {
+  tube_cols <- c("TT1" = "1 Total cells", "TT2" = "2 Total cells")
+  tube_lty  <- c("TT1" = "solid", "TT2" = "dashed")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
   
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["CellCount_Viability"]]
-    data.frame(
-      time       = as.numeric(df[["Time (h)"]]),
-      value      = if (tube_col %in% names(df)) as.numeric(df[[tube_col]]) else NA_real_,
-      experiment = exp_labels[e],
-      stringsAsFactors = FALSE
-    )
+    do.call(rbind, lapply(names(tube_cols), function(tube_label) {
+      col <- tube_cols[[tube_label]]
+      data.frame(
+        time       = as.numeric(df[["Time (h)"]]),
+        value      = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
+        experiment = exp_labels[e],
+        tube       = tube_label,
+        trace_id   = paste(exp_labels[e], tube_label),
+        stringsAsFactors = FALSE
+      )
+    }))
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
   
-  ggplot(plot_data, aes(x = time, y = value, colour = experiment, group = experiment)) +
+  ggplot(plot_data,
+         aes(x = time, y = value,
+             colour   = experiment,
+             linetype = tube,
+             group    = trace_id)) +
     geom_line() +
     geom_point() +
     scale_colour_manual(name = "Experiment", values = colour_map) +
-    labs(
-      title = paste0("Cell Count ", tube_label),
-      x     = "Time (h)",
-      y     = "Cell count (cells/ml)"
-    ) +
+    scale_linetype_manual(name = "TT", values = tube_lty) +
+    labs(title = "Cell Count", x = "Time (h)", y = "Cell count (cells/ml)") +
     theme_minimal() +
     theme(legend.position = "right")
 }
 
 # -----------------------------------------------------------------------------
 # plot_cmp_viability()
-# Cell viability (fraction 0-1) over time — one line per experiment per tube.
 # Y-axis fixed at 0-1.
-# tube_col  : "1 Viability (%)" or "2 Viability (%)"
-# tube_label: "TT1" or "TT2"
 # -----------------------------------------------------------------------------
-plot_cmp_viability <- function(df_list, exp_labels, tube_col, tube_label) {
+plot_cmp_viability <- function(df_list, exp_labels) {
+  tube_cols  <- c("TT1" = "1 Viability (%)", "TT2" = "2 Viability (%)")
+  tube_lty   <- c("TT1" = "solid", "TT2" = "dashed")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
   
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["CellCount_Viability"]]
-    data.frame(
-      time       = as.numeric(df[["Time (h)"]]),
-      value      = if (tube_col %in% names(df)) as.numeric(df[[tube_col]]) else NA_real_,
-      experiment = exp_labels[e],
-      stringsAsFactors = FALSE
-    )
+    do.call(rbind, lapply(names(tube_cols), function(tube_label) {
+      col <- tube_cols[[tube_label]]
+      data.frame(
+        time       = as.numeric(df[["Time (h)"]]),
+        value      = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
+        experiment = exp_labels[e],
+        tube       = tube_label,
+        trace_id   = paste(exp_labels[e], tube_label),
+        stringsAsFactors = FALSE
+      )
+    }))
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
   
-  ggplot(plot_data, aes(x = time, y = value, colour = experiment, group = experiment)) +
+  ggplot(plot_data,
+         aes(x = time, y = value,
+             colour   = experiment,
+             linetype = tube,
+             group    = trace_id)) +
     geom_line() +
     geom_point() +
     scale_colour_manual(name = "Experiment", values = colour_map) +
+    scale_linetype_manual(name = "TT", values = tube_lty) +
     scale_y_continuous(limits = c(0, 1)) +
-    labs(
-      title = paste0("Viability ", tube_label),
-      x     = "Time (h)",
-      y     = "Viability (fraction)"
-    ) +
+    labs(title = "Viability", x = "Time (h)", y = "Viability (fraction)") +
     theme_minimal() +
     theme(legend.position = "right")
 }
