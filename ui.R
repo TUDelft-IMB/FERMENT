@@ -124,7 +124,17 @@ ui <- navbarPage(
         selectInput("gravity",     "Gravity",     choices = NULL),
         selectInput("inoculum",    "Inoculum",    choices = NULL),
         selectInput("temperature", "Temperature", choices = NULL),
-        selectInput("experiment",  "Experiments", choices = NULL),
+
+        actionButton(
+          inputId = "clear_filters",
+          label   = "Clear filters",
+          class   = "btn-sm btn-default",
+          width   = "100%"
+        ),
+
+        hr(),
+
+        selectInput("experiment", "Experiment", choices = NULL),
 
         # Note: The label shown is "Experiment #N"; the underlying value
         # passed to server.R is the actual filename of the Excel file.
@@ -182,7 +192,15 @@ ui <- navbarPage(
               column(6, plotlyOutput("viabilityPlot",  height = "400px"))
             )
           )
-        )
+        ),
+
+        # -------------------------------------------------------------------
+        # Selection summary table — below the graphs.
+        # Shows the metadata row for the currently loaded experiment.
+        # -------------------------------------------------------------------
+        hr(),
+        h4("Selected experiment"),
+        tableOutput("single_summary_table")
       )
     )
   ),
@@ -258,7 +276,14 @@ ui <- navbarPage(
           multiple = TRUE,
           options  = list(placeholder = "All temperatures...")
         ),
-        
+
+        actionButton(
+          inputId = "cmp_clear_filters",
+          label   = "Clear filters",
+          class   = "btn-sm btn-default",
+          width   = "100%"
+        ),
+
         hr(),
         
         # -------------------------------------------------------------------
@@ -324,7 +349,15 @@ ui <- navbarPage(
                      column(6, plotlyOutput("cmpViabilityPlot",  height = "450px"))
                    )
           )
-        )
+        ),
+
+        # -------------------------------------------------------------------
+        # Selection summary table — below the graphs.
+        # One row per selected experiment.
+        # -------------------------------------------------------------------
+        hr(),
+        h4("Selected experiments"),
+        tableOutput("cmp_summary_table")
       )
     )
   ),
@@ -333,10 +366,6 @@ ui <- navbarPage(
   
   # ===========================================================================
   # PAGE 3: AVERAGES
-  # No sidebar here — the page is full-width.
-  # The user first selects which experiments to overlay using the multi-select
-  # at the top, then navigates through the pill tabs to view different metrics.
-  #
   # Line-based plots (sugars&ethanol, diketones, attenuation, pH, cell count, viability)
   # are fully interactive with clickable legends for toggling experiments.
   # Bar charts (GC esters, higher alcohols) and cone viability are also
@@ -346,81 +375,125 @@ ui <- navbarPage(
   # ===========================================================================
   tabPanel(
     title = "Averages",
+    sidebarLayout(
+      sidebarPanel(
+        width = 3,
 
-    br(),
-    wellPanel(
-      # Multi-select for choosing which experiments to overlay.
-      # Choices are populated dynamically by server.R via updateSelectInput().
-      # The user can select any number of experiments; each appears as a
-      # separate line (or bar group) in the plots below.
-      selectizeInput(
-        inputId  = "avg_experiments",
-        label    = "Select experiments to overlay:",
-        choices  = NULL,
-        multiple = TRUE,
-        options  = list(placeholder = "Choose one or more experiments...")
-      )
-    ),
+        selectizeInput(
+          inputId  = "avg_species",
+          label    = "Species",
+          choices  = NULL,
+          multiple = TRUE,
+          options  = list(placeholder = "All species...")
+        ),
+        selectizeInput(
+          inputId  = "avg_strain",
+          label    = "Strain",
+          choices  = NULL,
+          multiple = TRUE,
+          options  = list(placeholder = "All strains...")
+        ),
+        selectizeInput(
+          inputId  = "avg_gravity",
+          label    = "Gravity",
+          choices  = NULL,
+          multiple = TRUE,
+          options  = list(placeholder = "All gravities...")
+        ),
+        selectizeInput(
+          inputId  = "avg_inoculum",
+          label    = "Inoculum",
+          choices  = NULL,
+          multiple = TRUE,
+          options  = list(placeholder = "All inocula...")
+        ),
+        selectizeInput(
+          inputId  = "avg_temperature",
+          label    = "Temperature",
+          choices  = NULL,
+          multiple = TRUE,
+          options  = list(placeholder = "All temperatures...")
+        ),
 
-    tabsetPanel(
-      type = "pills",
+        actionButton(
+          inputId = "avg_clear_filters",
+          label   = "Clear filters",
+          class   = "btn-sm btn-default",
+          width   = "100%"
+        ),
 
-      tabPanel("Sugars & Ethanol",
-        fluidRow(
-          column(12, plotlyOutput("avgHplcPlot", height = "450px"))
+        hr(),
+
+        selectizeInput(
+          inputId  = "avg_experiments",
+          label    = "Select experiments to overlay:",
+          choices  = NULL,
+          multiple = TRUE,
+          options  = list(placeholder = "Choose one or more experiments...")
         )
       ),
 
-      tabPanel("GC Esters",
-        # Two stacked bar charts side by side:
-        fluidRow(
-          column(6, plotlyOutput("avgEthylEstersBarPlot",   height = "450px")),
-          column(6, plotlyOutput("avgAcetateEstersBarPlot", height = "450px"))
-        )
-      ),
+      mainPanel(
+        width = 9,
 
-      tabPanel("Higher Alcohols",
-        fluidRow(
-          column(12, plotlyOutput("avgHigherAlcoholsBarPlot", height = "450px"))
-        )
-      ),
+        tabsetPanel(
+          type = "pills",
 
-      tabPanel("Vicinal Diketones",
-        fluidRow(
-          column(12, plotlyOutput("avgDiketonesPlot", height = "450px"))
-        )
-      ),
+          tabPanel("Sugars & Ethanol",
+            fluidRow(
+              column(12, plotlyOutput("avgHplcPlot",               height = "450px"))
+            )
+          ),
+          tabPanel("GC Esters",
+            fluidRow(
+              column(6, plotlyOutput("avgEthylEstersBarPlot",     height = "450px")),
+              column(6, plotlyOutput("avgAcetateEstersBarPlot",   height = "450px"))
+            )
+          ),
+          tabPanel("Higher Alcohols",
+            fluidRow(
+              column(12, plotlyOutput("avgHigherAlcoholsBarPlot",  height = "450px"))
+            )
+          ),
+          tabPanel("Vicinal Diketones",
+            fluidRow(
+              column(12, plotlyOutput("avgDiketonesPlot",          height = "450px"))
+            )
+          ),
+          tabPanel("Attenuation",
+            fluidRow(
+              column(12, plotlyOutput("avgAttenuationPlot",        height = "450px"))
+            )
+          ),
+          tabPanel("pH",
+            fluidRow(
+              column(12, plotlyOutput("avgPhPlot",                 height = "450px"))
+            )
+          ),
+          tabPanel("Cell Count",
+            fluidRow(
+              column(12, plotlyOutput("avgCellCountPlot",          height = "450px"))
+            )
+          ),
+          tabPanel("Viability",
+            fluidRow(
+              column(12, plotlyOutput("avgViabilityPlot",          height = "450px"))
+            )
+          ),
+          tabPanel("Cone Viability",
+            fluidRow(
+              column(12, plotlyOutput("avgConeViabilityPlot",      height = "450px"))
+            )
+          )
+        ),
 
-      tabPanel("Attenuation",
-        fluidRow(
-          column(12, plotlyOutput("avgAttenuationPlot", height = "450px"))
-        )
-      ),
-
-      tabPanel("pH",
-        fluidRow(
-          column(12, plotlyOutput("avgPhPlot", height = "450px"))
-        )
-      ),
-
-      tabPanel("Cell Count",
-        fluidRow(
-          column(12, plotlyOutput("avgCellCountPlot", height = "450px"))
-        )
-      ),
-
-      tabPanel("Viability",
-        fluidRow(
-          column(12, plotlyOutput("avgViabilityPlot", height = "450px"))
-        )
-      ),
-
-      tabPanel("Cone Viability",
-        # Bar chart with one bar per experiment — shows cone viability at
-        # the end of fermentation with error bars.
-        fluidRow(
-          column(12, plotlyOutput("avgConeViabilityPlot", height = "450px"))
-        )
+        # -------------------------------------------------------------------
+        # Selection summary table — below the graphs.
+        # One row per selected experiment.
+        # -------------------------------------------------------------------
+        hr(),
+        h4("Selected experiments"),
+        tableOutput("avg_summary_table")
       )
     )
   )
