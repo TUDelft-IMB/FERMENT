@@ -69,39 +69,39 @@ server <- function(input, output, session) {
   })
   
   # ---------------------------------------------------------------------------
-  # Step 2: Populate all filter dropdowns and the averages multi-select.
-  #
-  # This observe() block runs once when file_metadata() is first ready.
-  # "All" is prepended to each filter so the user can opt out of filtering
-  # by a particular condition. The averages multi-select gets every available
-  # experiment as a named choice (label = "Experiment #N", value = filename).
+  # Step 2: Populate all filter dropdowns once metadata is ready.
+  
+  # Single Experiment filters get "All" prepended (single-select pattern).
+  # Compare and Averages filters start empty (multi-select; empty = no filter).
   # ---------------------------------------------------------------------------
   observe({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return()
-    # Single-experiment filter dropdowns
+  
+    # Single Experiment filters
     updateSelectInput(session, "species",     choices = c("All", sort(unique(meta$species))))
     updateSelectInput(session, "strain",      choices = c("All", sort(unique(meta$strain))))
     updateSelectInput(session, "gravity",     choices = c("All", sort(unique(meta$gravity))))
     updateSelectInput(session, "inoculum",    choices = c("All", sort(unique(meta$inoculum))))
     updateSelectInput(session, "temperature", choices = c("All", sort(unique(meta$temperature))))
-    # Averages multi-select: label shown = "Experiment #N", value sent to
-    # server = the actual filename (used to load the averages sheet)
-    avg_choices <- setNames(meta$filename, paste0("Experiment #", meta$exp_number))
-    updateSelectizeInput(session, "avg_experiments", choices = avg_choices, server = TRUE)
-    # Compare filter multi-selects — no "All" option needed; an empty selection
-    # already means "no filter applied" (all experiments visible). Separate input
-    # IDs from Single Experiment so the two tabs don't interfere with each other.
+  
+    # Compare filters
     updateSelectizeInput(session, "cmp_species",     choices = sort(unique(meta$species)),     server = TRUE)
     updateSelectizeInput(session, "cmp_strain",      choices = sort(unique(meta$strain)),      server = TRUE)
     updateSelectizeInput(session, "cmp_gravity",     choices = sort(unique(meta$gravity)),     server = TRUE)
     updateSelectizeInput(session, "cmp_inoculum",    choices = sort(unique(meta$inoculum)),    server = TRUE)
     updateSelectizeInput(session, "cmp_temperature", choices = sort(unique(meta$temperature)), server = TRUE)
+  
+    # Averages filters
+    updateSelectizeInput(session, "avg_species",     choices = sort(unique(meta$species)),     server = TRUE)
+    updateSelectizeInput(session, "avg_strain",      choices = sort(unique(meta$strain)),      server = TRUE)
+    updateSelectizeInput(session, "avg_gravity",     choices = sort(unique(meta$gravity)),     server = TRUE)
+    updateSelectizeInput(session, "avg_inoculum",    choices = sort(unique(meta$inoculum)),    server = TRUE)
+    updateSelectizeInput(session, "avg_temperature", choices = sort(unique(meta$temperature)), server = TRUE)
   })
   
   # ---------------------------------------------------------------------------
-  # Step 2.5: Overview Tab Metrics
-  # Compute summary statistics from the metadata for the Overview tab
+  # Step 2.5: Overview tab metrics and plots.
   # ---------------------------------------------------------------------------
   
   output$total_experiments_count <- renderText({
@@ -113,22 +113,19 @@ server <- function(input, output, session) {
   output$unique_strains_count <- renderText({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return("0")
-    n_strains <- length(unique(meta$strain))
-    paste0(" ", n_strains, " ")
+    paste0(" ", length(unique(meta$strain)), " ")
   })
   
   output$unique_species_count <- renderText({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return("0")
-    n_species <- length(unique(meta$species))
-    paste0(" ", n_species, " ")
+    paste0(" ", length(unique(meta$species)), " ")
   })
   
   output$unique_temps_count <- renderText({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return("0")
-    n_temps <- length(unique(meta$temperature))
-    paste0(" ", n_temps, " ")
+    paste0(" ", length(unique(meta$temperature)), " ")
   })
   
   output$experiments_per_strain_plot <- renderPlot({
@@ -211,8 +208,7 @@ server <- function(input, output, session) {
   output$conditions_summary_table <- renderTable({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
-    
-    summary_table <- meta %>%
+    meta %>%
       group_by(species, strain, gravity, temperature, inoculum) %>%
       summarise(
         `Exp Count`   = n(),
@@ -220,16 +216,33 @@ server <- function(input, output, session) {
         .groups = "drop"
       ) %>%
       arrange(species, strain, as.numeric(gravity), as.numeric(temperature))
-    
-    summary_table
   }, striped = TRUE, hover = TRUE, spacing = "xs", width = "100%")
   
   # ---------------------------------------------------------------------------
-  # Step 3: Filter the single-experiment dropdown.
-  #
-  # Returns a named vector of filenames that match all active filter values.
-  # Each filter is only applied when the user has chosen something other
-  # than "All", so any combination of conditions is supported.
+  # Helper: build a tidy display table from a set of filenames.
+  # Used by all three summary table outputs (single, compare, averages).
+  # Returns one row per experiment with columns in a consistent display order.
+  # ---------------------------------------------------------------------------
+  make_summary_table <- function(filenames, meta) {
+    if (length(filenames) == 0 || is.null(meta) || nrow(meta) == 0) return(NULL)
+    matched <- meta[meta$filename %in% filenames, ]
+    if (nrow(matched) == 0) return(NULL)
+    # Preserve the order the user selected them in
+    matched <- matched[match(filenames, matched$filename), ]
+    data.frame(
+      `Experiment`  = paste0("Experiment #", matched$exp_number),
+      `Species`     = matched$species,
+      `Strain`      = matched$strain,
+      `Gravity`     = matched$gravity,
+      `Inoculum`    = matched$inoculum,
+      `Temperature` = matched$temperature,
+      check.names   = FALSE,
+      stringsAsFactors = FALSE
+    )
+  }
+  
+  # ---------------------------------------------------------------------------
+  # Step 3: Single Experiment — filter dropdown logic.
   # ---------------------------------------------------------------------------
   filtered_files <- reactive({
     meta <- file_metadata()
@@ -254,10 +267,18 @@ server <- function(input, output, session) {
     updateSelectInput(session, "experiment", choices = filtered_files())
   })
   
-  # ---------------------------------------------------------------------------
-  # Step 5: Build the full file path for the selected experiment.
-  # req() silently stops execution until the user has made a selection.
-  # ---------------------------------------------------------------------------
+  # Step 4a: Clear Single Experiment filters.
+  observeEvent(input$clear_filters, {
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return()
+    updateSelectInput(session, "species",     selected = "All")
+    updateSelectInput(session, "strain",      selected = "All")
+    updateSelectInput(session, "gravity",     selected = "All")
+    updateSelectInput(session, "inoculum",    selected = "All")
+    updateSelectInput(session, "temperature", selected = "All")
+  })
+  
+  # Step 5: Build the full path for the selected experiment.
   workbook_path <- reactive({
     req(input$experiment)
     file.path(EXCEL_DIR, input$experiment)
@@ -286,6 +307,13 @@ server <- function(input, output, session) {
     }
   })
   
+  # Step 7a: Single Experiment summary table.
+  # Shows one row — the metadata of the currently loaded experiment.
+  output$single_summary_table <- renderTable({
+    req(input$experiment)
+    make_summary_table(input$experiment, file_metadata())
+  }, striped = FALSE, hover = FALSE, spacing = "xs", width = "100%", digits = 0)
+  
   # ---------------------------------------------------------------------------
   # Step 8: Sheet accessors — single experiment.
   #
@@ -293,13 +321,13 @@ server <- function(input, output, session) {
   # req() ensures the downstream plot code only runs once a workbook is loaded.
   # Sheet names must exactly match those in the Excel files.
   # ---------------------------------------------------------------------------
-  hplc      <- reactive({ req(tt_data()); tt_data()[["HPLC"]] })
-  gc_esters <- reactive({ req(tt_data()); tt_data()[["GC_esters"]] })
-  gc_ketones<- reactive({ req(tt_data()); tt_data()[["GC_ketones"]] })
-  att       <- reactive({ req(tt_data()); tt_data()[["Attenuation"]] })
-  ph        <- reactive({ req(tt_data()); tt_data()[["pH"]] })
-  viability <- reactive({ req(tt_data()); tt_data()[["CellCount_Viability"]] })
   
+  hplc       <- reactive({ req(tt_data()); tt_data()[["HPLC"]] })
+  gc_esters  <- reactive({ req(tt_data()); tt_data()[["GC_esters"]] })
+  gc_ketones <- reactive({ req(tt_data()); tt_data()[["GC_ketones"]] })
+  att        <- reactive({ req(tt_data()); tt_data()[["Attenuation"]] })
+  ph         <- reactive({ req(tt_data()); tt_data()[["pH"]] })
+  viability  <- reactive({ req(tt_data()); tt_data()[["CellCount_Viability"]] })
   # ---------------------------------------------------------------------------
   # Step 9: Render single-experiment plots.
   #
@@ -364,17 +392,37 @@ server <- function(input, output, session) {
   })
   
   # ---------------------------------------------------------------------------
-  # Step 10: Averages — load data for all selected experiments
-  #
-  # avg_data_list() reads the "averages_to_plot" sheet from each selected
-  # file using read_avg_sheet() from global.R. Files where that sheet is
-  # missing are silently dropped so they don't cause plot errors.
-  # [TODO - decide on behaviour]!
-  #
-  # avg_exp_labels() builds the human-readable "Experiment #N" label for
-  # each loaded file, preserving the order the user selected them in.
-  # These labels are passed to the plotting functions as legend text.
+  # Step 10: Averages — filter the pool of available experiments.
   # ---------------------------------------------------------------------------
+  avg_filtered_files <- reactive({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return(character(0))
+    matched <- meta
+    if (length(input$avg_species)     > 0) matched <- matched[matched$species     %in% input$avg_species,     ]
+    if (length(input$avg_strain)      > 0) matched <- matched[matched$strain      %in% input$avg_strain,      ]
+    if (length(input$avg_gravity)     > 0) matched <- matched[matched$gravity     %in% input$avg_gravity,     ]
+    if (length(input$avg_inoculum)    > 0) matched <- matched[matched$inoculum    %in% input$avg_inoculum,    ]
+    if (length(input$avg_temperature) > 0) matched <- matched[matched$temperature %in% input$avg_temperature, ]
+    if (nrow(matched) == 0) return(character(0))
+    setNames(matched$filename, paste0("Experiment #", matched$exp_number))
+  })
+  
+  # Step 10a: Keep avg_experiments in sync with filters.
+  observe({
+    updateSelectizeInput(session, "avg_experiments",
+                         choices = avg_filtered_files(), server = TRUE)
+  })
+  
+  # Step 10b: Clear Averages filters.
+  observeEvent(input$avg_clear_filters, {
+    updateSelectizeInput(session, "avg_species",     selected = character(0))
+    updateSelectizeInput(session, "avg_strain",      selected = character(0))
+    updateSelectizeInput(session, "avg_gravity",     selected = character(0))
+    updateSelectizeInput(session, "avg_inoculum",    selected = character(0))
+    updateSelectizeInput(session, "avg_temperature", selected = character(0))
+  })
+  
+  # Step 11: Load averages data for selected experiments.
   avg_data_list <- reactive({
     req(input$avg_experiments)
     result <- lapply(input$avg_experiments, function(f) {
@@ -394,8 +442,14 @@ server <- function(input, output, session) {
     paste0("Experiment #", matched$exp_number[match(filenames, matched$filename)])
   })
   
+  # Step 11a: Averages summary table — one row per selected experiment.
+  output$avg_summary_table <- renderTable({
+    req(input$avg_experiments)
+    make_summary_table(input$avg_experiments, file_metadata())
+  }, striped = TRUE, hover = FALSE, spacing = "xs", width = "100%", digits = 0)
+  
   # ---------------------------------------------------------------------------
-  # Step 11: Render averages plots
+  # Step 12: Render averages plots
   #
   # Same pattern as Step 9: each output calls a ggplot function from global.R
   # then wraps it in ggplotly(). This gives the Averages page the same
@@ -457,9 +511,9 @@ server <- function(input, output, session) {
     req(avg_data_list())
     ggplotly(plot_avg_cone_viability(avg_data_list(), avg_exp_labels()))
   })
-  
+    
   # ---------------------------------------------------------------------------
-  # Step 12: Compare — filter the pool of available experiments.
+  # Step 13: Compare — filter the pool of available experiments.
   #
   # cmp_filtered_files() mirrors filtered_files() from Step 3 but reads from
   # the cmp_* input IDs so the Compare sidebar is fully independent.
@@ -483,33 +537,23 @@ server <- function(input, output, session) {
     setNames(matched$filename, paste0("Experiment #", matched$exp_number))
   })
   
-  # ---------------------------------------------------------------------------
-  # Step 13: Keep the Compare multi-select in sync with the active filters.
-  #
-  # When the filter dropdowns narrow the pool, update cmp_experiments to only
-  # show matching experiments. Previously selected experiments that no longer
-  # match the filters are automatically deselected by Shiny.
-  # ---------------------------------------------------------------------------
+  # Step 14: Keep cmp_experiments in sync with filters.
   observe({
     updateSelectizeInput(session, "cmp_experiments",
                          choices  = cmp_filtered_files(),
                          server   = TRUE)
   })
   
-  # ---------------------------------------------------------------------------
-  # Step 14: Load the full workbooks for all selected Compare experiments.
-  #
-  # cmp_data_list() calls read_tt_workbook() (not read_avg_sheet) for each
-  # selected file, returning a named list of workbook lists. Each element is
-  # itself a named list of data frames — one per sheet — exactly as returned
-  # by read_tt_workbook(). Files that fail to load are silently dropped.
-  #
-  # cmp_exp_labels() builds "Experiment #N" labels in selection order,
-  # matching the same pattern used for avg_exp_labels() in Step 10.
-  #
-  # cmp_status text gives the user lightweight feedback about how many
-  # experiments are currently loaded and ready to plot.
-  # ---------------------------------------------------------------------------
+  # Step 14a: Clear Compare filters.
+  observeEvent(input$cmp_clear_filters, {
+    updateSelectizeInput(session, "cmp_species",     selected = character(0))
+    updateSelectizeInput(session, "cmp_strain",      selected = character(0))
+    updateSelectizeInput(session, "cmp_gravity",     selected = character(0))
+    updateSelectizeInput(session, "cmp_inoculum",    selected = character(0))
+    updateSelectizeInput(session, "cmp_temperature", selected = character(0))
+  })
+  
+  # Step 15: Load full workbooks for selected Compare experiments.
   cmp_data_list <- reactive({
     req(input$cmp_experiments)
     result <- lapply(input$cmp_experiments, function(f) {
@@ -535,8 +579,14 @@ server <- function(input, output, session) {
     else paste0(n, " experiment", if (n == 1) "" else "s", " loaded")
   })
   
+  # Step 15a: Compare summary table — one row per selected experiment.
+  output$cmp_summary_table <- renderTable({
+    req(input$cmp_experiments)
+    make_summary_table(input$cmp_experiments, file_metadata())
+  }, striped = TRUE, hover = FALSE, spacing = "xs", width = "100%", digits = 0)
+  
   # ---------------------------------------------------------------------------
-  # Step 15: Render Compare plots.
+  # Step 16: Render Compare plots.
   #
   # Each output calls the matching plot_cmp_*() function from global.R section
   # 7, then wraps it in ggplotly(). TT1 and TT2 remain on separate charts
