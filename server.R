@@ -224,7 +224,24 @@ server <- function(input, output, session) {
         `Exp Numbers` = paste(unique(exp_number), collapse = ", "),
         .groups = "drop"
       ) %>%
-      arrange(species, strain, as.numeric(gravity), as.numeric(temperature))
+      # Calculate total experiments per species
+      group_by(species) %>%
+      mutate(species_total = sum(`Exp Count`)) %>%
+      # Calculate total experiments per strain (nested within species)
+      group_by(species, strain) %>%
+      mutate(strain_total = sum(`Exp Count`)) %>%
+      ungroup() %>%
+      # Arrange by the new totals (descending), then fallback to alphabetical/numeric
+      arrange(
+        desc(species_total), 
+        species, 
+        desc(strain_total), 
+        strain, 
+        as.numeric(gravity), 
+        as.numeric(temperature)
+      ) %>%
+      # Drop the temporary totals so they don't render in the Shiny table
+      select(-species_total, -strain_total)
   }, striped = TRUE, hover = TRUE, spacing = "xs", width = "100%")
   
   # ---------------------------------------------------------------------------
