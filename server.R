@@ -135,14 +135,16 @@ server <- function(input, output, session) {
     species_counts <- meta %>%
       group_by(species) %>%
       summarise(n = n(), .groups = "drop") %>%
-      arrange(desc(n))
+      arrange(desc(n)) %>%
+      mutate(species_label = paste0(species, " (", n, ")"))
     
-    ggplot(species_counts, aes(x = reorder(species, -n), y = n, fill = species)) +
-      geom_bar(stat = "identity") +
-      theme_minimal() +
-      labs(x = "Species", y = "Number of Experiments") +
-      theme(legend.position = "none",
-            panel.grid.major.y = element_line(colour = "gray90"))
+    ggplot(species_counts, aes(x = "", y = n, fill = reorder(species_label, -n))) +
+      geom_bar(stat = "identity", width = 1) +
+      coord_polar("y", start = 0) +
+      theme_void() +
+      labs(fill = "Species") +
+      theme(legend.position = "right",
+            legend.text = element_text(face = "italic"))
   })
   
   output$experiments_per_strain_plot <- renderPlot({
