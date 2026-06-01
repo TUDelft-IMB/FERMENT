@@ -101,7 +101,7 @@ server <- function(input, output, session) {
   })
   
   # ---------------------------------------------------------------------------
-  # Step 2.5: Overview tab metrics and plots.
+  # Step 3: Overview tab metrics and plots.
   # ---------------------------------------------------------------------------
   
   output$total_experiments_count <- renderText({
@@ -242,7 +242,7 @@ server <- function(input, output, session) {
   }
   
   # ---------------------------------------------------------------------------
-  # Step 3: Single Experiment — filter dropdown logic.
+  # Step 4: Single Experiment — filter dropdown logic.
   # ---------------------------------------------------------------------------
   filtered_files <- reactive({
     meta <- file_metadata()
@@ -261,13 +261,13 @@ server <- function(input, output, session) {
   })
   
   # ---------------------------------------------------------------------------
-  # Step 4: Keep the experiment dropdown in sync with the active filters.
+  # Step 5: Keep the experiment dropdown in sync with the active filters.
   # ---------------------------------------------------------------------------
   observe({
     updateSelectInput(session, "experiment", choices = filtered_files())
   })
   
-  # Step 4a: Clear Single Experiment filters.
+  # Step 5a: Clear Single Experiment filters.
   observeEvent(input$clear_filters, {
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return()
@@ -278,14 +278,14 @@ server <- function(input, output, session) {
     updateSelectInput(session, "temperature", selected = "All")
   })
   
-  # Step 5: Build the full path for the selected experiment.
+  # Step 6: Build the full path for the selected experiment.
   workbook_path <- reactive({
     req(input$experiment)
     file.path(EXCEL_DIR, input$experiment)
   })
   
   # ---------------------------------------------------------------------------
-  # Step 6: Load the selected workbook using read_tt_workbook() from global.R.
+  # Step 7: Load the selected workbook using read_tt_workbook() from global.R.
   # Returns NULL if the file doesn't exist (e.g. was deleted after startup).
   # ---------------------------------------------------------------------------
   tt_data <- reactive({
@@ -295,7 +295,7 @@ server <- function(input, output, session) {
   })
   
   # ---------------------------------------------------------------------------
-  # Step 7: Show a short status message in the sidebar confirming whether
+  # Step 8: Show a short status message in the sidebar confirming whether
   # the selected file loaded successfully.
   # ---------------------------------------------------------------------------
   output$file_status <- renderText({
@@ -307,7 +307,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Step 7a: Single Experiment summary table.
+  # Step 8a: Single Experiment summary table.
   # Shows one row — the metadata of the currently loaded experiment.
   output$single_summary_table <- renderTable({
     req(input$experiment)
@@ -315,7 +315,7 @@ server <- function(input, output, session) {
   }, striped = FALSE, hover = FALSE, spacing = "xs", width = "100%", digits = 0)
   
   # ---------------------------------------------------------------------------
-  # Step 8: Sheet accessors — single experiment.
+  # Step 9: Sheet accessors — single experiment.
   #
   # Each reactive extracts one named sheet from the loaded workbook.
   # req() ensures the downstream plot code only runs once a workbook is loaded.
@@ -329,7 +329,7 @@ server <- function(input, output, session) {
   ph         <- reactive({ req(tt_data()); tt_data()[["pH"]] })
   viability  <- reactive({ req(tt_data()); tt_data()[["CellCount_Viability"]] })
   # ---------------------------------------------------------------------------
-  # Step 9: Render single-experiment plots.
+  # Step 10: Render single-experiment plots.
   #
   # Each output calls the matching ggplot function from global.R, then wraps
   # it in ggplotly() so the chart is interactive:
@@ -392,7 +392,7 @@ server <- function(input, output, session) {
   })
   
   # ---------------------------------------------------------------------------
-  # Step 10: Averages — filter the pool of available experiments.
+  # Step 11: Averages — filter the pool of available experiments.
   # ---------------------------------------------------------------------------
   avg_filtered_files <- reactive({
     meta <- file_metadata()
@@ -407,13 +407,13 @@ server <- function(input, output, session) {
     setNames(matched$filename, paste0("Experiment #", matched$exp_number))
   })
   
-  # Step 10a: Keep avg_experiments in sync with filters.
+  # Step 11a: Keep avg_experiments in sync with filters.
   observe({
     updateSelectizeInput(session, "avg_experiments",
                          choices = avg_filtered_files(), server = TRUE)
   })
   
-  # Step 10b: Clear Averages filters.
+  # Step 11b: Clear Averages filters.
   observeEvent(input$avg_clear_filters, {
     updateSelectizeInput(session, "avg_species",     selected = character(0))
     updateSelectizeInput(session, "avg_strain",      selected = character(0))
@@ -422,7 +422,7 @@ server <- function(input, output, session) {
     updateSelectizeInput(session, "avg_temperature", selected = character(0))
   })
   
-  # Step 11: Load averages data for selected experiments.
+  # Step 12: Load averages data for selected experiments.
   avg_data_list <- reactive({
     req(input$avg_experiments)
     result <- lapply(input$avg_experiments, function(f) {
@@ -442,16 +442,16 @@ server <- function(input, output, session) {
     paste0("Experiment #", matched$exp_number[match(filenames, matched$filename)])
   })
   
-  # Step 11a: Averages summary table — one row per selected experiment.
+  # Step 12a: Averages summary table — one row per selected experiment.
   output$avg_summary_table <- renderTable({
     req(input$avg_experiments)
     make_summary_table(input$avg_experiments, file_metadata())
   }, striped = TRUE, hover = FALSE, spacing = "xs", width = "100%", digits = 0)
   
   # ---------------------------------------------------------------------------
-  # Step 12: Render averages plots
+  # Step 13: Render averages plots
   #
-  # Same pattern as Step 9: each output calls a ggplot function from global.R
+  # Same pattern as Step 10: each output calls a ggplot function from global.R
   # then wraps it in ggplotly(). This gives the Averages page the same
   # interactive behaviour as the single-experiment plots, plus clickable
   # legend items to toggle individual experiments on/off.
@@ -513,9 +513,9 @@ server <- function(input, output, session) {
   })
     
   # ---------------------------------------------------------------------------
-  # Step 13: Compare — filter the pool of available experiments.
+  # Step 14: Compare — filter the pool of available experiments.
   #
-  # cmp_filtered_files() mirrors filtered_files() from Step 3 but reads from
+  # cmp_filtered_files() mirrors filtered_files() from Step 4 but reads from
   # the cmp_* input IDs so the Compare sidebar is fully independent.
   # Returns a named vector (label -> filename) just like filtered_files().
   # ---------------------------------------------------------------------------
@@ -537,14 +537,14 @@ server <- function(input, output, session) {
     setNames(matched$filename, paste0("Experiment #", matched$exp_number))
   })
   
-  # Step 14: Keep cmp_experiments in sync with filters.
+  # Step 15: Keep cmp_experiments in sync with filters.
   observe({
     updateSelectizeInput(session, "cmp_experiments",
                          choices  = cmp_filtered_files(),
                          server   = TRUE)
   })
   
-  # Step 14a: Clear Compare filters.
+  # Step 15a: Clear Compare filters.
   observeEvent(input$cmp_clear_filters, {
     updateSelectizeInput(session, "cmp_species",     selected = character(0))
     updateSelectizeInput(session, "cmp_strain",      selected = character(0))
@@ -553,7 +553,7 @@ server <- function(input, output, session) {
     updateSelectizeInput(session, "cmp_temperature", selected = character(0))
   })
   
-  # Step 15: Load full workbooks for selected Compare experiments.
+  # Step 16: Load full workbooks for selected Compare experiments.
   cmp_data_list <- reactive({
     req(input$cmp_experiments)
     result <- lapply(input$cmp_experiments, function(f) {
@@ -579,14 +579,14 @@ server <- function(input, output, session) {
     else paste0(n, " experiment", if (n == 1) "" else "s", " loaded")
   })
   
-  # Step 15a: Compare summary table — one row per selected experiment.
+  # Step 16a: Compare summary table — one row per selected experiment.
   output$cmp_summary_table <- renderTable({
     req(input$cmp_experiments)
     make_summary_table(input$cmp_experiments, file_metadata())
   }, striped = TRUE, hover = FALSE, spacing = "xs", width = "100%", digits = 0)
   
   # ---------------------------------------------------------------------------
-  # Step 16: Render Compare plots.
+  # Step 17: Render Compare plots.
   #
   # Each output calls the matching plot_cmp_*() function from global.R section
   # 7, then wraps it in ggplotly(). TT1 and TT2 remain on separate charts

@@ -214,7 +214,7 @@ ui <- navbarPage(
   # Each analytical tab shows the same chart types as Single Experiment but
   # with multiple experiments overlaid.
   #
-  # Filter logic (server.R Step 12):
+  # Filter logic (server.R Step 13):
   # - Leaving a filter empty = no filter applied for that dimension (all pass).
   # - Selecting one or more values = only experiments matching ANY of those
   #   values are included (OR within a dimension, AND across dimensions).
@@ -288,7 +288,7 @@ ui <- navbarPage(
         
         # -------------------------------------------------------------------
         # Experiment multi-select
-        # Populated dynamically by server.R (Step 13) with only the
+        # Populated dynamically by server.R (Step 14) with only the
         # experiments that pass the active filters above.
         # The user picks which of those to actually overlay on the plots.
         # -------------------------------------------------------------------
