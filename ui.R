@@ -66,12 +66,12 @@ ui <- navbarPage(
     # Charts and tables
     fluidRow(
       column(6,
-        h3("Experiments per Strain"),
-        plotOutput("experiments_per_strain_plot", height = "350px")
-      ),
-      column(6,
         h3("Experiments per Species"),
         plotOutput("experiments_per_species_plot", height = "350px")
+      ),
+      column(6,
+        h3("Experiments per Strain"),
+        plotOutput("experiments_per_strain_plot", height = "350px")
       )
     ),
 

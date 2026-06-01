@@ -128,6 +128,23 @@ server <- function(input, output, session) {
     paste0(" ", length(unique(meta$temperature)), " ")
   })
   
+  output$experiments_per_species_plot <- renderPlot({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return(NULL)
+    
+    species_counts <- meta %>%
+      group_by(species) %>%
+      summarise(n = n(), .groups = "drop") %>%
+      arrange(desc(n))
+    
+    ggplot(species_counts, aes(x = reorder(species, -n), y = n, fill = species)) +
+      geom_bar(stat = "identity") +
+      theme_minimal() +
+      labs(x = "Species", y = "Number of Experiments") +
+      theme(legend.position = "none",
+            panel.grid.major.y = element_line(colour = "gray90"))
+  })
+  
   output$experiments_per_strain_plot <- renderPlot({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
@@ -143,23 +160,6 @@ server <- function(input, output, session) {
       labs(x = "Strain", y = "Number of Experiments") +
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "none",
-            panel.grid.major.y = element_line(colour = "gray90"))
-  })
-  
-  output$experiments_per_species_plot <- renderPlot({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) return(NULL)
-    
-    species_counts <- meta %>%
-      group_by(species) %>%
-      summarise(n = n(), .groups = "drop") %>%
-      arrange(desc(n))
-    
-    ggplot(species_counts, aes(x = reorder(species, -n), y = n, fill = species)) +
-      geom_bar(stat = "identity") +
-      theme_minimal() +
-      labs(x = "Species", y = "Number of Experiments") +
-      theme(legend.position = "none",
             panel.grid.major.y = element_line(colour = "gray90"))
   })
   
