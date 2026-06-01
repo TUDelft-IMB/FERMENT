@@ -152,11 +152,18 @@ server <- function(input, output, session) {
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
     
     strain_counts <- meta %>%
-      group_by(strain) %>%
+      group_by(species, strain) %>%
       summarise(n = n(), .groups = "drop") %>%
-      arrange(desc(n))
+      group_by(species) %>%
+      mutate(species_total = sum(n)) %>%
+      ungroup() %>%
+      arrange(desc(species_total), desc(n)) %>%
+      mutate(
+        strain = factor(strain, levels = unique(strain)),
+        species = factor(species, levels = unique(species))
+        )
     
-    ggplot(strain_counts, aes(x = reorder(strain, -n), y = n, fill = strain)) +
+    ggplot(strain_counts, aes(x = strain, y = n, fill = species)) +
       geom_bar(stat = "identity") +
       theme_minimal() +
       labs(x = "Strain", y = "Number of Experiments") +
