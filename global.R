@@ -47,6 +47,7 @@ library(purrr)
 library(scales)
 library(plotly)
 library(bslib)
+library(DT)
 
 
 # =============================================================================
