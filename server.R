@@ -220,7 +220,7 @@ server <- function(input, output, session) {
       )
   })
   
-  output$temperature_distribution_plot <- renderPlot({
+  output$temperature_distribution_plot <- renderPlotly({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
     

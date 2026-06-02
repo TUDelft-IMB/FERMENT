@@ -80,7 +80,7 @@ ui <- navbarPage(
     fluidRow(
       column(6,
         h3("Temperature Distribution"),
-        plotOutput("temperature_distribution_plot", height = "350px")
+        plotlyOutput("temperature_distribution_plot", height = "350px")
       ),
       column(6,
         h3("Gravity Distribution"),
