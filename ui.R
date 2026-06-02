@@ -71,7 +71,7 @@ ui <- navbarPage(
       ),
       column(6,
         h3("Experiments per Strain"),
-        plotOutput("experiments_per_strain_plot", height = "350px")
+        plotlyOutput("experiments_per_strain_plot", height = "350px")
       )
     ),
 

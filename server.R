@@ -161,7 +161,7 @@ server <- function(input, output, session) {
       )
   })
   
-  output$experiments_per_strain_plot <- renderPlot({
+  output$experiments_per_strain_plot <- renderPlotly({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
     
