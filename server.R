@@ -450,10 +450,10 @@ server <- function(input, output, session) {
   })
   
   # Step 12a: Averages summary table — one row per selected experiment.
-  output$avg_summary_table <- renderTable({
+  output$avg_summary_table <- renderDT({
     req(input$avg_experiments)
     make_summary_table(input$avg_experiments, file_metadata())
-  }, striped = TRUE, hover = FALSE, spacing = "xs", width = "100%", digits = 0)
+  }, options = list(dom = "t", ordering = TRUE), rownames = FALSE)
   
   # ---------------------------------------------------------------------------
   # Step 13: Render averages plots
