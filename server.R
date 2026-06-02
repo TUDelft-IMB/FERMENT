@@ -132,6 +132,13 @@ server <- function(input, output, session) {
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
     
+    # Generate a consistent, named color palette based on all unique species
+    unique_species <- sort(unique(meta$species))
+    species_colors <- setNames(
+      hcl.colors(length(unique_species), palette = "Dynamic"), 
+      unique_species
+    )
+    
     species_counts <- meta %>%
       group_by(species) %>%
       summarise(n = n(), .groups = "drop") %>%
@@ -143,14 +150,18 @@ server <- function(input, output, session) {
       values  = ~n,
       type    = "pie",
       hole    = 0.55,
-      textposition   = "outside",           # pulls labels outside the slice
-      textinfo       = "label+value",       # species name + count outside
+      textposition   = "outside",            # pulls labels outside the slice
+      textinfo       = "label+value",        # species name + count outside
       insidetextorientation = "radial",
       hovertemplate  = "<i>%{label}</i><br>%{value} experiments<br>%{percent}<extra></extra>",
-      marker = list(line = list(color = "white", width = 2))
+      marker = list(
+        # Map the named palette to the exact order of the pie chart slices
+        colors = species_colors[species_counts$species], 
+        line = list(color = "white", width = 2)
+      )
     ) %>%
       layout(
-        showlegend  = FALSE,                # legend is redundant now — labels are outside
+        showlegend  = FALSE,                 # legend is redundant now — labels are outside
         uniformtext = list(minsize = 10, mode = "hide"),  # hide labels that don't fit
         annotations = list(list(
           text      = paste0("<b>", sum(species_counts$n), "</b><br>total"),
@@ -165,6 +176,13 @@ server <- function(input, output, session) {
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
     
+    # Recreate color palette from above
+    unique_species <- sort(unique(meta$species))
+    species_colors <- setNames(
+      hcl.colors(length(unique_species), palette = "Dynamic"), 
+      unique_species
+    )
+    
     strain_counts <- meta %>%
       group_by(species, strain) %>%
       summarise(n = n(), .groups = "drop") %>%
@@ -175,17 +193,19 @@ server <- function(input, output, session) {
       mutate(
         strain = factor(strain, levels = unique(strain)),
         species = factor(species, levels = unique(species))
-        )
+      )
     
     plot_ly(
       data = strain_counts,
       x = ~strain,
       y = ~n,
       color = ~species,
+      colors = species_colors, # Pass the named palette vector directly to Plotly
       type = 'bar'
     ) %>%
       layout(
         showlegend = FALSE,
+        hoverlabel = list(namelength = -1), # Forces Plotly to show the full species name
         xaxis = list(
           title = "Strain",
           tickangle = -45
