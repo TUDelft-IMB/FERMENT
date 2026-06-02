@@ -128,23 +128,37 @@ server <- function(input, output, session) {
     paste0(" ", length(unique(meta$temperature)), " ")
   })
   
-  output$experiments_per_species_plot <- renderPlot({
+  output$experiments_per_species_plot <- renderPlotly({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
     
     species_counts <- meta %>%
       group_by(species) %>%
       summarise(n = n(), .groups = "drop") %>%
-      arrange(desc(n)) %>%
-      mutate(species_label = paste0(species, " (", n, ")"))
+      arrange(desc(n))
     
-    ggplot(species_counts, aes(x = "", y = n, fill = reorder(species_label, -n))) +
-      geom_bar(stat = "identity", width = 1) +
-      coord_polar("y", start = 0) +
-      theme_void() +
-      labs(fill = "Species") +
-      theme(legend.position = "right",
-            legend.text = element_text(face = "italic"))
+    plot_ly(
+      species_counts,
+      labels  = ~species,
+      values  = ~n,
+      type    = "pie",
+      hole    = 0.55,
+      textposition   = "outside",           # pulls labels outside the slice
+      textinfo       = "label+value",       # species name + count outside
+      insidetextorientation = "radial",
+      hovertemplate  = "<i>%{label}</i><br>%{value} experiments<br>%{percent}<extra></extra>",
+      marker = list(line = list(color = "white", width = 2))
+    ) %>%
+      layout(
+        showlegend  = FALSE,                # legend is redundant now — labels are outside
+        uniformtext = list(minsize = 10, mode = "hide"),  # hide labels that don't fit
+        annotations = list(list(
+          text      = paste0("<b>", sum(species_counts$n), "</b><br>total"),
+          x         = 0.5, y = 0.5,
+          font      = list(size = 16),
+          showarrow = FALSE
+        ))
+      )
   })
   
   output$experiments_per_strain_plot <- renderPlot({
