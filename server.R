@@ -177,13 +177,27 @@ server <- function(input, output, session) {
         species = factor(species, levels = unique(species))
         )
     
-    ggplot(strain_counts, aes(x = strain, y = n, fill = species)) +
-      geom_bar(stat = "identity") +
-      theme_minimal() +
-      labs(x = "Strain", y = "Number of Experiments") +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1),
-            legend.position = "none",
-            panel.grid.major.y = element_line(colour = "gray90"))
+    plot_ly(
+      data = strain_counts,
+      x = ~strain,
+      y = ~n,
+      color = ~species,
+      type = 'bar'
+    ) %>%
+      layout(
+        showlegend = FALSE,
+        xaxis = list(
+          title = "Strain",
+          tickangle = -45
+        ),
+        yaxis = list(
+          title = "Number of Experiments",
+          showgrid = TRUE,
+          gridcolor = "gray90"
+        ),
+        plot_bgcolor = "rgba(0,0,0,0)",
+        paper_bgcolor = "rgba(0,0,0,0)"
+      )
   })
   
   output$temperature_distribution_plot <- renderPlot({
