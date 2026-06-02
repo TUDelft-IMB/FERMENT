@@ -224,7 +224,6 @@ server <- function(input, output, session) {
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
     
-    # Convert temperature to numeric for plotting (if stored as character)
     temp_data <- meta %>%
       mutate(temperature = as.numeric(temperature)) %>%
       filter(!is.na(temperature)) %>%
@@ -232,20 +231,22 @@ server <- function(input, output, session) {
       summarise(n = n(), .groups = "drop") %>%
       arrange(temperature)
     
-    ggplot(temp_data, aes(x = as.factor(temperature), y = n, fill = temperature)) +
+    p <- ggplot(temp_data, aes(x = as.factor(temperature), y = n, fill = temperature, text = n)) +
       geom_bar(stat = "identity") +
       scale_fill_gradient(low = "lightblue", high = "darkred") +
       theme_minimal() +
       labs(x = "Temperature (°C)", y = "Number of Experiments") +
       theme(legend.position = "none",
             panel.grid.major.y = element_line(colour = "gray90"))
+    
+    ggplotly(p, tooltip = "text")
+    
   })
   
   output$gravity_distribution_plot <- renderPlotly({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
     
-    # Convert gravity to numeric for plotting (if stored as character)
     gravity_data <- meta %>%
       mutate(gravity = as.numeric(gravity)) %>%
       filter(!is.na(gravity)) %>%
@@ -253,13 +254,16 @@ server <- function(input, output, session) {
       summarise(n = n(), .groups = "drop") %>%
       arrange(gravity)
     
-    ggplot(gravity_data, aes(x = as.factor(gravity), y = n, fill = gravity)) +
+    p <- ggplot(gravity_data, aes(x = as.factor(gravity), y = n, fill = gravity, text = n)) +
       geom_bar(stat = "identity") +
       scale_fill_gradient(low = "lightyellow", high = "darkgoldenrod") +
       theme_minimal() +
       labs(x = "Starting Gravity (SG)", y = "Number of Experiments") +
       theme(legend.position = "none",
             panel.grid.major.y = element_line(colour = "gray90"))
+    
+    ggplotly(p, tooltip = "text")
+    
   })
   
   output$conditions_summary_table <- renderDT({
