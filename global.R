@@ -139,10 +139,10 @@ read_avg_sheet <- function(file_path) {
 # hplc_labels: base column names as they appear in the Excel sheet (without
 #              the tube-number prefix). plot_hplc_tube() prepends tube_num.
 # hplc_avg_labels: plain names used in averages legends (no unit suffix).
-hplc_labels     <- c("Maltotriose (g/L)", "Maltose (g/L)", "Glucose (g/L)",
-                     "Fructose (g/L)",   "Glycerol (g/L)", "Ethanol (g/L)")
+hplc_labels     <- c("Maltotriose", "Maltose", "Glucose",
+                     "Fructose", "Glycerol", "Ethanol")
 hplc_avg_labels <- c("Maltotriose", "Maltose", "Glucose",
-                     "Fructose",   "Glycerol", "Ethanol")
+                     "Fructose", "Glycerol", "Ethanol")
 hplc_colours    <- c("skyblue", "maroon", "gold", "forestgreen", "grey", "sienna")
 
 # --- GC Esters: 10 compounds -------------------------------------------------
