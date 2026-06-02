@@ -214,33 +214,17 @@ server <- function(input, output, session) {
             panel.grid.major.y = element_line(colour = "gray90"))
   })
   
-  output$conditions_summary_table <- renderTable({
+  output$conditions_summary_table <- renderDT({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
     meta %>%
       group_by(species, strain, gravity, temperature, inoculum) %>%
-      summarise(
-        `Exp Count`   = n(),
-        `Exp Numbers` = paste(unique(exp_number), collapse = ", "),
-        .groups = "drop"
-      ) %>%
-      # Calculate total experiments per species
-      group_by(species) %>%
-      mutate(species_total = sum(`Exp Count`)) %>%
-      # Calculate total experiments per strain (nested within species)
-      ungroup() %>%
-      # Arrange by the new totals (descending), then fallback to alphabetical/numeric
-      arrange(
-        desc(species_total), 
-        species, 
-        strain, 
-        as.numeric(gravity), 
-        as.numeric(temperature)
-      ) %>%
-      # Drop the temporary total so it doesn't render
-      select(-species_total)
-  }, striped = TRUE, hover = TRUE, spacing = "xs", width = "100%")
-  
+      summarise(`Exp Count` = n(),
+                `Exp Numbers` = paste(unique(exp_number), collapse = ", "),
+                .groups = "drop") %>%
+      arrange(species, strain, as.numeric(gravity), as.numeric(temperature))
+  }, options = list(pageLength = 15, scrollX = TRUE), rownames = FALSE)
+
   # ---------------------------------------------------------------------------
   # Helper: build a tidy display table from a set of filenames.
   # Used by all three summary table outputs (single, compare, averages).
@@ -332,10 +316,10 @@ server <- function(input, output, session) {
   
   # Step 8a: Single Experiment summary table.
   # Shows one row — the metadata of the currently loaded experiment.
-  output$single_summary_table <- renderTable({
+  output$single_summary_table <- renderDT({
     req(input$experiment)
     make_summary_table(input$experiment, file_metadata())
-  }, striped = FALSE, hover = FALSE, spacing = "xs", width = "100%", digits = 0)
+  }, options = list(dom = "t", ordering = FALSE), rownames = FALSE)
   
   # ---------------------------------------------------------------------------
   # Step 9: Sheet accessors — single experiment.
@@ -603,10 +587,10 @@ server <- function(input, output, session) {
   })
   
   # Step 16a: Compare summary table — one row per selected experiment.
-  output$cmp_summary_table <- renderTable({
+  output$cmp_summary_table <- renderDT({
     req(input$cmp_experiments)
     make_summary_table(input$cmp_experiments, file_metadata())
-  }, striped = TRUE, hover = FALSE, spacing = "xs", width = "100%", digits = 0)
+  }, options = list(dom = "t", ordering = TRUE), rownames = FALSE)
   
   # ---------------------------------------------------------------------------
   # Step 17: Render Compare plots.
