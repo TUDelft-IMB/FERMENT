@@ -93,7 +93,7 @@ ui <- navbarPage(
     fluidRow(
       column(12,
         h3("Experimental Conditions Summary"),
-        tableOutput("conditions_summary_table")
+        DTOutput("conditions_summary_table")
       )
     ),
 
@@ -200,7 +200,7 @@ ui <- navbarPage(
         # -------------------------------------------------------------------
         hr(),
         h4("Selected experiment"),
-        tableOutput("single_summary_table")
+        DTOutput("single_summary_table")
       )
     )
   ),
@@ -357,7 +357,7 @@ ui <- navbarPage(
         # -------------------------------------------------------------------
         hr(),
         h4("Selected experiments"),
-        tableOutput("cmp_summary_table")
+        DTOutput("cmp_summary_table")
       )
     )
   ),
@@ -493,7 +493,7 @@ ui <- navbarPage(
         # -------------------------------------------------------------------
         hr(),
         h4("Selected experiments"),
-        tableOutput("avg_summary_table")
+        DTOutput("avg_summary_table")
       )
     )
   )
