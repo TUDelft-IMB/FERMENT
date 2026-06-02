@@ -1,6 +1,6 @@
 # Contributing guidelines for FERMENT
 
-Contributions are always welcome! Here's how to get started!
+Contributions are always welcome! Here's how to get started:
 
 ## Reporting issues
 
