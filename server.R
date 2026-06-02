@@ -103,11 +103,11 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
   # Step 3: Overview tab metrics and plots.
   # ---------------------------------------------------------------------------
-  
-  output$total_experiments_count <- renderText({
+
+  output$unique_species_count <- renderText({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return("0")
-    paste0(" ", nrow(meta), " ")
+    paste0(" ", length(unique(meta$species)), " ")
   })
   
   output$unique_strains_count <- renderText({
@@ -116,16 +116,16 @@ server <- function(input, output, session) {
     paste0(" ", length(unique(meta$strain)), " ")
   })
   
-  output$unique_species_count <- renderText({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) return("0")
-    paste0(" ", length(unique(meta$species)), " ")
-  })
-  
   output$unique_temps_count <- renderText({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return("0")
     paste0(" ", length(unique(meta$temperature)), " ")
+  })
+  
+  output$total_experiments_count <- renderText({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return("0")
+    paste0(" ", nrow(meta), " ")
   })
   
   output$experiments_per_species_plot <- renderPlotly({
