@@ -241,7 +241,7 @@ server <- function(input, output, session) {
             panel.grid.major.y = element_line(colour = "gray90"))
   })
   
-  output$gravity_distribution_plot <- renderPlot({
+  output$gravity_distribution_plot <- renderPlotly({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
     

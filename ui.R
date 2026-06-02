@@ -84,7 +84,7 @@ ui <- navbarPage(
       ),
       column(6,
         h3("Gravity Distribution"),
-        plotOutput("gravity_distribution_plot", height = "350px")
+        plotlyOutput("gravity_distribution_plot", height = "350px")
       )
     ),
 
