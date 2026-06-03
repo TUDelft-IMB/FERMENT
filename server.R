@@ -103,11 +103,11 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
   # Step 3: Overview tab metrics and plots.
   # ---------------------------------------------------------------------------
-  
-  output$total_experiments_count <- renderText({
+
+  output$unique_species_count <- renderText({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return("0")
-    paste0(" ", nrow(meta), " ")
+    paste0(" ", length(unique(meta$species)), " ")
   })
   
   output$unique_strains_count <- renderText({
@@ -116,21 +116,28 @@ server <- function(input, output, session) {
     paste0(" ", length(unique(meta$strain)), " ")
   })
   
-  output$unique_species_count <- renderText({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) return("0")
-    paste0(" ", length(unique(meta$species)), " ")
-  })
-  
   output$unique_temps_count <- renderText({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return("0")
     paste0(" ", length(unique(meta$temperature)), " ")
   })
   
+  output$total_experiments_count <- renderText({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) return("0")
+    paste0(" ", nrow(meta), " ")
+  })
+  
   output$experiments_per_species_plot <- renderPlotly({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
+    
+    # Generate a consistent, named color palette based on all unique species
+    unique_species <- sort(unique(meta$species))
+    species_colors <- setNames(
+      hcl.colors(length(unique_species), palette = "Dynamic"), 
+      unique_species
+    )
     
     species_counts <- meta %>%
       group_by(species) %>%
@@ -143,14 +150,18 @@ server <- function(input, output, session) {
       values  = ~n,
       type    = "pie",
       hole    = 0.55,
-      textposition   = "outside",           # pulls labels outside the slice
-      textinfo       = "label+value",       # species name + count outside
+      textposition   = "outside",            # pulls labels outside the slice
+      textinfo       = "label+value",        # species name + count outside
       insidetextorientation = "radial",
       hovertemplate  = "<i>%{label}</i><br>%{value} experiments<br>%{percent}<extra></extra>",
-      marker = list(line = list(color = "white", width = 2))
+      marker = list(
+        # Map the named palette to the exact order of the pie chart slices
+        colors = species_colors[species_counts$species], 
+        line = list(color = "white", width = 2)
+      )
     ) %>%
       layout(
-        showlegend  = FALSE,                # legend is redundant now — labels are outside
+        showlegend  = FALSE,                 # legend is redundant now — labels are outside
         uniformtext = list(minsize = 10, mode = "hide"),  # hide labels that don't fit
         annotations = list(list(
           text      = paste0("<b>", sum(species_counts$n), "</b><br>total"),
@@ -161,9 +172,16 @@ server <- function(input, output, session) {
       )
   })
   
-  output$experiments_per_strain_plot <- renderPlot({
+  output$experiments_per_strain_plot <- renderPlotly({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
+    
+    # Recreate color palette from above
+    unique_species <- sort(unique(meta$species))
+    species_colors <- setNames(
+      hcl.colors(length(unique_species), palette = "Dynamic"), 
+      unique_species
+    )
     
     strain_counts <- meta %>%
       group_by(species, strain) %>%
@@ -175,22 +193,37 @@ server <- function(input, output, session) {
       mutate(
         strain = factor(strain, levels = unique(strain)),
         species = factor(species, levels = unique(species))
-        )
+      )
     
-    ggplot(strain_counts, aes(x = strain, y = n, fill = species)) +
-      geom_bar(stat = "identity") +
-      theme_minimal() +
-      labs(x = "Strain", y = "Number of Experiments") +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1),
-            legend.position = "none",
-            panel.grid.major.y = element_line(colour = "gray90"))
+    plot_ly(
+      data = strain_counts,
+      x = ~strain,
+      y = ~n,
+      color = ~species,
+      colors = species_colors, # Pass the named palette vector directly to Plotly
+      type = 'bar'
+    ) %>%
+      layout(
+        showlegend = FALSE,
+        hoverlabel = list(namelength = -1), # Forces Plotly to show the full species name
+        xaxis = list(
+          title = "Strain",
+          tickangle = -45
+        ),
+        yaxis = list(
+          title = "Number of Experiments",
+          showgrid = TRUE,
+          gridcolor = "gray90"
+        ),
+        plot_bgcolor = "rgba(0,0,0,0)",
+        paper_bgcolor = "rgba(0,0,0,0)"
+      )
   })
   
-  output$temperature_distribution_plot <- renderPlot({
+  output$temperature_distribution_plot <- renderPlotly({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
     
-    # Convert temperature to numeric for plotting (if stored as character)
     temp_data <- meta %>%
       mutate(temperature = as.numeric(temperature)) %>%
       filter(!is.na(temperature)) %>%
@@ -198,20 +231,22 @@ server <- function(input, output, session) {
       summarise(n = n(), .groups = "drop") %>%
       arrange(temperature)
     
-    ggplot(temp_data, aes(x = as.factor(temperature), y = n, fill = temperature)) +
+    p <- ggplot(temp_data, aes(x = as.factor(temperature), y = n, fill = temperature, text = n)) +
       geom_bar(stat = "identity") +
       scale_fill_gradient(low = "lightblue", high = "darkred") +
       theme_minimal() +
       labs(x = "Temperature (°C)", y = "Number of Experiments") +
       theme(legend.position = "none",
             panel.grid.major.y = element_line(colour = "gray90"))
+    
+    ggplotly(p, tooltip = "text")
+    
   })
   
-  output$gravity_distribution_plot <- renderPlot({
+  output$gravity_distribution_plot <- renderPlotly({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) return(NULL)
     
-    # Convert gravity to numeric for plotting (if stored as character)
     gravity_data <- meta %>%
       mutate(gravity = as.numeric(gravity)) %>%
       filter(!is.na(gravity)) %>%
@@ -219,13 +254,16 @@ server <- function(input, output, session) {
       summarise(n = n(), .groups = "drop") %>%
       arrange(gravity)
     
-    ggplot(gravity_data, aes(x = as.factor(gravity), y = n, fill = gravity)) +
+    p <- ggplot(gravity_data, aes(x = as.factor(gravity), y = n, fill = gravity, text = n)) +
       geom_bar(stat = "identity") +
       scale_fill_gradient(low = "lightyellow", high = "darkgoldenrod") +
       theme_minimal() +
       labs(x = "Starting Gravity (SG)", y = "Number of Experiments") +
       theme(legend.position = "none",
             panel.grid.major.y = element_line(colour = "gray90"))
+    
+    ggplotly(p, tooltip = "text")
+    
   })
   
   output$conditions_summary_table <- renderDT({
