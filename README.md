@@ -83,7 +83,7 @@ You will need [R](https://www.r-project.org/) (≥ 4.2) and [RStudio](https://po
 
 ## Contributing
 
-[TODO]
+Contributions are always welcome! Please follow the steps described in the [contributing guidelines](./CONTRIBUTING.md).
 
 ## License
 
