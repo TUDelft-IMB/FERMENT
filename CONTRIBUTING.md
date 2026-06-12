@@ -54,7 +54,7 @@ Clone the repo and restore the environment using `renv`:
 renv::restore()
 ```
 
-Set the `EXCEL_DIR` environment variable to point to a folder containing the data. See the README for details on how to set this up.
+Set the `EXCEL_DIR` environment variable to point to a folder containing the data. See the [README](README.md) for details on how to set this up.
 
 Then launch the app locally:
 
