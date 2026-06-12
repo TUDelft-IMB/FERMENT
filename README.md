@@ -12,13 +12,13 @@ You will need [R](https://www.r-project.org/) (≥ 4.2) and [RStudio](https://po
 
 1. **Get the repository**
 
-    **Option A: GitHub Desktop (recommended for non-technical users)**
+    **Option A: GitHub Desktop (recommended if you are not familiar with the command line)**
 
     If you are not comfortable with the terminal, use [GitHub Desktop](https://desktop.github.com/). Open it, click **File → Clone Repository → URL**, and paste:
     ```
     https://github.com/TUDelft-IMB/FERMENT.git
     ```
-    Choose a local folder and click **Clone**. GitHub Desktop will download the project for you.
+    Choose a local folder where to save it and click **Clone**. GitHub Desktop will download the project for you.
     
     ---
 
