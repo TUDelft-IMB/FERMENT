@@ -44,15 +44,13 @@ You will need [R](https://www.r-project.org/) (≥ 4.2) and [RStudio](https://po
 
     In RStudio, go to **File → Open Project** and select the `FERMENT.Rproj` file inside the cloned folder. This ensures RStudio sets the working directory correctly and that `renv` activates automatically for this project.
     
-    > [!NOTE] 
-    > When working in RStudio, open the project via its `.Rproj` file rather than opening individual scripts. This helps ensure that `renv` is activated and that the project's package library is used instead of your global R library.
+    > **Note:** When working in RStudio, open the project via its `.Rproj` file rather than opening individual scripts. This helps ensure that `renv` is activated and that the project's package library is used instead of your global R library.
 
 3.  **Restore the package environment with `renv`**
 
     This project uses `renv` to lock all R package versions so that the app runs identically on every machine.
 
-    > [!NOTE]
-    > If you do not have `renv` installed yet, run `install.packages("renv")` once in R before proceeding.
+    > **Note:** If you do not have `renv` installed yet, run `install.packages("renv")` once in R before proceeding.
 
     When you open the project for the first time, `renv` will detect the lockfile automatically. In your R console, run:
 
@@ -62,15 +60,13 @@ You will need [R](https://www.r-project.org/) (≥ 4.2) and [RStudio](https://po
 
     This reads `renv.lock` and installs exactly the package versions listed there into the project-local library. You do not need to install packages manually.
 
-    > [!NOTE]
     > **First time only:** After `renv::restore()` completes, all required packages are available and you can launch the app normally. You never need to run `renv::restore()` again on the same machine unless the lockfile changes (e.g. after a `git pull` that updates dependencies).
 
 4.  **Set the data directory**
 
     The app reads experiment files from a folder set by the environment variable `EXCEL_DIR`. Either modify the path in `global.R` (line 64) or add the path variable to a `.Renviron` file in the project root. The file `Renviron_example.txt` shows an example of how the `.Renviron` file should look like. 
     
-    > [!NOTE]
-    > The `.Renviron` file is not tracked by git, so you can safely add your path without worrying about sharing it. It is also a hidden file, so you may need to enable hidden files in your file explorer to see it. On macOS you can view hidden files with `Cmd + Shift + .` in Finder. On Windows, you can enable "Hidden items" in the View tab of File Explorer.
+    > **Note:** The `.Renviron` file is not tracked by git, so you can safely add your path without worrying about sharing it. It is also a hidden file, so you may need to enable hidden files in your file explorer to see it. On macOS you can view hidden files with `Cmd + Shift + .` in Finder. On Windows, you can enable "Hidden items" in the View tab of File Explorer.
 
 5. **Launch the app**
 
@@ -79,8 +75,7 @@ You will need [R](https://www.r-project.org/) (≥ 4.2) and [RStudio](https://po
    to a Shiny app and launch it automatically. This will open the app in a new window or 
    in your default web browser.
 
-   > [!NOTE]
-   > Make sure you have opened the project via `FERMENT.Rproj` (Step 2) before launching. If you open a script file directly without loading the project first, the app may not find its data files or packages correctly.
+   > **Note:** Make sure you have opened the project via `FERMENT.Rproj` (Step 2) before launching. If you open a script file directly without loading the project first, the app may not find its data files or packages correctly.
 
 ## Usage
 
