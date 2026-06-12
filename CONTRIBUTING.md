@@ -29,9 +29,9 @@ Your data folder (the one pointed to by `EXCEL_DIR`) should **never** be committ
 
 This repository uses the following branch structure:
 
-- **`main`** — the stable, production-ready branch. Do not commit directly to `main`.
-- **`develop`** — the active development branch. All feature branches are merged here first. This is the branch your pull requests should target.
-- **Feature/fix branches** — short-lived branches created off `develop` for individual changes.
+- **`main`** - the stable, production-ready branch. Do not commit directly to `main`.
+- **`develop`** - the active development branch. All feature branches are merged here first. This is the branch your pull requests should target.
+- **Feature/fix branches** - short-lived branches created off `develop` for individual changes.
 
 The typical flow is:
 
