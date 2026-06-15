@@ -625,12 +625,16 @@ server <- function(input, output, session) {
   # Step 16: Load full workbooks for selected Compare experiments.
   cmp_data_list <- reactive({
     req(input$cmp_experiments)
-    result <- lapply(input$cmp_experiments, function(f) {
-      path <- file.path(EXCEL_DIR, f)
-      tryCatch(read_tt_workbook(path), error = function(e) NULL)
+    
+    withProgress(message = "Loading experiments...", value = 0, {
+      result <- lapply(input$cmp_experiments, function(f) {
+        incProgress(1 / length(input$cmp_experiments), detail = paste("Reading", f))
+        path <- file.path(EXCEL_DIR, f)
+        tryCatch(read_tt_workbook(path), error = function(e) NULL)
+      })
     })
+    
     names(result) <- input$cmp_experiments
-    # Drop any files that failed to load
     result[!sapply(result, is.null)]
   })
   
