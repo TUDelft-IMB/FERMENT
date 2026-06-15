@@ -34,38 +34,43 @@ server <- function(input, output, session) {
     files <- files[!grepl("^~\\$", files)]
     # If the folder is empty, return an empty data frame
     if (length(files) == 0) return(data.frame())
-    # Loop over every file, read its parameters sheet, and build one data frame
-    # row per file. do.call(rbind, ...) stacks all rows into a single table.
-    do.call(rbind, lapply(files, function(f) {
-      # Build full path
-      path <- file.path(EXCEL_DIR, f)
-      # Try to read the parameters sheet; if it fails (e.g. wrong sheet name),
-      # return NULL so that file is silently skipped
-      params <- tryCatch(
-        read_excel(path, sheet = "Experimental_parameters", col_names = TRUE),
-        error = function(e) NULL
-      )
-      # Skip this file if the sheet couldn't be read or has no data rows
-      if (is.null(params) || nrow(params) < 1) return(NULL)
-      # Build a one-row data frame from the first data row (row 2 of the sheet,
-      # since row 1 is the header). Column positions match the sheet layout:
-      # [[2]] = B = Species
-      # [[3]] = C = Strain
-      # [[4]] = D = Starting gravity
-      # [[5]] = E = Inoculum
-      # [[6]] = F = Temperature
-      # [[7]] = G = Experiment number
-      data.frame(
-        filename    = f,
-        species     = as.character(params[[2]][1]),
-        strain      = as.character(params[[3]][1]),
-        gravity     = as.character(params[[4]][1]),
-        inoculum    = as.character(params[[5]][1]),
-        temperature = as.character(params[[6]][1]),
-        exp_number  = as.character(params[[7]][1]),
-        stringsAsFactors = FALSE
-      )
-    }))
+
+    withProgress(message = "Scanning experiment files...", value = 0, {
+      # Loop over every file, read its parameters sheet, and build one data frame
+      # row per file. do.call(rbind, ...) stacks all rows into a single table.
+      result <- do.call(rbind, lapply(files, function(f) {
+        incProgress(1 / length(files), detail = paste("Reading", f))
+        # Build full path
+        path <- file.path(EXCEL_DIR, f)
+        # Try to read the parameters sheet; if it fails (e.g. wrong sheet name),
+        # return NULL so that file is silently skipped
+        params <- tryCatch(
+          read_excel(path, sheet = "Experimental_parameters", col_names = TRUE),
+          error = function(e) NULL
+        )
+        # Skip this file if the sheet couldn't be read or has no data rows
+        if (is.null(params) || nrow(params) < 1) return(NULL)
+        # Build a one-row data frame from the first data row (row 2 of the sheet,
+        # since row 1 is the header). Column positions match the sheet layout:
+        # [[2]] = B = Species
+        # [[3]] = C = Strain
+        # [[4]] = D = Starting gravity
+        # [[5]] = E = Inoculum
+        # [[6]] = F = Temperature
+        # [[7]] = G = Experiment number
+        data.frame(
+          filename    = f,
+          species     = as.character(params[[2]][1]),
+          strain      = as.character(params[[3]][1]),
+          gravity     = as.character(params[[4]][1]),
+          inoculum    = as.character(params[[5]][1]),
+          temperature = as.character(params[[6]][1]),
+          exp_number  = as.character(params[[7]][1]),
+          stringsAsFactors = FALSE
+        )
+      }))
+    })
+    result
   })
   
   # ---------------------------------------------------------------------------
@@ -484,9 +489,14 @@ server <- function(input, output, session) {
   # Step 12: Load averages data for selected experiments.
   avg_data_list <- reactive({
     req(input$avg_experiments)
-    result <- lapply(input$avg_experiments, function(f) {
-      read_avg_sheet(file.path(EXCEL_DIR, f))
+    
+    withProgress(message = "Loading averages...", value = 0, {
+      result <- lapply(input$avg_experiments, function(f) {
+        incProgress(1 / length(input$avg_experiments), detail = paste("Reading", f))
+        read_avg_sheet(file.path(EXCEL_DIR, f))
+      })
     })
+    
     names(result) <- input$avg_experiments
     # Drop entries where the sheet was missing (read_avg_sheet returned NULL)
     result[!sapply(result, is.null)]
@@ -615,12 +625,16 @@ server <- function(input, output, session) {
   # Step 16: Load full workbooks for selected Compare experiments.
   cmp_data_list <- reactive({
     req(input$cmp_experiments)
-    result <- lapply(input$cmp_experiments, function(f) {
-      path <- file.path(EXCEL_DIR, f)
-      tryCatch(read_tt_workbook(path), error = function(e) NULL)
+    
+    withProgress(message = "Loading experiments...", value = 0, {
+      result <- lapply(input$cmp_experiments, function(f) {
+        incProgress(1 / length(input$cmp_experiments), detail = paste("Reading", f))
+        path <- file.path(EXCEL_DIR, f)
+        tryCatch(read_tt_workbook(path), error = function(e) NULL)
+      })
     })
+    
     names(result) <- input$cmp_experiments
-    # Drop any files that failed to load
     result[!sapply(result, is.null)]
   })
   

@@ -11,7 +11,16 @@
 #   - Double-click a legend item to isolate it
 #
 # plotlyOutput() here must match renderPlotly() in server.R exactly by ID.
+#
+# All plotlyOutput() calls are wrapped in withSpinner() from the
+# shinycssloaders package. This shows an animated spinner inside the plot
+# area while the reactive is computing, rather than leaving a blank space.
+# Spinner colour matches the app's primary colour (#0072B2).
+# plotlyOutput() here must match renderPlotly() in server.R exactly by ID.
 # =============================================================================
+
+# Convenience alias so the rest of the file stays readable.
+spinner <- function(...) shinycssloaders::withSpinner(..., color = "#009E73", type = 7, caption = "Loading...")
 
 ui <- navbarPage(
   title = "FERMENT",
@@ -67,11 +76,11 @@ ui <- navbarPage(
     fluidRow(
       column(6,
         h3("Experiments per Species"),
-        plotlyOutput("experiments_per_species_plot", height = "350px")
+        spinner(plotlyOutput("experiments_per_species_plot", height = "350px"))
       ),
       column(6,
         h3("Experiments per Strain"),
-        plotlyOutput("experiments_per_strain_plot", height = "350px")
+        spinner(plotlyOutput("experiments_per_strain_plot", height = "350px"))
       )
     ),
 
@@ -80,11 +89,11 @@ ui <- navbarPage(
     fluidRow(
       column(6,
         h3("Temperature Distribution"),
-        plotlyOutput("temperature_distribution_plot", height = "350px")
+        spinner(plotlyOutput("temperature_distribution_plot", height = "350px"))
       ),
       column(6,
         h3("Gravity Distribution"),
-        plotlyOutput("gravity_distribution_plot", height = "350px")
+        spinner(plotlyOutput("gravity_distribution_plot", height = "350px"))
       )
     ),
 
@@ -160,36 +169,36 @@ ui <- navbarPage(
           tabPanel("HPLC",
             # Two Plotly charts side by side: TT1 on the left, TT2 on the right.
             fluidRow(
-              column(6, plotlyOutput("hplcTT1Plot", height = "400px")),
-              column(6, plotlyOutput("hplcTT2Plot", height = "400px"))
+              column(6, spinner(plotlyOutput("hplcTT1Plot", height = "400px"))),
+              column(6, spinner(plotlyOutput("hplcTT2Plot", height = "400px")))
             )
           ),
 
           tabPanel("GC Esters",
             fluidRow(
-              column(6, plotlyOutput("gcEstersTT1Plot", height = "400px")),
-              column(6, plotlyOutput("gcEstersTT2Plot", height = "400px"))
+              column(6, spinner(plotlyOutput("gcEstersTT1Plot", height = "400px"))),
+              column(6, spinner(plotlyOutput("gcEstersTT2Plot", height = "400px")))
             )
           ),
 
           tabPanel("GC Ketones",
             fluidRow(
-              column(6, plotlyOutput("gcKetonesTT1Plot", height = "400px")),
-              column(6, plotlyOutput("gcKetonesTT2Plot", height = "400px"))
+              column(6, spinner(plotlyOutput("gcKetonesTT1Plot", height = "400px"))),
+              column(6, spinner(plotlyOutput("gcKetonesTT2Plot", height = "400px")))
             )
           ),
 
           tabPanel("Attenuation & pH",
             fluidRow(
-              column(6, plotlyOutput("attPlot", height = "400px")),
-              column(6, plotlyOutput("phPlot",  height = "400px"))
+              column(6, spinner(plotlyOutput("attPlot", height = "400px"))),
+              column(6, spinner(plotlyOutput("phPlot",  height = "400px")))
             )
           ),
 
           tabPanel("Cell Count & Viability",
             fluidRow(
-              column(6, plotlyOutput("cellCountPlot",  height = "400px")),
-              column(6, plotlyOutput("viabilityPlot",  height = "400px"))
+              column(6, spinner(plotlyOutput("cellCountPlot",  height = "400px"))),
+              column(6, spinner(plotlyOutput("viabilityPlot",  height = "400px")))
             )
           )
         ),
@@ -314,22 +323,22 @@ ui <- navbarPage(
           
           tabPanel("HPLC",
                    fluidRow(
-                     column(6, plotlyOutput("cmpHplcTT1Plot", height = "450px")),
-                     column(6, plotlyOutput("cmpHplcTT2Plot", height = "450px"))
+                     column(6, spinner(plotlyOutput("cmpHplcTT1Plot", height = "450px"))),
+                     column(6, spinner(plotlyOutput("cmpHplcTT2Plot", height = "450px")))
                    )
           ),
           
           tabPanel("GC Esters",
                    fluidRow(
-                     column(6, plotlyOutput("cmpGcEstersTT1Plot", height = "450px")),
-                     column(6, plotlyOutput("cmpGcEstersTT2Plot", height = "450px"))
+                     column(6, spinner(plotlyOutput("cmpGcEstersTT1Plot", height = "450px"))),
+                     column(6, spinner(plotlyOutput("cmpGcEstersTT2Plot", height = "450px")))
                    )
           ),
           
           tabPanel("GC Ketones",
                    fluidRow(
-                     column(6, plotlyOutput("cmpGcKetonesTT1Plot", height = "450px")),
-                     column(6, plotlyOutput("cmpGcKetonesTT2Plot", height = "450px"))
+                     column(6, spinner(plotlyOutput("cmpGcKetonesTT1Plot", height = "450px"))),
+                     column(6, spinner(plotlyOutput("cmpGcKetonesTT2Plot", height = "450px")))
                    )
           ),
           
@@ -337,16 +346,16 @@ ui <- navbarPage(
                    # One chart per metric; each contains both TT1 (solid) and
                    # TT2 (dashed) for all selected experiments.
                    fluidRow(
-                     column(6, plotlyOutput("cmpAttPlot", height = "450px")),
-                     column(6, plotlyOutput("cmpPhPlot",  height = "450px"))
+                     column(6, spinner(plotlyOutput("cmpAttPlot", height = "450px"))),
+                     column(6, spinner(plotlyOutput("cmpPhPlot",  height = "450px")))
                    )
           ),
           
           tabPanel("Cell Count & Viability",
                    # Same encoding: solid = TT1, dashed = TT2, colour = experiment.
                    fluidRow(
-                     column(6, plotlyOutput("cmpCellCountPlot",  height = "450px")),
-                     column(6, plotlyOutput("cmpViabilityPlot",  height = "450px"))
+                     column(6, spinner(plotlyOutput("cmpCellCountPlot",  height = "450px"))),
+                     column(6, spinner(plotlyOutput("cmpViabilityPlot",  height = "450px")))
                    )
           )
         ),
@@ -441,48 +450,48 @@ ui <- navbarPage(
 
           tabPanel("Sugars & Ethanol",
             fluidRow(
-              column(12, plotlyOutput("avgHplcPlot",               height = "450px"))
+              column(12, spinner(plotlyOutput("avgHplcPlot",               height = "450px")))
             )
           ),
           tabPanel("GC Esters",
             fluidRow(
-              column(6, plotlyOutput("avgEthylEstersBarPlot",     height = "450px")),
-              column(6, plotlyOutput("avgAcetateEstersBarPlot",   height = "450px"))
+              column(6, spinner(plotlyOutput("avgEthylEstersBarPlot",     height = "450px"))),
+              column(6, spinner(plotlyOutput("avgAcetateEstersBarPlot",   height = "450px")))
             )
           ),
           tabPanel("Higher Alcohols",
             fluidRow(
-              column(12, plotlyOutput("avgHigherAlcoholsBarPlot",  height = "450px"))
+              column(12, spinner(plotlyOutput("avgHigherAlcoholsBarPlot",  height = "450px")))
             )
           ),
           tabPanel("Vicinal Diketones",
             fluidRow(
-              column(12, plotlyOutput("avgDiketonesPlot",          height = "450px"))
+              column(12, spinner(plotlyOutput("avgDiketonesPlot",          height = "450px")))
             )
           ),
           tabPanel("Attenuation",
             fluidRow(
-              column(12, plotlyOutput("avgAttenuationPlot",        height = "450px"))
+              column(12, spinner(plotlyOutput("avgAttenuationPlot",        height = "450px")))
             )
           ),
           tabPanel("pH",
             fluidRow(
-              column(12, plotlyOutput("avgPhPlot",                 height = "450px"))
+              column(12, spinner(plotlyOutput("avgPhPlot",                 height = "450px")))
             )
           ),
           tabPanel("Cell Count",
             fluidRow(
-              column(12, plotlyOutput("avgCellCountPlot",          height = "450px"))
+              column(12, spinner(plotlyOutput("avgCellCountPlot",          height = "450px")))
             )
           ),
           tabPanel("Viability",
             fluidRow(
-              column(12, plotlyOutput("avgViabilityPlot",          height = "450px"))
+              column(12, spinner(plotlyOutput("avgViabilityPlot",          height = "450px")))
             )
           ),
           tabPanel("Cone Viability",
             fluidRow(
-              column(12, plotlyOutput("avgConeViabilityPlot",      height = "450px"))
+              column(12, spinner(plotlyOutput("avgConeViabilityPlot",      height = "450px")))
             )
           )
         ),
