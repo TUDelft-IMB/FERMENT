@@ -293,7 +293,7 @@ server <- function(input, output, session) {
 
     ggplotly(p, tooltip = "text")
   })
-
+  
   output$conditions_summary_table <- renderDT(
     {
       meta <- file_metadata()
@@ -307,10 +307,12 @@ server <- function(input, output, session) {
           `Exp Numbers` = paste(unique(exp_number), collapse = ", "),
           .groups = "drop"
         ) %>%
-        arrange(species, strain, as.numeric(gravity), as.numeric(temperature))
+        arrange(species, strain, as.numeric(gravity), as.numeric(temperature)) %>%
+        mutate(species = paste0("<i>", species, "</i>"))
     },
     options = list(pageLength = 15, scrollX = TRUE),
-    rownames = FALSE
+    rownames = FALSE,
+    escape = FALSE
   )
 
   # ---------------------------------------------------------------------------
@@ -330,7 +332,7 @@ server <- function(input, output, session) {
     matched <- matched[match(filenames, matched$filename), ]
     data.frame(
       `Experiment` = paste0("Experiment #", matched$exp_number),
-      `Species` = matched$species,
+      `Species` = paste0("<i>", matched$species, "</i>"),
       `Strain` = matched$strain,
       `Gravity` = matched$gravity,
       `Inoculum` = matched$inoculum,
@@ -422,7 +424,7 @@ server <- function(input, output, session) {
       make_summary_table(input$experiment, file_metadata())
     },
     options = list(dom = "t", ordering = FALSE),
-    rownames = FALSE
+    rownames = FALSE, escape = FALSE
   )
 
   # ---------------------------------------------------------------------------
@@ -588,7 +590,7 @@ server <- function(input, output, session) {
       make_summary_table(input$avg_experiments, file_metadata())
     },
     options = list(dom = "t", ordering = TRUE),
-    rownames = FALSE
+    rownames = FALSE, escape = FALSE
   )
 
   # ---------------------------------------------------------------------------
@@ -741,7 +743,7 @@ server <- function(input, output, session) {
       make_summary_table(input$cmp_experiments, file_metadata())
     },
     options = list(dom = "t", ordering = TRUE),
-    rownames = FALSE
+    rownames = FALSE, escape = FALSE
   )
 
   # ---------------------------------------------------------------------------
