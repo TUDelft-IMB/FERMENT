@@ -162,11 +162,12 @@ server <- function(input, output, session) {
     species_counts <- meta %>%
       group_by(species) %>%
       summarise(n = n(), .groups = "drop") %>%
-      arrange(desc(n))
+      arrange(desc(n)) %>%
+      mutate(species_label = paste0("<i>", species, "</i>"))
 
     plot_ly(
       species_counts,
-      labels = ~species,
+      labels = ~species_label,
       values = ~n,
       type = "pie",
       hole = 0.55,
