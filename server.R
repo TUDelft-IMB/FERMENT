@@ -489,9 +489,14 @@ server <- function(input, output, session) {
   # Step 12: Load averages data for selected experiments.
   avg_data_list <- reactive({
     req(input$avg_experiments)
-    result <- lapply(input$avg_experiments, function(f) {
-      read_avg_sheet(file.path(EXCEL_DIR, f))
+    
+    withProgress(message = "Loading averages...", value = 0, {
+      result <- lapply(input$avg_experiments, function(f) {
+        incProgress(1 / length(input$avg_experiments), detail = paste("Reading", f))
+        read_avg_sheet(file.path(EXCEL_DIR, f))
+      })
     })
+    
     names(result) <- input$avg_experiments
     # Drop entries where the sheet was missing (read_avg_sheet returned NULL)
     result[!sapply(result, is.null)]
