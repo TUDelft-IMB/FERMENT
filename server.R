@@ -203,7 +203,7 @@ server <- function(input, output, session) {
     unique_species <- sort(unique(meta$species))
     species_colors <- setNames(
       hcl.colors(length(unique_species), palette = "Dynamic"),
-      unique_species
+      paste0("<i>", unique_species, "</i>")
     )
 
     strain_counts <- meta %>%
@@ -214,6 +214,7 @@ server <- function(input, output, session) {
       ungroup() %>%
       arrange(desc(species_total), desc(n)) %>%
       mutate(
+        species_label = paste0("<i>", species, "</i>"),
         strain = factor(strain, levels = unique(strain)),
         species = factor(species, levels = unique(species))
       )
@@ -222,7 +223,7 @@ server <- function(input, output, session) {
       data = strain_counts,
       x = ~strain,
       y = ~n,
-      color = ~species,
+      color = ~species_label,
       colors = species_colors, # Pass the named palette vector directly to Plotly
       type = "bar"
     ) %>%
