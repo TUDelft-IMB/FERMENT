@@ -59,9 +59,11 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-e.knibbe@tudelft.nl.
-All complaints will be reviewed and investigated promptly and fairly.
+reported to the corresponding community leaders responsible for enforcement: main 
+developer (Ewout Knibbe: e.knibbe[at]tudelft.nl), maintainer (Marcel van den Broek: 
+Marcel.vandenBroek[at]tudelft.nl), project leader (Jean-Marc Daran: 
+J.G.Daran[at]tudelft.nl). All complaints will be reviewed and investigated 
+promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
