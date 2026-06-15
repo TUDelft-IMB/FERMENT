@@ -90,7 +90,7 @@ Contributions are always welcome! Please follow the steps described in the [cont
 
 ## License
 
-The repository is licensed under the MIT License. See the LICENSE file for more details.
+The repository is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
 ## Waiver
 
