@@ -49,6 +49,7 @@ library(plotly)
 library(bslib)
 library(DT)
 library(shinycssloaders)
+library(styler)
 
 
 # =============================================================================
