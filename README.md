@@ -82,7 +82,15 @@ You will need [R](https://www.r-project.org/) (≥ 4.2) and [RStudio](https://po
 
 ## Usage
 
-[TODO]
+Once the app is running, navigate between the four tabs:
+
+- **"Overview"** - shows summary statistics and charts for all experiments found in *your* data directory: total experiment count, unique strains and species, temperature and gravity distributions, and a full conditions table.
+
+- **"Plot Replicates - Single Experiment"** - use the sidebar filters (species, strain, gravity, inoculum, temperature) to narrow down the experiment list, then select one experiment to inspect. All HPLC, GC esters, GC ketones, attenuation, pH, cell count, and viability plots are shown side by side for both tall tubes.
+
+- **"Plot Replicates - Multiple Experiments"** - select multiple experiments using the same filter system, then overlay their data in a single plot. Experiments are distinguished by colour; tall tubes are distinguished by line types.
+
+- **"Plot Averages - Multiple Experiments"** - select one or more experiments whose tall tube averages sheets you want to overlay. Plots include stacked bar charts for esters and higher alcohols, plus line charts for all other measurements.
 
 ## Contributing
 
