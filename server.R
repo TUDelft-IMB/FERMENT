@@ -162,11 +162,12 @@ server <- function(input, output, session) {
     species_counts <- meta %>%
       group_by(species) %>%
       summarise(n = n(), .groups = "drop") %>%
-      arrange(desc(n))
+      arrange(desc(n)) %>%
+      mutate(species_label = paste0("<i>", species, "</i>"))
 
     plot_ly(
       species_counts,
-      labels = ~species,
+      labels = ~species_label,
       values = ~n,
       type = "pie",
       hole = 0.55,
@@ -202,7 +203,7 @@ server <- function(input, output, session) {
     unique_species <- sort(unique(meta$species))
     species_colors <- setNames(
       hcl.colors(length(unique_species), palette = "Dynamic"),
-      unique_species
+      paste0("<i>", unique_species, "</i>")
     )
 
     strain_counts <- meta %>%
@@ -213,6 +214,7 @@ server <- function(input, output, session) {
       ungroup() %>%
       arrange(desc(species_total), desc(n)) %>%
       mutate(
+        species_label = paste0("<i>", species, "</i>"),
         strain = factor(strain, levels = unique(strain)),
         species = factor(species, levels = unique(species))
       )
@@ -221,7 +223,7 @@ server <- function(input, output, session) {
       data = strain_counts,
       x = ~strain,
       y = ~n,
-      color = ~species,
+      color = ~species_label,
       colors = species_colors, # Pass the named palette vector directly to Plotly
       type = "bar"
     ) %>%
@@ -293,7 +295,7 @@ server <- function(input, output, session) {
 
     ggplotly(p, tooltip = "text")
   })
-
+  
   output$conditions_summary_table <- renderDT(
     {
       meta <- file_metadata()
@@ -307,10 +309,12 @@ server <- function(input, output, session) {
           `Exp Numbers` = paste(unique(exp_number), collapse = ", "),
           .groups = "drop"
         ) %>%
-        arrange(species, strain, as.numeric(gravity), as.numeric(temperature))
+        arrange(species, strain, as.numeric(gravity), as.numeric(temperature)) %>%
+        mutate(species = paste0("<i>", species, "</i>"))
     },
     options = list(pageLength = 15, scrollX = TRUE),
-    rownames = FALSE
+    rownames = FALSE,
+    escape = FALSE
   )
 
   # ---------------------------------------------------------------------------
@@ -330,7 +334,7 @@ server <- function(input, output, session) {
     matched <- matched[match(filenames, matched$filename), ]
     data.frame(
       `Experiment` = paste0("Experiment #", matched$exp_number),
-      `Species` = matched$species,
+      `Species` = paste0("<i>", matched$species, "</i>"),
       `Strain` = matched$strain,
       `Gravity` = matched$gravity,
       `Inoculum` = matched$inoculum,
@@ -422,7 +426,7 @@ server <- function(input, output, session) {
       make_summary_table(input$experiment, file_metadata())
     },
     options = list(dom = "t", ordering = FALSE),
-    rownames = FALSE
+    rownames = FALSE, escape = FALSE
   )
 
   # ---------------------------------------------------------------------------
@@ -588,7 +592,7 @@ server <- function(input, output, session) {
       make_summary_table(input$avg_experiments, file_metadata())
     },
     options = list(dom = "t", ordering = TRUE),
-    rownames = FALSE
+    rownames = FALSE, escape = FALSE
   )
 
   # ---------------------------------------------------------------------------
@@ -741,7 +745,7 @@ server <- function(input, output, session) {
       make_summary_table(input$cmp_experiments, file_metadata())
     },
     options = list(dom = "t", ordering = TRUE),
-    rownames = FALSE
+    rownames = FALSE, escape = FALSE
   )
 
   # ---------------------------------------------------------------------------
