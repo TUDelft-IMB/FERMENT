@@ -50,6 +50,7 @@ library(bslib)
 library(DT)
 library(shinycssloaders)
 library(styler)
+library(bsicons)
 
 
 # =============================================================================
