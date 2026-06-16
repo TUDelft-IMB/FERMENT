@@ -35,11 +35,15 @@ ui <- navbarPage(
   # Shows high-level statistics about all loaded experiments
   # ===========================================================================
   tabPanel(
-    title = tooltip(
-      trigger = span("Overview ", bsicons::bs_icon("info-circle")),
+    title = span(
+      "Overview",
+      tooltip(
+        trigger = bs_icon(
+          "info-circle"
+        ),
       "A high-level summary of all experiments. 
       Shows species and strain distributions, temperature and gravity breakdowns, 
-      and a full conditions table."
+      and a full conditions table.")
     ),
     
     fluidRow(
@@ -126,11 +130,15 @@ ui <- navbarPage(
   # one for TT1 (Tall Tube 1) and one for TT2 (Tall Tube 2).
   # ===========================================================================
   tabPanel(
-    title = tooltip(
-      trigger = span("Single Experiment ", bsicons::bs_icon("info-circle")),
+    title = span(
+      "Plot Replicates - Single Experiment",
+      tooltip(
+        trigger = bs_icon(
+          "info-circle"
+        ),
       "Explore one experiment at a time. 
       Filter by species, strain, gravity, inoculum, or temperature, then select an experiment. 
-      TT1 and TT2 are shown side by side."
+      TT1 and TT2 are shown side by side.")
     ),
     sidebarLayout(
       sidebarPanel(
@@ -250,11 +258,15 @@ ui <- navbarPage(
   # All plotlyOutput() IDs must match output$ names in server.R exactly.
   # ===========================================================================
   tabPanel(
-    title = tooltip(
-      trigger = span("Compare Experiments ", bs_icon("info-circle")),
+    title = span(
+      "Plot Replicates - Multiple Experiments",
+      tooltip(
+        trigger = bs_icon(
+          "info-circle"
+        ),
       "Overlay multiple experiments. 
-      For HPLC and GC, colour = compound and linetype = experiment. 
-      For Attenuation, pH, Cell Count, and Viability, colour = experiment and linetype = tall tube."
+      For HPLC and GC, colour = compound and linetype = experiment.
+      For Attenuation, pH, Cell Count, and Viability, colour = experiment and linetype = tall tube.")
     ),
     sidebarLayout(
       sidebarPanel(
@@ -393,9 +405,13 @@ ui <- navbarPage(
   # All plotlyOutput() IDs must match output$ names in server.R exactly.
   # ===========================================================================
   tabPanel(
-    title = tooltip(
-      trigger = span("Averages ", bs_icon("info-circle")),
-      "Plot averaged data from TT1 and TT2."
+    title = span(
+      "Plot Averages - Multiple Experiments",
+      tooltip(
+        trigger = bs_icon(
+          "info-circle"
+        ),
+      "Plot averaged data from TT1 and TT2.")
     ),
     sidebarLayout(
       sidebarPanel(
