@@ -23,7 +23,11 @@ This means:
 - No files containing strain names, batch numbers, or any other identifiers linked to real experiments.
 - No screenshots, exports, or derivatives of real experimental data.
 
-Your data folder (the one pointed to by `EXCEL_DIR`) should **never** be committed inside the repository.
+Your data folder (the one pointed to by `EXCEL_DIR`; see README -> Installation -> step 4) should **never** be committed inside the repository.
+
+This project's data folder is located within a "TU Delft Project Data Storage" ([click here](https://tu-delft-dcc.github.io/docs/data/data_storage/storage_options.html#overview-of-storage-options) for an overview of storage options, and [click here](https://tu-delft-dcc.github.io/docs/data/data_storage/project_drive_request.html#accessing-the-project-data-storage-u-drive) for access tips). Access is subjected to approval by the project leader (Jean-Marc Daran: 
+J.G.Daran[at]tudelft.nl) and granted by the project maintainer (Marcel van den Broek: 
+Marcel.vandenBroek[at]tudelft.nl).
 
 ## Branching rules
 
@@ -54,7 +58,7 @@ Clone the repo and restore the environment using `renv`:
 renv::restore()
 ```
 
-Set the `EXCEL_DIR` environment variable to point to a folder containing the data. See the [README](README.md) for details on how to set this up.
+Set the `EXCEL_DIR` environment variable to point to a folder containing the data. See the installation section in the [README](README.md) for details on how to set this up. See the "Privacy and data policy" section above for access details.
 
 Then launch the app locally:
 

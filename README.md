@@ -64,6 +64,9 @@ You will need [R](https://www.r-project.org/) (≥ 4.2) and [RStudio](https://po
 
 4.  **Set the data directory**
 
+    > **Note:** See the "Privacy and data policy" in [CONTRIBUTING](CONTRIBUTING.md) for details on data folder access.
+
+
     The app reads experiment files from a folder set by the environment variable `EXCEL_DIR`. Either modify the path in `global.R` (line 64) or add the path variable to a `.Renviron` file in the project root. The file `Renviron_example.txt` shows an example of how the `.Renviron` file should look like. 
     
     > **Note:** The `.Renviron` file is not tracked by git, so you can safely add your path without worrying about sharing it. It is also a hidden file, so you may need to enable hidden files in your file explorer to see it. On macOS you can view hidden files with `Cmd + Shift + .` in Finder. On Windows, you can enable "Hidden items" in the View tab of File Explorer.
@@ -79,7 +82,15 @@ You will need [R](https://www.r-project.org/) (≥ 4.2) and [RStudio](https://po
 
 ## Usage
 
-[TODO]
+Once the app is running, navigate between the four tabs:
+
+- **"Overview"** - shows summary statistics and charts for all experiments found in *your* data directory: total experiment count, unique strains and species, temperature and gravity distributions, and a full conditions table.
+
+- **"Plot Replicates - Single Experiment"** - use the sidebar filters (species, strain, gravity, inoculum, temperature) to narrow down the experiment list, then select one experiment to inspect. All HPLC, GC esters, GC ketones, attenuation, pH, cell count, and viability plots are shown side by side for both tall tubes.
+
+- **"Plot Replicates - Multiple Experiments"** - select multiple experiments using the same filter system, then overlay their data in a single plot. Experiments are distinguished by colour; tall tubes are distinguished by line types.
+
+- **"Plot Averages - Multiple Experiments"** - select one or more experiments whose tall tube averages sheets you want to overlay. Plots include stacked bar charts for esters and higher alcohols, plus line charts for all other measurements.
 
 ## Contributing
 
@@ -87,7 +98,7 @@ Contributions are always welcome! Please follow the steps described in the [cont
 
 ## License
 
-The repository is licensed under the MIT License. See the LICENSE file for more details.
+The repository is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
 ## Waiver
 

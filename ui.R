@@ -11,7 +11,16 @@
 #   - Double-click a legend item to isolate it
 #
 # plotlyOutput() here must match renderPlotly() in server.R exactly by ID.
+#
+# All plotlyOutput() calls are wrapped in withSpinner() from the
+# shinycssloaders package. This shows an animated spinner inside the plot
+# area while the reactive is computing, rather than leaving a blank space.
+# Spinner colour matches the app's primary colour (#0072B2).
+# plotlyOutput() here must match renderPlotly() in server.R exactly by ID.
 # =============================================================================
+
+# Convenience alias so the rest of the file stays readable.
+spinner <- function(...) shinycssloaders::withSpinner(..., color = "#009E73", type = 7, caption = "Loading...")
 
 ui <- navbarPage(
   title = "FERMENT",
@@ -26,77 +35,91 @@ ui <- navbarPage(
   # Shows high-level statistics about all loaded experiments
   # ===========================================================================
   tabPanel(
-    title = "Overview",
-    br(),
-
-    # Summary cards row
+    title = span(
+      "Overview",
+      tooltip(
+        trigger = bs_icon(
+          "info-circle"
+        ),
+      "A high-level summary of all experiments. 
+      Shows species and strain distributions, temperature and gravity breakdowns, 
+      and a full conditions table.")
+    ),
+    
     fluidRow(
-      column(3,
-        div(style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
+      column(
+        3,
+        div(
+          style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
           h4("Unique Species"),
           textOutput("unique_species_count"),
           style = "text-align: center; background-color: #f9f9f9;"
         )
       ),
-      column(3,
-        div(style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
+      column(
+        3,
+        div(
+          style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
           h4("Unique Strains"),
           textOutput("unique_strains_count"),
           style = "text-align: center; background-color: #f9f9f9;"
         )
       ),
-      column(3,
-        div(style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
+      column(
+        3,
+        div(
+          style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
           h4("Unique Temperatures"),
           textOutput("unique_temps_count"),
           style = "text-align: center; background-color: #f9f9f9;"
         )
       ),
-      column(3,
-        div(style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
+      column(
+        3,
+        div(
+          style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
           h4("Total Experiments"),
           textOutput("total_experiments_count"),
           style = "text-align: center; background-color: #f9f9f9;"
         )
       )
     ),
-
     br(),
 
     # Charts and tables
     fluidRow(
-      column(6,
+      column(
+        6,
         h3("Experiments per Species"),
-        plotlyOutput("experiments_per_species_plot", height = "350px")
+        spinner(plotlyOutput("experiments_per_species_plot", height = "350px"))
       ),
-      column(6,
+      column(
+        6,
         h3("Experiments per Strain"),
-        plotlyOutput("experiments_per_strain_plot", height = "350px")
+        spinner(plotlyOutput("experiments_per_strain_plot", height = "350px"))
       )
     ),
-
     br(),
-
     fluidRow(
-      column(6,
+      column(
+        6,
         h3("Temperature Distribution"),
-        plotlyOutput("temperature_distribution_plot", height = "350px")
+        spinner(plotlyOutput("temperature_distribution_plot", height = "350px"))
       ),
-      column(6,
+      column(
+        6,
         h3("Gravity Distribution"),
-        plotlyOutput("gravity_distribution_plot", height = "350px")
+        spinner(plotlyOutput("gravity_distribution_plot", height = "350px"))
       )
     ),
-
     br(),
-
     fluidRow(
-      column(12,
+      column(
+        12,
         h3("Experimental Conditions Summary"),
         DTOutput("conditions_summary_table")
       )
     ),
-
     br()
   ),
 
@@ -107,7 +130,16 @@ ui <- navbarPage(
   # one for TT1 (Tall Tube 1) and one for TT2 (Tall Tube 2).
   # ===========================================================================
   tabPanel(
-    title = "Single Experiment",
+    title = span(
+      "Plot Replicates - Single Experiment",
+      tooltip(
+        trigger = bs_icon(
+          "info-circle"
+        ),
+      "Explore one experiment at a time. 
+      Filter by species, strain, gravity, inoculum, or temperature, then select an experiment. 
+      TT1 and TT2 are shown side by side.")
+    ),
     sidebarLayout(
       sidebarPanel(
         width = 2,
@@ -119,21 +151,18 @@ ui <- navbarPage(
         # Selecting a value here narrows down which experiments are shown in
         # the "Experiments" dropdown below.
         # -------------------------------------------------------------------
-        selectInput("species",     "Species",     choices = NULL),
-        selectInput("strain",      "Strain",      choices = NULL),
-        selectInput("gravity",     "Gravity",     choices = NULL),
-        selectInput("inoculum",    "Inoculum",    choices = NULL),
+        selectInput("species", "Species", choices = NULL),
+        selectInput("strain", "Strain", choices = NULL),
+        selectInput("gravity", "Gravity", choices = NULL),
+        selectInput("inoculum", "Inoculum", choices = NULL),
         selectInput("temperature", "Temperature", choices = NULL),
-
         actionButton(
           inputId = "clear_filters",
           label   = "Clear filters",
           class   = "btn-sm btn-default",
           width   = "100%"
         ),
-
         hr(),
-
         selectInput("experiment", "Experiment", choices = NULL),
 
         # Note: The label shown is "Experiment #N"; the underlying value
@@ -145,7 +174,6 @@ ui <- navbarPage(
         # Its content is set by output$file_status in server.R.
         verbatimTextOutput("file_status")
       ),
-
       mainPanel(
         width = 10,
 
@@ -156,40 +184,40 @@ ui <- navbarPage(
         # interactive (zoom, hover, legend toggle).
         # -------------------------------------------------------------------
         tabsetPanel(
-
-          tabPanel("HPLC",
+          tabPanel(
+            "HPLC",
             # Two Plotly charts side by side: TT1 on the left, TT2 on the right.
             fluidRow(
-              column(6, plotlyOutput("hplcTT1Plot", height = "400px")),
-              column(6, plotlyOutput("hplcTT2Plot", height = "400px"))
+              column(6, spinner(plotlyOutput("hplcTT1Plot", height = "400px"))),
+              column(6, spinner(plotlyOutput("hplcTT2Plot", height = "400px")))
             )
           ),
-
-          tabPanel("GC Esters",
+          tabPanel(
+            "GC Esters",
             fluidRow(
-              column(6, plotlyOutput("gcEstersTT1Plot", height = "400px")),
-              column(6, plotlyOutput("gcEstersTT2Plot", height = "400px"))
+              column(6, spinner(plotlyOutput("gcEstersTT1Plot", height = "400px"))),
+              column(6, spinner(plotlyOutput("gcEstersTT2Plot", height = "400px")))
             )
           ),
-
-          tabPanel("GC Ketones",
+          tabPanel(
+            "GC Ketones",
             fluidRow(
-              column(6, plotlyOutput("gcKetonesTT1Plot", height = "400px")),
-              column(6, plotlyOutput("gcKetonesTT2Plot", height = "400px"))
+              column(6, spinner(plotlyOutput("gcKetonesTT1Plot", height = "400px"))),
+              column(6, spinner(plotlyOutput("gcKetonesTT2Plot", height = "400px")))
             )
           ),
-
-          tabPanel("Attenuation & pH",
+          tabPanel(
+            "Attenuation & pH",
             fluidRow(
-              column(6, plotlyOutput("attPlot", height = "400px")),
-              column(6, plotlyOutput("phPlot",  height = "400px"))
+              column(6, spinner(plotlyOutput("attPlot", height = "400px"))),
+              column(6, spinner(plotlyOutput("phPlot", height = "400px")))
             )
           ),
-
-          tabPanel("Cell Count & Viability",
+          tabPanel(
+            "Cell Count & Viability",
             fluidRow(
-              column(6, plotlyOutput("cellCountPlot",  height = "400px")),
-              column(6, plotlyOutput("viabilityPlot",  height = "400px"))
+              column(6, spinner(plotlyOutput("cellCountPlot", height = "400px"))),
+              column(6, spinner(plotlyOutput("viabilityPlot", height = "400px")))
             )
           )
         ),
@@ -204,8 +232,8 @@ ui <- navbarPage(
       )
     )
   ),
-  
-  
+
+
   # ===========================================================================
   # PAGE 2: COMPARE
   # The user narrows down the experiment pool using multi-select filter inputs
@@ -230,11 +258,20 @@ ui <- navbarPage(
   # All plotlyOutput() IDs must match output$ names in server.R exactly.
   # ===========================================================================
   tabPanel(
-    title = "Compare Experiments",
+    title = span(
+      "Plot Replicates - Multiple Experiments",
+      tooltip(
+        trigger = bs_icon(
+          "info-circle"
+        ),
+      "Overlay multiple experiments. 
+      For HPLC and GC, colour = compound and linetype = experiment.
+      For Attenuation, pH, Cell Count, and Viability, colour = experiment and linetype = tall tube.")
+    ),
     sidebarLayout(
       sidebarPanel(
         width = 3,
-        
+
         # -------------------------------------------------------------------
         # Multi-select filter inputs
         # Choices start as NULL — server.R populates them at startup.
@@ -276,16 +313,14 @@ ui <- navbarPage(
           multiple = TRUE,
           options  = list(placeholder = "All temperatures...")
         ),
-
         actionButton(
           inputId = "cmp_clear_filters",
           label   = "Clear filters",
           class   = "btn-sm btn-default",
           width   = "100%"
         ),
-
         hr(),
-        
+
         # -------------------------------------------------------------------
         # Experiment multi-select
         # Populated dynamically by server.R (Step 14) with only the
@@ -299,55 +334,52 @@ ui <- navbarPage(
           multiple = TRUE,
           options  = list(placeholder = "Choose experiments...")
         ),
-        
         hr(),
-        
+
         # Short status line: how many experiments are currently loaded.
         # Content set by output$cmp_status in server.R.
         verbatimTextOutput("cmp_status")
       ),
-      
       mainPanel(
         width = 9,
-        
         tabsetPanel(
-          
-          tabPanel("HPLC",
-                   fluidRow(
-                     column(6, plotlyOutput("cmpHplcTT1Plot", height = "450px")),
-                     column(6, plotlyOutput("cmpHplcTT2Plot", height = "450px"))
-                   )
+          tabPanel(
+            "HPLC",
+            fluidRow(
+              column(6, spinner(plotlyOutput("cmpHplcTT1Plot", height = "450px"))),
+              column(6, spinner(plotlyOutput("cmpHplcTT2Plot", height = "450px")))
+            )
           ),
-          
-          tabPanel("GC Esters",
-                   fluidRow(
-                     column(6, plotlyOutput("cmpGcEstersTT1Plot", height = "450px")),
-                     column(6, plotlyOutput("cmpGcEstersTT2Plot", height = "450px"))
-                   )
+          tabPanel(
+            "GC Esters",
+            fluidRow(
+              column(6, spinner(plotlyOutput("cmpGcEstersTT1Plot", height = "450px"))),
+              column(6, spinner(plotlyOutput("cmpGcEstersTT2Plot", height = "450px")))
+            )
           ),
-          
-          tabPanel("GC Ketones",
-                   fluidRow(
-                     column(6, plotlyOutput("cmpGcKetonesTT1Plot", height = "450px")),
-                     column(6, plotlyOutput("cmpGcKetonesTT2Plot", height = "450px"))
-                   )
+          tabPanel(
+            "GC Ketones",
+            fluidRow(
+              column(6, spinner(plotlyOutput("cmpGcKetonesTT1Plot", height = "450px"))),
+              column(6, spinner(plotlyOutput("cmpGcKetonesTT2Plot", height = "450px")))
+            )
           ),
-          
-          tabPanel("Attenuation & pH",
-                   # One chart per metric; each contains both TT1 (solid) and
-                   # TT2 (dashed) for all selected experiments.
-                   fluidRow(
-                     column(6, plotlyOutput("cmpAttPlot", height = "450px")),
-                     column(6, plotlyOutput("cmpPhPlot",  height = "450px"))
-                   )
+          tabPanel(
+            "Attenuation & pH",
+            # One chart per metric; each contains both TT1 (solid) and
+            # TT2 (dashed) for all selected experiments.
+            fluidRow(
+              column(6, spinner(plotlyOutput("cmpAttPlot", height = "450px"))),
+              column(6, spinner(plotlyOutput("cmpPhPlot", height = "450px")))
+            )
           ),
-          
-          tabPanel("Cell Count & Viability",
-                   # Same encoding: solid = TT1, dashed = TT2, colour = experiment.
-                   fluidRow(
-                     column(6, plotlyOutput("cmpCellCountPlot",  height = "450px")),
-                     column(6, plotlyOutput("cmpViabilityPlot",  height = "450px"))
-                   )
+          tabPanel(
+            "Cell Count & Viability",
+            # Same encoding: solid = TT1, dashed = TT2, colour = experiment.
+            fluidRow(
+              column(6, spinner(plotlyOutput("cmpCellCountPlot", height = "450px"))),
+              column(6, spinner(plotlyOutput("cmpViabilityPlot", height = "450px")))
+            )
           )
         ),
 
@@ -363,7 +395,6 @@ ui <- navbarPage(
   ),
 
 
-  
   # ===========================================================================
   # PAGE 3: AVERAGES
   # Line-based plots (sugars&ethanol, diketones, attenuation, pH, cell count, viability)
@@ -374,11 +405,17 @@ ui <- navbarPage(
   # All plotlyOutput() IDs must match output$ names in server.R exactly.
   # ===========================================================================
   tabPanel(
-    title = "Averages",
+    title = span(
+      "Plot Averages - Multiple Experiments",
+      tooltip(
+        trigger = bs_icon(
+          "info-circle"
+        ),
+      "Plot averaged data from TT1 and TT2.")
+    ),
     sidebarLayout(
       sidebarPanel(
         width = 3,
-
         selectizeInput(
           inputId  = "avg_species",
           label    = "Species",
@@ -414,16 +451,13 @@ ui <- navbarPage(
           multiple = TRUE,
           options  = list(placeholder = "All temperatures...")
         ),
-
         actionButton(
           inputId = "avg_clear_filters",
           label   = "Clear filters",
           class   = "btn-sm btn-default",
           width   = "100%"
         ),
-
         hr(),
-
         selectizeInput(
           inputId  = "avg_experiments",
           label    = "Select experiments to overlay:",
@@ -432,57 +466,63 @@ ui <- navbarPage(
           options  = list(placeholder = "Choose one or more experiments...")
         )
       ),
-
       mainPanel(
         width = 9,
-
         tabsetPanel(
           type = "pills",
-
-          tabPanel("Sugars & Ethanol",
+          tabPanel(
+            "Sugars & Ethanol",
             fluidRow(
-              column(12, plotlyOutput("avgHplcPlot",               height = "450px"))
+              column(12, spinner(plotlyOutput("avgHplcPlot", height = "450px")))
             )
           ),
-          tabPanel("GC Esters",
+          tabPanel(
+            "GC Esters",
             fluidRow(
-              column(6, plotlyOutput("avgEthylEstersBarPlot",     height = "450px")),
-              column(6, plotlyOutput("avgAcetateEstersBarPlot",   height = "450px"))
+              column(6, spinner(plotlyOutput("avgEthylEstersBarPlot", height = "450px"))),
+              column(6, spinner(plotlyOutput("avgAcetateEstersBarPlot", height = "450px")))
             )
           ),
-          tabPanel("Higher Alcohols",
+          tabPanel(
+            "Higher Alcohols",
             fluidRow(
-              column(12, plotlyOutput("avgHigherAlcoholsBarPlot",  height = "450px"))
+              column(12, spinner(plotlyOutput("avgHigherAlcoholsBarPlot", height = "450px")))
             )
           ),
-          tabPanel("Vicinal Diketones",
+          tabPanel(
+            "Vicinal Diketones",
             fluidRow(
-              column(12, plotlyOutput("avgDiketonesPlot",          height = "450px"))
+              column(12, spinner(plotlyOutput("avgDiketonesPlot", height = "450px")))
             )
           ),
-          tabPanel("Attenuation",
+          tabPanel(
+            "Attenuation",
             fluidRow(
-              column(12, plotlyOutput("avgAttenuationPlot",        height = "450px"))
+              column(12, spinner(plotlyOutput("avgAttenuationPlot", height = "450px")))
             )
           ),
-          tabPanel("pH",
+          tabPanel(
+            "pH",
             fluidRow(
-              column(12, plotlyOutput("avgPhPlot",                 height = "450px"))
+              column(12, spinner(plotlyOutput("avgPhPlot", height = "450px")))
             )
           ),
-          tabPanel("Cell Count",
+          tabPanel(
+            "Cell Count",
             fluidRow(
-              column(12, plotlyOutput("avgCellCountPlot",          height = "450px"))
+              column(12, spinner(plotlyOutput("avgCellCountPlot", height = "450px")))
             )
           ),
-          tabPanel("Viability",
+          tabPanel(
+            "Viability",
             fluidRow(
-              column(12, plotlyOutput("avgViabilityPlot",          height = "450px"))
+              column(12, spinner(plotlyOutput("avgViabilityPlot", height = "450px")))
             )
           ),
-          tabPanel("Cone Viability",
+          tabPanel(
+            "Cone Viability",
             fluidRow(
-              column(12, plotlyOutput("avgConeViabilityPlot",      height = "450px"))
+              column(12, spinner(plotlyOutput("avgConeViabilityPlot", height = "450px")))
             )
           )
         ),

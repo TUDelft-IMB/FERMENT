@@ -18,7 +18,7 @@
 #
 # COLOUR CONVENTION:
 # Section 4 is the single source of truth for all colours and labels.
-# Every plot function builds its colour map from those vectors. To change 
+# Every plot function builds its colour map from those vectors. To change
 # a compound colour, edit section 4 only.
 # =============================================================================
 
@@ -48,6 +48,9 @@ library(scales)
 library(plotly)
 library(bslib)
 library(DT)
+library(shinycssloaders)
+library(styler)
+library(bsicons)
 
 
 # =============================================================================
@@ -61,7 +64,7 @@ library(DT)
 # is not set, rather than silently failing later.
 
 
-#EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "PATH/PATH")
+# EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "PATH/PATH")
 
 
 # =============================================================================
@@ -87,7 +90,7 @@ read_tt_workbook <- function(file_path) {
   data_list <- lapply(sheets, function(x) read_excel(file_path, sheet = x))
   # Name each element of the list after its sheet
   names(data_list) <- sheets
-  
+
   # Fix the Attenuation sheet: promote row 1 to column names, then
   # automatically convert all columns to the right type (numeric, etc.)
   if ("Attenuation" %in% names(data_list)) {
@@ -95,7 +98,7 @@ read_tt_workbook <- function(file_path) {
       row_to_names(row_number = 1) |>
       type.convert(as.is = TRUE)
   }
-  
+
   # Fix the pH sheet: promote row 1 to column names, then
   # automatically convert all columns to the right type (numeric, etc.)
   if ("pH" %in% names(data_list)) {
@@ -139,22 +142,30 @@ read_avg_sheet <- function(file_path) {
 # hplc_labels: base column names as they appear in the Excel sheet (without
 #              the tube-number prefix). plot_hplc_tube() prepends tube_num.
 # hplc_avg_labels: plain names used in averages legends (no unit suffix).
-hplc_labels     <- c("Maltotriose", "Maltose", "Glucose",
-                     "Fructose", "Glycerol", "Ethanol")
-hplc_avg_labels <- c("Maltotriose", "Maltose", "Glucose",
-                     "Fructose", "Glycerol", "Ethanol")
-hplc_colours    <- c("skyblue", "maroon", "gold", "forestgreen", "grey", "sienna")
+hplc_labels <- c(
+  "Maltotriose", "Maltose", "Glucose",
+  "Fructose", "Glycerol", "Ethanol"
+)
+hplc_avg_labels <- c(
+  "Maltotriose", "Maltose", "Glucose",
+  "Fructose", "Glycerol", "Ethanol"
+)
+hplc_colours <- c("skyblue", "maroon", "gold", "forestgreen", "grey", "sienna")
 
 # --- GC Esters: 10 compounds -------------------------------------------------
-gc_ester_labels  <- c("Ethyl acetate", "Ethanol", "Isobutyl acetate",
-                      "Ethyl butyrate", "Isobutanol", "Isoamyl acetate",
-                      "Isoamyl alcohol", "Ethyl hexanoate",
-                      "Ethyl octanoate", "Ethyl decanoate")
-gc_ester_colours <- c("skyblue", "maroon", "gold", "forestgreen", "grey",
-                      "sienna", "darkred", "darkgreen", "lavender", "darkblue")
+gc_ester_labels <- c(
+  "Ethyl acetate", "Ethanol", "Isobutyl acetate",
+  "Ethyl butyrate", "Isobutanol", "Isoamyl acetate",
+  "Isoamyl alcohol", "Ethyl hexanoate",
+  "Ethyl octanoate", "Ethyl decanoate"
+)
+gc_ester_colours <- c(
+  "skyblue", "maroon", "gold", "forestgreen", "grey",
+  "sienna", "darkred", "darkgreen", "lavender", "darkblue"
+)
 
 # --- GC Ketones: 2 compounds -------------------------------------------------
-gc_ketone_labels  <- c("Diacetyl", "2,3-Pentanedione")
+gc_ketone_labels <- c("Diacetyl", "2,3-Pentanedione")
 gc_ketone_colours <- c("skyblue", "sienna")
 
 # --- TT1 vs TT2: Attenuation, Cell Count, Viability -------------------------
@@ -166,10 +177,10 @@ ph_colours <- c("TT1" = "gold", "TT2" = "sienna")
 # --- Averages: single-series line plots --------------------------------------
 # One colour per metric; used by the averages wrappers that plot a single
 # compound over time (attenuation, pH, cell count, viability).
-att_colour        <- "skyblue"
-avg_ph_colour     <- "gold"
+att_colour <- "skyblue"
+avg_ph_colour <- "gold"
 cell_count_colour <- "skyblue"
-viability_colour  <- "forestgreen"
+viability_colour <- "forestgreen"
 
 # --- Averages: line linetypes (one per selected experiment) ------------------
 # Compounds are colour-coded; experiments are distinguished by linetype.
@@ -178,16 +189,18 @@ viability_colour  <- "forestgreen"
 exp_linetypes_palette <- c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash")
 
 # --- Averages: Ethyl esters stacked bar (4 compounds) -----------------------
-ethyl_ester_labels  <- c("Ethyl butyrate", "Ethyl hexanoate",
-                          "Ethyl octanoate", "Ethyl decanoate")
+ethyl_ester_labels <- c(
+  "Ethyl butyrate", "Ethyl hexanoate",
+  "Ethyl octanoate", "Ethyl decanoate"
+)
 ethyl_ester_colours <- c("darkblue", "sienna", "darkgreen", "skyblue")
 
 # --- Averages: Acetate esters stacked bar (3 compounds) ---------------------
-acetate_labels  <- c("Ethyl acetate", "Isobutyl acetate", "Isoamyl acetate")
+acetate_labels <- c("Ethyl acetate", "Isobutyl acetate", "Isoamyl acetate")
 acetate_colours <- c("skyblue", "orange", "forestgreen")
 
 # --- Averages: Higher alcohols stacked bar (2 compounds) --------------------
-alcohol_labels  <- c("Isobutanol", "Isoamyl alcohol")
+alcohol_labels <- c("Isobutanol", "Isoamyl alcohol")
 alcohol_colours <- c("darkblue", "orange")
 
 
@@ -226,11 +239,11 @@ plot_hplc_tube <- function(df, tube_num) {
 
   for (base_metab in names(metabolites_map)) {
     # Construct full column names: e.g. "1 Maltotriose (g/L)", "StDev 1 Maltotriose (g/L)"
-    val_col   <- paste(tube_num, base_metab)
+    val_col <- paste(tube_num, base_metab)
     stdev_col <- paste("StDev", val_col)
 
     p <- p +
-      geom_line(aes(y = .data[[val_col]],  colour = !!base_metab)) +
+      geom_line(aes(y = .data[[val_col]], colour = !!base_metab)) +
       geom_point(aes(y = .data[[val_col]], colour = !!base_metab)) +
       geom_errorbar(aes(
         ymin   = .data[[val_col]] - .data[[stdev_col]],
@@ -261,11 +274,11 @@ plot_gc_esters_tube <- function(df, tube_num) {
   p <- ggplot(df, aes(x = `Time (h)`))
 
   for (base_metab in names(metabolites_map)) {
-    val_col   <- paste(tube_num, base_metab)
+    val_col <- paste(tube_num, base_metab)
     stdev_col <- paste("StDev", val_col)
 
     p <- p +
-      geom_line(aes(y = .data[[val_col]],  colour = !!base_metab)) +
+      geom_line(aes(y = .data[[val_col]], colour = !!base_metab)) +
       geom_point(aes(y = .data[[val_col]], colour = !!base_metab)) +
       geom_errorbar(aes(
         ymin   = .data[[val_col]] - .data[[stdev_col]],
@@ -296,11 +309,11 @@ plot_gc_ketones_tube <- function(df, tube_num) {
   p <- ggplot(df, aes(x = `Time (h)`))
 
   for (base_metab in names(metabolites_map)) {
-    val_col   <- paste(tube_num, base_metab)
+    val_col <- paste(tube_num, base_metab)
     stdev_col <- paste("StDev", val_col)
 
     p <- p +
-      geom_line(aes(y = .data[[val_col]],  colour = !!base_metab)) +
+      geom_line(aes(y = .data[[val_col]], colour = !!base_metab)) +
       geom_point(aes(y = .data[[val_col]], colour = !!base_metab)) +
       geom_errorbar(aes(
         ymin   = .data[[val_col]] - .data[[stdev_col]],
@@ -326,9 +339,9 @@ plot_gc_ketones_tube <- function(df, tube_num) {
 # -----------------------------------------------------------------------------
 plot_att <- function(att) {
   ggplot(att) +
-    geom_line(aes(x  = `Time (h)`, y = `TT1`, colour = "TT1")) +
+    geom_line(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
     geom_point(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
-    geom_line(aes(x  = `Time (h)`, y = `TT2`, colour = "TT2")) +
+    geom_line(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
     geom_point(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
     scale_colour_manual(name = "Tube", values = tt_colours) +
     labs(title = "Attenuation", x = "Time (h)", y = "Attenuation (degrees P)") +
@@ -342,9 +355,9 @@ plot_att <- function(att) {
 # -----------------------------------------------------------------------------
 plot_ph <- function(ph) {
   ggplot(ph) +
-    geom_line(aes(x  = `Time (h)`, y = `TT1`, colour = "TT1")) +
+    geom_line(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
     geom_point(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
-    geom_line(aes(x  = `Time (h)`, y = `TT2`, colour = "TT2")) +
+    geom_line(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
     geom_point(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
     scale_colour_manual(name = "Tube", values = ph_colours) +
     scale_y_continuous(limits = c(0, 7)) +
@@ -359,9 +372,9 @@ plot_ph <- function(ph) {
 # -----------------------------------------------------------------------------
 plot_cell_count <- function(viability) {
   ggplot(viability) +
-    geom_line(aes(x  = `Time (h)`, y = `1 Total cells`, colour = "TT1")) +
+    geom_line(aes(x = `Time (h)`, y = `1 Total cells`, colour = "TT1")) +
     geom_point(aes(x = `Time (h)`, y = `1 Total cells`, colour = "TT1")) +
-    geom_line(aes(x  = `Time (h)`, y = `2 Total cells`, colour = "TT2")) +
+    geom_line(aes(x = `Time (h)`, y = `2 Total cells`, colour = "TT2")) +
     geom_point(aes(x = `Time (h)`, y = `2 Total cells`, colour = "TT2")) +
     scale_colour_manual(name = "Tube", values = tt_colours) +
     labs(title = "Cell Count", x = "Time (h)", y = "Cell count (cells/ml)") +
@@ -375,9 +388,9 @@ plot_cell_count <- function(viability) {
 # -----------------------------------------------------------------------------
 plot_viability <- function(viability) {
   ggplot(viability) +
-    geom_line(aes(x  = `Time (h)`, y = `1 Viability (%)`, colour = "TT1")) +
+    geom_line(aes(x = `Time (h)`, y = `1 Viability (%)`, colour = "TT1")) +
     geom_point(aes(x = `Time (h)`, y = `1 Viability (%)`, colour = "TT1")) +
-    geom_line(aes(x  = `Time (h)`, y = `2 Viability (%)`, colour = "TT2")) +
+    geom_line(aes(x = `Time (h)`, y = `2 Viability (%)`, colour = "TT2")) +
     geom_point(aes(x = `Time (h)`, y = `2 Viability (%)`, colour = "TT2")) +
     scale_colour_manual(name = "Tube", values = tt_colours) +
     scale_y_continuous(limits = c(0, 1)) +
@@ -396,7 +409,7 @@ plot_viability <- function(viability) {
 #
 # Line plots: colour = compound, linetype = experiment. Both scales use named
 # vectors built from section 4 so ggplotly() renders correct legend labels.
-# 
+#
 # scale_colour_manual() and scale_linetype_manual()
 # are used with named vectors built from section 4, so ggplotly() renders
 # the correct label text in both legends.
@@ -422,12 +435,11 @@ plot_averages <- function(df_list, exp_labels,
                           avg_cols, sd_cols,
                           comp_colours, comp_labels,
                           title = "", y_label = "", y_limits = NULL) {
-
   # Named vectors for the two scales — names are display labels, values are
   # the visual encoding. Built from section 4 vectors passed as arguments.
-  linetypes    <- exp_linetypes_palette[seq_along(df_list)]
-  colour_map   <- setNames(comp_colours, comp_labels)
-  linetype_map <- setNames(linetypes,    exp_labels)
+  linetypes <- exp_linetypes_palette[seq_along(df_list)]
+  colour_map <- setNames(comp_colours, comp_labels)
+  linetype_map <- setNames(linetypes, exp_labels)
 
   # Stack all experiments and compounds into one long data frame.
   # 'compound' and 'experiment' columns hold display labels so they map
@@ -436,29 +448,33 @@ plot_averages <- function(df_list, exp_labels,
     df <- df_list[[e]]
     do.call(rbind, lapply(seq_along(avg_cols), function(i) {
       avg_col <- avg_cols[i]
-      sd_col  <- if (!is.null(sd_cols)) sd_cols[i] else NA_character_
+      sd_col <- if (!is.null(sd_cols)) sd_cols[i] else NA_character_
       data.frame(
-        time       = df[["Time (h)"]],
-        value      = if (avg_col %in% names(df)) as.numeric(df[[avg_col]]) else NA_real_,
-        sd         = if (!is.na(sd_col) && sd_col %in% names(df)) as.numeric(df[[sd_col]]) else NA_real_,
-        compound   = comp_labels[i],  # colour aesthetic key
-        experiment = exp_labels[e],   # linetype aesthetic key
+        time = df[["Time (h)"]],
+        value = if (avg_col %in% names(df)) as.numeric(df[[avg_col]]) else NA_real_,
+        sd = if (!is.na(sd_col) && sd_col %in% names(df)) as.numeric(df[[sd_col]]) else NA_real_,
+        compound = comp_labels[i], # colour aesthetic key
+        experiment = exp_labels[e], # linetype aesthetic key
         stringsAsFactors = FALSE
       )
     }))
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
 
-  p <- ggplot(plot_data,
-              aes(x        = time,
-                  y        = value,
-                  colour   = compound,
-                  linetype = experiment,
-                  group    = interaction(compound, experiment))) +
+  p <- ggplot(
+    plot_data,
+    aes(
+      x = time,
+      y = value,
+      colour = compound,
+      linetype = experiment,
+      group = interaction(compound, experiment)
+    )
+  ) +
     geom_line() +
     geom_point() +
     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
-    scale_colour_manual(name  = "Compound",   values = colour_map) +
+    scale_colour_manual(name = "Compound", values = colour_map) +
     scale_linetype_manual(name = "Experiment", values = linetype_map) +
     labs(title = title, x = "Time (h)", y = y_label) +
     theme_minimal() +
@@ -480,27 +496,26 @@ plot_averages <- function(df_list, exp_labels,
 plot_avg_stacked_bar <- function(df_list, exp_labels,
                                  avg_cols, comp_colours, comp_labels,
                                  title = "", y_label = "") {
-
   bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
     do.call(rbind, lapply(seq_along(avg_cols), function(i) {
-      vals     <- as.numeric(df[[avg_cols[i]]])
+      vals <- as.numeric(df[[avg_cols[i]]])
       last_val <- if (any(!is.na(vals))) tail(vals[!is.na(vals)], 1) else NA_real_
       data.frame(
         experiment = exp_labels[e],
-        compound   = comp_labels[i],
-        value      = last_val,
+        compound = comp_labels[i],
+        value = last_val,
         stringsAsFactors = FALSE
       )
     }))
   }))
   bar_data <- bar_data[!is.na(bar_data$value), ]
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
-  bar_data$compound   <- factor(bar_data$compound,   levels = comp_labels)
+  bar_data$compound <- factor(bar_data$compound, levels = comp_labels)
 
   ggplot(bar_data, aes(x = "", y = value, fill = compound)) +
     geom_col(position = "stack", width = 0.6) +
-    facet_wrap(~ experiment, nrow = 1) +
+    facet_wrap(~experiment, nrow = 1) +
     scale_fill_manual(
       name   = "Compound",
       values = setNames(comp_colours, comp_labels)
@@ -523,14 +538,18 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
 # Sugars & Ethanol: uses hplc_avg_labels (plain names) and hplc_colours
 plot_avg_hplc <- function(df_list, exp_labels) {
   plot_averages(df_list, exp_labels,
-    avg_cols     = c("Maltotriose_avg", "Maltose_avg", "Glucose_avg",
-                     "Fructose_avg",   "Glycerol_avg", "Ethanol_avg"),
-    sd_cols      = c("Maltotriose_stdev", "Maltose_stdev", "Glucose_stdev",
-                     "Fructose_stdev",   "Glycerol_stdev", "Ethanol_stdev"),
+    avg_cols = c(
+      "Maltotriose_avg", "Maltose_avg", "Glucose_avg",
+      "Fructose_avg", "Glycerol_avg", "Ethanol_avg"
+    ),
+    sd_cols = c(
+      "Maltotriose_stdev", "Maltose_stdev", "Glucose_stdev",
+      "Fructose_stdev", "Glycerol_stdev", "Ethanol_stdev"
+    ),
     comp_colours = hplc_colours,
-    comp_labels  = hplc_avg_labels,   # plain names (no unit suffix)
-    title        = "Sugars & Ethanol",
-    y_label      = "Concentration (g/L)"
+    comp_labels = hplc_avg_labels, # plain names (no unit suffix)
+    title = "Sugars & Ethanol",
+    y_label = "Concentration (g/L)"
   )
 }
 
@@ -599,24 +618,28 @@ plot_avg_viability <- function(df_list, exp_labels) {
 # Ethyl esters stacked bar — uses ethyl_ester_labels and ethyl_ester_colours
 plot_avg_ethyl_esters_bar <- function(df_list, exp_labels) {
   plot_avg_stacked_bar(df_list, exp_labels,
-    avg_cols     = c("Ethyl_butyrate_avg_normalized",  "Ethyl_hexanoate_avg_normalized",
-                     "Ethyl_octanoate_avg_normalized", "Ethyl_decanoate_avg_normalized"),
+    avg_cols = c(
+      "Ethyl_butyrate_avg_normalized", "Ethyl_hexanoate_avg_normalized",
+      "Ethyl_octanoate_avg_normalized", "Ethyl_decanoate_avg_normalized"
+    ),
     comp_colours = ethyl_ester_colours,
-    comp_labels  = ethyl_ester_labels,
-    title        = "Ethyl Esters",
-    y_label      = "Concentration (mg/L, normalised)"
+    comp_labels = ethyl_ester_labels,
+    title = "Ethyl Esters",
+    y_label = "Concentration (mg/L, normalised)"
   )
 }
 
 # Acetate esters stacked bar — uses acetate_labels and acetate_colours
 plot_avg_acetate_esters_bar <- function(df_list, exp_labels) {
   plot_avg_stacked_bar(df_list, exp_labels,
-    avg_cols     = c("Ethyl_acetate_avg_normalized",  "Isobutyl_acetate_avg_normalized",
-                     "Isoamyl_acetate_avg_normalized"),
+    avg_cols = c(
+      "Ethyl_acetate_avg_normalized", "Isobutyl_acetate_avg_normalized",
+      "Isoamyl_acetate_avg_normalized"
+    ),
     comp_colours = acetate_colours,
-    comp_labels  = acetate_labels,
-    title        = "Acetates",
-    y_label      = "Concentration (mg/L, normalised)"
+    comp_labels = acetate_labels,
+    title = "Acetates",
+    y_label = "Concentration (mg/L, normalised)"
   )
 }
 
@@ -643,8 +666,8 @@ plot_avg_cone_viability <- function(df_list, exp_labels) {
     df <- df_list[[e]]
     data.frame(
       experiment = exp_labels[e],
-      value      = as.numeric(df[["Cone_viability_average"]][1]),
-      sd         = as.numeric(df[["Stdev_cone_viability"]][1]),
+      value = as.numeric(df[["Cone_viability_average"]][1]),
+      sd = as.numeric(df[["Stdev_cone_viability"]][1]),
       stringsAsFactors = FALSE
     )
   }))
@@ -659,7 +682,6 @@ plot_avg_cone_viability <- function(df_list, exp_labels) {
     theme_minimal() +
     theme(legend.position = "none")
 }
-
 
 
 # =============================================================================
@@ -699,33 +721,37 @@ cmp_exp_colours <- c(
 # colour = compound, linetype = experiment.
 # -----------------------------------------------------------------------------
 plot_cmp_hplc_tube <- function(df_list, exp_labels, tube_num) {
-  metabolites_map  <- setNames(hplc_colours, hplc_labels)
-  linetypes        <- exp_linetypes_palette[seq_along(df_list)]
-  linetype_map     <- setNames(linetypes, exp_labels)
-  
+  metabolites_map <- setNames(hplc_colours, hplc_labels)
+  linetypes <- exp_linetypes_palette[seq_along(df_list)]
+  linetype_map <- setNames(linetypes, exp_labels)
+
   # Stack all experiments and compounds into one long data frame
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["HPLC"]]
     do.call(rbind, lapply(hplc_labels, function(base_metab) {
-      val_col   <- paste(tube_num, base_metab)
+      val_col <- paste(tube_num, base_metab)
       stdev_col <- paste("StDev", val_col)
       data.frame(
-        time       = df[["Time (h)"]],
-        value      = if (val_col   %in% names(df)) as.numeric(df[[val_col]])   else NA_real_,
-        sd         = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
-        compound   = base_metab,    # colour aesthetic key
+        time = df[["Time (h)"]],
+        value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
+        sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
+        compound = base_metab, # colour aesthetic key
         experiment = exp_labels[e], # linetype aesthetic key
         stringsAsFactors = FALSE
       )
     }))
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
-  ggplot(plot_data,
-         aes(x = time, y = value,
-             colour   = compound,
-             linetype = experiment,
-             group    = interaction(compound, experiment))) +
+
+  ggplot(
+    plot_data,
+    aes(
+      x = time, y = value,
+      colour = compound,
+      linetype = experiment,
+      group = interaction(compound, experiment)
+    )
+  ) +
     geom_line() +
     geom_point() +
     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
@@ -741,32 +767,36 @@ plot_cmp_hplc_tube <- function(df_list, exp_labels, tube_num) {
 # Overlay N experiments on a single GC Esters chart for one tube.
 # -----------------------------------------------------------------------------
 plot_cmp_gc_esters_tube <- function(df_list, exp_labels, tube_num) {
-  metabolites_map  <- setNames(gc_ester_colours, gc_ester_labels)
-  linetypes        <- exp_linetypes_palette[seq_along(df_list)]
-  linetype_map     <- setNames(linetypes, exp_labels)
-  
+  metabolites_map <- setNames(gc_ester_colours, gc_ester_labels)
+  linetypes <- exp_linetypes_palette[seq_along(df_list)]
+  linetype_map <- setNames(linetypes, exp_labels)
+
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["GC_esters"]]
     do.call(rbind, lapply(gc_ester_labels, function(base_metab) {
-      val_col   <- paste(tube_num, base_metab)
+      val_col <- paste(tube_num, base_metab)
       stdev_col <- paste("StDev", val_col)
       data.frame(
-        time       = df[["Time (h)"]],
-        value      = if (val_col   %in% names(df)) as.numeric(df[[val_col]])   else NA_real_,
-        sd         = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
-        compound   = base_metab,
+        time = df[["Time (h)"]],
+        value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
+        sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
+        compound = base_metab,
         experiment = exp_labels[e],
         stringsAsFactors = FALSE
       )
     }))
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
-  ggplot(plot_data,
-         aes(x = time, y = value,
-             colour   = compound,
-             linetype = experiment,
-             group    = interaction(compound, experiment))) +
+
+  ggplot(
+    plot_data,
+    aes(
+      x = time, y = value,
+      colour = compound,
+      linetype = experiment,
+      group = interaction(compound, experiment)
+    )
+  ) +
     geom_line() +
     geom_point() +
     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
@@ -782,32 +812,36 @@ plot_cmp_gc_esters_tube <- function(df_list, exp_labels, tube_num) {
 # Overlay N experiments on a single GC Ketones chart for one tube.
 # -----------------------------------------------------------------------------
 plot_cmp_gc_ketones_tube <- function(df_list, exp_labels, tube_num) {
-  metabolites_map  <- setNames(gc_ketone_colours, gc_ketone_labels)
-  linetypes        <- exp_linetypes_palette[seq_along(df_list)]
-  linetype_map     <- setNames(linetypes, exp_labels)
-  
+  metabolites_map <- setNames(gc_ketone_colours, gc_ketone_labels)
+  linetypes <- exp_linetypes_palette[seq_along(df_list)]
+  linetype_map <- setNames(linetypes, exp_labels)
+
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["GC_ketones"]]
     do.call(rbind, lapply(gc_ketone_labels, function(base_metab) {
-      val_col   <- paste(tube_num, base_metab)
+      val_col <- paste(tube_num, base_metab)
       stdev_col <- paste("StDev", val_col)
       data.frame(
-        time       = df[["Time (h)"]],
-        value      = if (val_col   %in% names(df)) as.numeric(df[[val_col]])   else NA_real_,
-        sd         = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
-        compound   = base_metab,
+        time = df[["Time (h)"]],
+        value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
+        sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
+        compound = base_metab,
         experiment = exp_labels[e],
         stringsAsFactors = FALSE
       )
     }))
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
-  ggplot(plot_data,
-         aes(x = time, y = value,
-             colour   = compound,
-             linetype = experiment,
-             group    = interaction(compound, experiment))) +
+
+  ggplot(
+    plot_data,
+    aes(
+      x = time, y = value,
+      colour = compound,
+      linetype = experiment,
+      group = interaction(compound, experiment)
+    )
+  ) +
     geom_line() +
     geom_point() +
     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
@@ -826,31 +860,35 @@ plot_cmp_gc_ketones_tube <- function(df_list, exp_labels, tube_num) {
 # Legend labels: "Experiment #N TT1", "Experiment #N TT2"
 # -----------------------------------------------------------------------------
 plot_cmp_att <- function(df_list, exp_labels) {
-  tube_cols   <- c("TT1", "TT2")
-  tube_lty    <- c("TT1" = "solid", "TT2" = "dashed")
-  colour_map  <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
-  
+  tube_cols <- c("TT1", "TT2")
+  tube_lty <- c("TT1" = "solid", "TT2" = "dashed")
+  colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
+
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["Attenuation"]]
     do.call(rbind, lapply(tube_cols, function(tc) {
       data.frame(
-        time       = as.numeric(df[["Time (h)"]]),
-        value      = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
+        time = as.numeric(df[["Time (h)"]]),
+        value = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
         experiment = exp_labels[e],
-        tube       = tc,
+        tube = tc,
         # trace_id used for the group aesthetic so lines don't cross tubes
-        trace_id   = paste(exp_labels[e], tc),
+        trace_id = paste(exp_labels[e], tc),
         stringsAsFactors = FALSE
       )
     }))
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
-  ggplot(plot_data,
-         aes(x = time, y = value,
-             colour   = experiment,
-             linetype = tube,
-             group    = trace_id)) +
+
+  ggplot(
+    plot_data,
+    aes(
+      x = time, y = value,
+      colour = experiment,
+      linetype = tube,
+      group = trace_id
+    )
+  ) +
     geom_line() +
     geom_point() +
     scale_colour_manual(name = "Experiment", values = colour_map) +
@@ -865,30 +903,34 @@ plot_cmp_att <- function(df_list, exp_labels) {
 # Y-axis fixed at 0-7. Same encoding as plot_cmp_att().
 # -----------------------------------------------------------------------------
 plot_cmp_ph <- function(df_list, exp_labels) {
-  tube_cols  <- c("TT1", "TT2")
-  tube_lty   <- c("TT1" = "solid", "TT2" = "dashed")
+  tube_cols <- c("TT1", "TT2")
+  tube_lty <- c("TT1" = "solid", "TT2" = "dashed")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
-  
+
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["pH"]]
     do.call(rbind, lapply(tube_cols, function(tc) {
       data.frame(
-        time       = as.numeric(df[["Time (h)"]]),
-        value      = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
+        time = as.numeric(df[["Time (h)"]]),
+        value = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
         experiment = exp_labels[e],
-        tube       = tc,
-        trace_id   = paste(exp_labels[e], tc),
+        tube = tc,
+        trace_id = paste(exp_labels[e], tc),
         stringsAsFactors = FALSE
       )
     }))
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
-  ggplot(plot_data,
-         aes(x = time, y = value,
-             colour   = experiment,
-             linetype = tube,
-             group    = trace_id)) +
+
+  ggplot(
+    plot_data,
+    aes(
+      x = time, y = value,
+      colour = experiment,
+      linetype = tube,
+      group = trace_id
+    )
+  ) +
     geom_line() +
     geom_point() +
     scale_colour_manual(name = "Experiment", values = colour_map) +
@@ -906,30 +948,34 @@ plot_cmp_ph <- function(df_list, exp_labels) {
 # -----------------------------------------------------------------------------
 plot_cmp_cell_count <- function(df_list, exp_labels) {
   tube_cols <- c("TT1" = "1 Total cells", "TT2" = "2 Total cells")
-  tube_lty  <- c("TT1" = "solid", "TT2" = "dashed")
+  tube_lty <- c("TT1" = "solid", "TT2" = "dashed")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
-  
+
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["CellCount_Viability"]]
     do.call(rbind, lapply(names(tube_cols), function(tube_label) {
       col <- tube_cols[[tube_label]]
       data.frame(
-        time       = as.numeric(df[["Time (h)"]]),
-        value      = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
+        time = as.numeric(df[["Time (h)"]]),
+        value = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
         experiment = exp_labels[e],
-        tube       = tube_label,
-        trace_id   = paste(exp_labels[e], tube_label),
+        tube = tube_label,
+        trace_id = paste(exp_labels[e], tube_label),
         stringsAsFactors = FALSE
       )
     }))
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
-  ggplot(plot_data,
-         aes(x = time, y = value,
-             colour   = experiment,
-             linetype = tube,
-             group    = trace_id)) +
+
+  ggplot(
+    plot_data,
+    aes(
+      x = time, y = value,
+      colour = experiment,
+      linetype = tube,
+      group = trace_id
+    )
+  ) +
     geom_line() +
     geom_point() +
     scale_colour_manual(name = "Experiment", values = colour_map) +
@@ -944,31 +990,35 @@ plot_cmp_cell_count <- function(df_list, exp_labels) {
 # Y-axis fixed at 0-1.
 # -----------------------------------------------------------------------------
 plot_cmp_viability <- function(df_list, exp_labels) {
-  tube_cols  <- c("TT1" = "1 Viability (%)", "TT2" = "2 Viability (%)")
-  tube_lty   <- c("TT1" = "solid", "TT2" = "dashed")
+  tube_cols <- c("TT1" = "1 Viability (%)", "TT2" = "2 Viability (%)")
+  tube_lty <- c("TT1" = "solid", "TT2" = "dashed")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
-  
+
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["CellCount_Viability"]]
     do.call(rbind, lapply(names(tube_cols), function(tube_label) {
       col <- tube_cols[[tube_label]]
       data.frame(
-        time       = as.numeric(df[["Time (h)"]]),
-        value      = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
+        time = as.numeric(df[["Time (h)"]]),
+        value = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
         experiment = exp_labels[e],
-        tube       = tube_label,
-        trace_id   = paste(exp_labels[e], tube_label),
+        tube = tube_label,
+        trace_id = paste(exp_labels[e], tube_label),
         stringsAsFactors = FALSE
       )
     }))
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
-  ggplot(plot_data,
-         aes(x = time, y = value,
-             colour   = experiment,
-             linetype = tube,
-             group    = trace_id)) +
+
+  ggplot(
+    plot_data,
+    aes(
+      x = time, y = value,
+      colour = experiment,
+      linetype = tube,
+      group = trace_id
+    )
+  ) +
     geom_line() +
     geom_point() +
     scale_colour_manual(name = "Experiment", values = colour_map) +
