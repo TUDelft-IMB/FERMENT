@@ -35,10 +35,17 @@ ui <- navbarPage(
   # Shows high-level statistics about all loaded experiments
   # ===========================================================================
   tabPanel(
-    title = "Overview",
-    br(),
-
-    # Summary cards row
+    title = span(
+      "Overview",
+      tooltip(
+        trigger = bs_icon(
+          "info-circle"
+        ),
+      "A high-level summary of all experiments. 
+      Shows species and strain distributions, temperature and gravity breakdowns, 
+      and a full conditions table.")
+    ),
+    
     fluidRow(
       column(
         3,
@@ -123,7 +130,16 @@ ui <- navbarPage(
   # one for TT1 (Tall Tube 1) and one for TT2 (Tall Tube 2).
   # ===========================================================================
   tabPanel(
-    title = "Single Experiment",
+    title = span(
+      "Plot Replicates - Single Experiment",
+      tooltip(
+        trigger = bs_icon(
+          "info-circle"
+        ),
+      "Explore one experiment at a time. 
+      Filter by species, strain, gravity, inoculum, or temperature, then select an experiment. 
+      TT1 and TT2 are shown side by side.")
+    ),
     sidebarLayout(
       sidebarPanel(
         width = 2,
@@ -242,7 +258,16 @@ ui <- navbarPage(
   # All plotlyOutput() IDs must match output$ names in server.R exactly.
   # ===========================================================================
   tabPanel(
-    title = "Compare Experiments",
+    title = span(
+      "Plot Replicates - Multiple Experiments",
+      tooltip(
+        trigger = bs_icon(
+          "info-circle"
+        ),
+      "Overlay multiple experiments. 
+      For HPLC and GC, colour = compound and linetype = experiment.
+      For Attenuation, pH, Cell Count, and Viability, colour = experiment and linetype = tall tube.")
+    ),
     sidebarLayout(
       sidebarPanel(
         width = 3,
@@ -380,7 +405,14 @@ ui <- navbarPage(
   # All plotlyOutput() IDs must match output$ names in server.R exactly.
   # ===========================================================================
   tabPanel(
-    title = "Averages",
+    title = span(
+      "Plot Averages - Multiple Experiments",
+      tooltip(
+        trigger = bs_icon(
+          "info-circle"
+        ),
+      "Plot averaged data from TT1 and TT2.")
+    ),
     sidebarLayout(
       sidebarPanel(
         width = 3,
