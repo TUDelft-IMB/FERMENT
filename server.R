@@ -371,7 +371,14 @@ server <- function(input, output, session) {
   # Step 5: Keep the experiment dropdown in sync with the active filters.
   # ---------------------------------------------------------------------------
   observe({
-    updateSelectInput(session, "experiment", choices = filtered_files())
+    choices <- filtered_files()
+    
+    updateSelectInput(
+      session,
+      "experiment",
+      choices = c("Select an experiment..." = "", choices),
+      selected = ""
+    )
   })
 
   # Step 5a: Clear Single Experiment filters.
