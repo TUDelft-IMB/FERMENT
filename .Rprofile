@@ -11,4 +11,12 @@ if (interactive()) {
   }
   # Disable automatic .RData saving going forward
   options(save.image = FALSE)
+  # Set EXCEL_DIR explicitly (after renv activates)
+  # This ensures it's available even if .Renviron doesn't load
+  if (Sys.getenv("TT_EXCEL_DIR") == "") {
+    Sys.setenv("TT_EXCEL_DIR")
+  }
+  # Verify it's set
+  cat("TT_EXCEL_DIR set to:", Sys.getenv("TT_EXCEL_DIR"), "\n")
+  #list.files(Sys.getenv("TT_EXCEL_DIR"), pattern = "\\.xlsx$", full.names = FALSE)
 }

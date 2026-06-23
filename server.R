@@ -24,7 +24,9 @@ server <- function(input, output, session) {
   # reactive() means this code re-runs automatically if EXCEL_DIR changes.
   # In practice it runs once at startup.
   # ---------------------------------------------------------------------------
-
+  
+  # Get EXCEL_DIR from environment 
+  EXCEL_DIR = Sys.getenv("TT_EXCEL_DIR")
   # Build metadata table from Experimental_parameters sheet
   file_metadata <- reactive({
     # List all .xlsx files in the configured folder (filenames only, not paths)
