@@ -73,7 +73,10 @@ if (Sys.getenv("TT_EXCEL_DIR") == "") {
 }
 
 # The fallback "PATH/PATH" will cause an informative error if the variable
-# is not set, rather than silently failing later.
+# is not set, rather than rendering an empty dashboard later.
+if (EXCEL_DIR == "PATH/PATH") {
+  stop("Environment variable TT_EXCEL_DIR is not set.")
+}
 
 # =============================================================================
 # 3. DATA-LOADING FUNCTIONS
