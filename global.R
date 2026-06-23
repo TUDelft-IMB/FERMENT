@@ -61,17 +61,16 @@ library(bsicons)
 # so that no file path is hard-coded in the source. 
 
 # If .Renviron cannot be set or does not work, set the path in line 70 below
-# replace TT_EXCEL_DIR with the path and save the changes
+# replace PATH/PATH with the path and save the changes
 # DO NOT commit nor push the change so your path does not become public 
 
 # Initialize EXCEL_DIR from environment variable or fallback
 # check for TT_EXCEL_DIR availability from .Renviron
 if (Sys.getenv("TT_EXCEL_DIR") == "") {
-  EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "PATH/PATH") # replace TT_EXCEL_DIR
+  EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "PATH/PATH") # replace PATH/PATH
 } else {
   EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR")
 }
-
 
 # The fallback "PATH/PATH" will cause an informative error if the variable
 # is not set, rather than silently failing later.
