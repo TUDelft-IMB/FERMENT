@@ -18,5 +18,4 @@ if (interactive()) {
   }
   # Verify it's set
   cat("TT_EXCEL_DIR set to:", Sys.getenv("TT_EXCEL_DIR"), "\n")
-  #list.files(Sys.getenv("TT_EXCEL_DIR"), pattern = "\\.xlsx$", full.names = FALSE)
 }

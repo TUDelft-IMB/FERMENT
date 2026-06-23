@@ -57,15 +57,21 @@ library(bsicons)
 # 2. CONFIG
 # =============================================================================
 # EXCEL_DIR is the folder that holds all .xlsx experiment files.
-# Set the environment variable TT_EXCEL_DIR before launching the app so that
-# no file path is hard-coded in the source. Example (in a terminal):
-#   export TT_EXCEL_DIR="/Users/you/fermentation_data"
+# Set the environment variable TT_EXCEL_DIR in .Renviron before running the app
+# so that no file path is hard-coded in the source. 
+
+# If .Renviron cannot be set or does not work, set the path in the line below
+# remove the #, write the path and save the file 
+# DO NOT commit nor push the change so your path does not become public 
+
+# Initialize EXCEL_DIR from environment variable or fallback
+EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "")
+if (EXCEL_DIR == "") {
+  EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "PATH/PATH")
+}
+
 # The fallback "PATH/PATH" will cause an informative error if the variable
 # is not set, rather than silently failing later.
-
-
-# EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "PATH/PATH")
-
 
 # =============================================================================
 # 3. DATA-LOADING FUNCTIONS
