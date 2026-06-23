@@ -11,11 +11,12 @@ if (interactive()) {
   }
   # Disable automatic .RData saving going forward
   options(save.image = FALSE)
-  # Set EXCEL_DIR explicitly (after renv activates)
-  # This ensures it's available even if .Renviron doesn't load
+  # check for TT_EXCEL_DIR availability from .Renviron
   if (Sys.getenv("TT_EXCEL_DIR") == "") {
-    Sys.setenv("TT_EXCEL_DIR")
+    cat("TT_EXCEL_DIR is NOT set in .Renviron", "\n")
+  } else {
+    cat("TT_EXCEL_DIR set to:", Sys.getenv("TT_EXCEL_DIR"), "\n")
+    # Double-check in case .Renviron doesn't load
+    Sys.getenv("TT_EXCEL_DIR")
   }
-  # Verify it's set
-  cat("TT_EXCEL_DIR set to:", Sys.getenv("TT_EXCEL_DIR"), "\n")
 }
