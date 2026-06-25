@@ -716,51 +716,78 @@ cmp_exp_colours <- c(
 )
 
 # -----------------------------------------------------------------------------
-# plot_cmp_hplc_tube()
-# Overlay N experiments on a single HPLC chart for one tube.
-# colour = compound, linetype = experiment.
+# plot_cmp_hplc() — HPLC, TT1 and TT2 overlaid in one chart
 # -----------------------------------------------------------------------------
-# plot_cmp_hplc_tube <- function(df_list, exp_labels, tube_num) {
-#   metabolites_map <- setNames(hplc_colours, hplc_labels)
-#   linetypes <- exp_linetypes_palette[seq_along(df_list)]
-#   linetype_map <- setNames(linetypes, exp_labels)
-# 
-#   # Stack all experiments and compounds into one long data frame
-#   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
-#     df <- df_list[[e]][["HPLC"]]
-#     do.call(rbind, lapply(hplc_labels, function(base_metab) {
-#       val_col <- paste(tube_num, base_metab)
-#       stdev_col <- paste("StDev", val_col)
-#       data.frame(
-#         time = df[["Time (h)"]],
-#         value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
-#         sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
-#         compound = base_metab, # colour aesthetic key
-#         experiment = exp_labels[e], # linetype aesthetic key
-#         stringsAsFactors = FALSE
-#       )
-#     }))
-#   }))
-#   plot_data <- plot_data[!is.na(plot_data$value), ]
-# 
-#   ggplot(
-#     plot_data,
-#     aes(
-#       x = time, y = value,
-#       colour = compound,
-#       linetype = experiment,
-#       group = interaction(compound, experiment)
-#     )
-#   ) +
-#     geom_line() +
-#     geom_point() +
-#     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
-#     scale_colour_manual(name = "Metabolites", values = metabolites_map) +
-#     scale_linetype_manual(name = "Experiment", values = linetype_map) +
-#     labs(title = paste0("HPLC TT", tube_num), x = "Time (h)", y = "Concentration (g/L)") +
-#     theme_minimal() +
-#     theme(legend.position = "right")
-# }
+plot_cmp_hplc <- function(df_list, exp_labels) {
+  tube_labels     <- paste0(rep(hplc_labels, each = 2), " TT", 1:2)
+  tube_colours    <- rep(hplc_colours, each = 2)
+  metabolites_map <- setNames(tube_colours, tube_labels)
+
+  rows <- list()
+  for (e in seq_along(df_list)) {
+    df <- df_list[[e]][["HPLC"]]
+    for (base_metab in hplc_labels) {
+      for (tube_num in c(1, 2)) {
+        val_col   <- paste(tube_num, base_metab)
+        stdev_col <- paste("StDev", val_col)
+        rows[[length(rows) + 1]] <- data.frame(
+          time       = df[["Time (h)"]],
+          value      = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
+          sd         = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
+          compound   = paste0(base_metab, " TT", tube_num),
+          experiment = exp_labels[e],
+          tube       = paste0("TT", tube_num),
+          exp_tube   = paste0(exp_labels[e], " ", paste0("TT", tube_num)),
+          trace_id   = paste(exp_labels[e], paste0("TT", tube_num), base_metab),
+          stringsAsFactors = FALSE
+        )
+      }
+    }
+  }
+
+  plot_data <- do.call(rbind, rows)
+  plot_data <- plot_data[!is.na(plot_data$value), ]
+
+  linetype_levels <- unique(plot_data$exp_tube)
+  exp_only        <- sub(" TT[12]$", "", linetype_levels)
+  exp_match       <- match(exp_only, exp_labels)
+  linetype_values <- exp_linetypes_palette[exp_match]
+  names(linetype_values) <- linetype_levels
+
+  ggplot(
+    plot_data,
+    aes(
+      x = time,
+      y = value,
+      colour = compound,
+      linetype = exp_tube,
+      group = trace_id
+    )
+  ) +
+    geom_line() +
+    geom_errorbar(
+      aes(ymin = value - sd, ymax = value + sd),
+      width = 3,
+      na.rm = TRUE
+    ) +
+    geom_point(
+      data = subset(plot_data, tube == "TT1"),
+      shape = 16,
+      size = 2,
+      show.legend = FALSE
+    ) +
+    geom_point(
+      data = subset(plot_data, tube == "TT2"),
+      shape = 1,
+      size = 2,
+      show.legend = FALSE
+    ) +
+    scale_colour_manual(name = "Compound", values = metabolites_map) +
+    scale_linetype_manual(name = "Experiment", values = linetype_values) +
+    labs(title = "HPLC", x = "Time (h)", y = "Concentration (g/L)") +
+    theme_minimal() +
+    theme(legend.position = "right")
+}
 
 # -----------------------------------------------------------------------------
 # plot_cmp_gc_esters_tube()
