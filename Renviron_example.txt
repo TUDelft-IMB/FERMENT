@@ -1,3 +1,6 @@
 # Set path to the folder that holds all .xlsx files.
 # rename this file to .Renviron to make it active and reload Rstudio.
+
 TT_EXCEL_DIR=/PATH/PATH
+
+# Remember to not use space between = , and you MUST restart your R session when you set your path (when you save this file).
