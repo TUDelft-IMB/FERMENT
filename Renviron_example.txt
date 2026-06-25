@@ -3,4 +3,6 @@
 
 TT_EXCEL_DIR=/PATH/PATH
 
-# Remember to not use space between = , and you MUST restart your R session when you set your path (when you save this file).
+# Remember to not use space between = .
+# You do not need quatation marks in your path here.
+# You MUST restart your R session when you set your path (when you save this file).
