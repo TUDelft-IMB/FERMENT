@@ -761,35 +761,23 @@ server <- function(input, output, session) {
   # column names don't follow the "N compound" pattern that HPLC/GC use.
   # ---------------------------------------------------------------------------
 
-  # # HPLC: one line per compound per experiment, TT1 and TT2 side by side
-  # output$cmpHplcTT1Plot <- renderPlotly({
-  #   req(cmp_data_list())
-  #   ggplotly(plot_cmp_hplc_tube(cmp_data_list(), cmp_exp_labels(), tube_num = 1))
-  # })
-  # output$cmpHplcTT2Plot <- renderPlotly({
-  #   req(cmp_data_list())
-  #   ggplotly(plot_cmp_hplc_tube(cmp_data_list(), cmp_exp_labels(), tube_num = 2))
-  # })
-  # 
-  # # GC Esters: one line per compound per experiment, TT1 and TT2 side by side
-  # output$cmpGcEstersTT1Plot <- renderPlotly({
-  #   req(cmp_data_list())
-  #   ggplotly(plot_cmp_gc_esters_tube(cmp_data_list(), cmp_exp_labels(), tube_num = 1))
-  # })
-  # output$cmpGcEstersTT2Plot <- renderPlotly({
-  #   req(cmp_data_list())
-  #   ggplotly(plot_cmp_gc_esters_tube(cmp_data_list(), cmp_exp_labels(), tube_num = 2))
-  # })
-  # 
-  # # GC Ketones: one line per compound per experiment, TT1 and TT2 side by side
-  # output$cmpGcKetonesTT1Plot <- renderPlotly({
-  #   req(cmp_data_list())
-  #   ggplotly(plot_cmp_gc_ketones_tube(cmp_data_list(), cmp_exp_labels(), tube_num = 1))
-  # })
-  # output$cmpGcKetonesTT2Plot <- renderPlotly({
-  #   req(cmp_data_list())
-  #   ggplotly(plot_cmp_gc_ketones_tube(cmp_data_list(), cmp_exp_labels(), tube_num = 2))
-  # })
+  # HPLC: one line per compound per experiment, TT1 and TT2 overlaid
+  output$cmpHplcPlot <- renderPlotly({
+    req(cmp_data_list())
+    ggplotly(plot_cmp_hplc(cmp_data_list(), cmp_exp_labels()))
+  })
+  
+  # GC Esters: one line per compound per experiment, TT1 and TT2 overlaid
+  output$cmpGcEstersPlot <- renderPlotly({
+    req(cmp_data_list())
+    ggplotly(plot_cmp_gc_esters(cmp_data_list(), cmp_exp_labels()))
+  })
+  
+  # GC Ketones: one line per compound per experiment, TT1 and TT2 overlaid
+  output$cmpGcKetonesPlot <- renderPlotly({
+    req(cmp_data_list())
+    ggplotly(plot_cmp_gc_ketones(cmp_data_list(), cmp_exp_labels()))
+  })
 
   # Attenuation: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
   output$cmpAttPlot <- renderPlotly({
