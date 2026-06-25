@@ -720,137 +720,137 @@ cmp_exp_colours <- c(
 # Overlay N experiments on a single HPLC chart for one tube.
 # colour = compound, linetype = experiment.
 # -----------------------------------------------------------------------------
-plot_cmp_hplc_tube <- function(df_list, exp_labels, tube_num) {
-  metabolites_map <- setNames(hplc_colours, hplc_labels)
-  linetypes <- exp_linetypes_palette[seq_along(df_list)]
-  linetype_map <- setNames(linetypes, exp_labels)
-
-  # Stack all experiments and compounds into one long data frame
-  plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
-    df <- df_list[[e]][["HPLC"]]
-    do.call(rbind, lapply(hplc_labels, function(base_metab) {
-      val_col <- paste(tube_num, base_metab)
-      stdev_col <- paste("StDev", val_col)
-      data.frame(
-        time = df[["Time (h)"]],
-        value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
-        sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
-        compound = base_metab, # colour aesthetic key
-        experiment = exp_labels[e], # linetype aesthetic key
-        stringsAsFactors = FALSE
-      )
-    }))
-  }))
-  plot_data <- plot_data[!is.na(plot_data$value), ]
-
-  ggplot(
-    plot_data,
-    aes(
-      x = time, y = value,
-      colour = compound,
-      linetype = experiment,
-      group = interaction(compound, experiment)
-    )
-  ) +
-    geom_line() +
-    geom_point() +
-    geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
-    scale_colour_manual(name = "Metabolites", values = metabolites_map) +
-    scale_linetype_manual(name = "Experiment", values = linetype_map) +
-    labs(title = paste0("HPLC TT", tube_num), x = "Time (h)", y = "Concentration (g/L)") +
-    theme_minimal() +
-    theme(legend.position = "right")
-}
+# plot_cmp_hplc_tube <- function(df_list, exp_labels, tube_num) {
+#   metabolites_map <- setNames(hplc_colours, hplc_labels)
+#   linetypes <- exp_linetypes_palette[seq_along(df_list)]
+#   linetype_map <- setNames(linetypes, exp_labels)
+# 
+#   # Stack all experiments and compounds into one long data frame
+#   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+#     df <- df_list[[e]][["HPLC"]]
+#     do.call(rbind, lapply(hplc_labels, function(base_metab) {
+#       val_col <- paste(tube_num, base_metab)
+#       stdev_col <- paste("StDev", val_col)
+#       data.frame(
+#         time = df[["Time (h)"]],
+#         value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
+#         sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
+#         compound = base_metab, # colour aesthetic key
+#         experiment = exp_labels[e], # linetype aesthetic key
+#         stringsAsFactors = FALSE
+#       )
+#     }))
+#   }))
+#   plot_data <- plot_data[!is.na(plot_data$value), ]
+# 
+#   ggplot(
+#     plot_data,
+#     aes(
+#       x = time, y = value,
+#       colour = compound,
+#       linetype = experiment,
+#       group = interaction(compound, experiment)
+#     )
+#   ) +
+#     geom_line() +
+#     geom_point() +
+#     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
+#     scale_colour_manual(name = "Metabolites", values = metabolites_map) +
+#     scale_linetype_manual(name = "Experiment", values = linetype_map) +
+#     labs(title = paste0("HPLC TT", tube_num), x = "Time (h)", y = "Concentration (g/L)") +
+#     theme_minimal() +
+#     theme(legend.position = "right")
+# }
 
 # -----------------------------------------------------------------------------
 # plot_cmp_gc_esters_tube()
 # Overlay N experiments on a single GC Esters chart for one tube.
 # -----------------------------------------------------------------------------
-plot_cmp_gc_esters_tube <- function(df_list, exp_labels, tube_num) {
-  metabolites_map <- setNames(gc_ester_colours, gc_ester_labels)
-  linetypes <- exp_linetypes_palette[seq_along(df_list)]
-  linetype_map <- setNames(linetypes, exp_labels)
-
-  plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
-    df <- df_list[[e]][["GC_esters"]]
-    do.call(rbind, lapply(gc_ester_labels, function(base_metab) {
-      val_col <- paste(tube_num, base_metab)
-      stdev_col <- paste("StDev", val_col)
-      data.frame(
-        time = df[["Time (h)"]],
-        value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
-        sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
-        compound = base_metab,
-        experiment = exp_labels[e],
-        stringsAsFactors = FALSE
-      )
-    }))
-  }))
-  plot_data <- plot_data[!is.na(plot_data$value), ]
-
-  ggplot(
-    plot_data,
-    aes(
-      x = time, y = value,
-      colour = compound,
-      linetype = experiment,
-      group = interaction(compound, experiment)
-    )
-  ) +
-    geom_line() +
-    geom_point() +
-    geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
-    scale_colour_manual(name = "Metabolites", values = metabolites_map) +
-    scale_linetype_manual(name = "Experiment", values = linetype_map) +
-    labs(title = paste0("GC Esters TT", tube_num), x = "Time (h)", y = "Concentration (mg/L)") +
-    theme_minimal() +
-    theme(legend.position = "right")
-}
+# plot_cmp_gc_esters_tube <- function(df_list, exp_labels, tube_num) {
+#   metabolites_map <- setNames(gc_ester_colours, gc_ester_labels)
+#   linetypes <- exp_linetypes_palette[seq_along(df_list)]
+#   linetype_map <- setNames(linetypes, exp_labels)
+# 
+#   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+#     df <- df_list[[e]][["GC_esters"]]
+#     do.call(rbind, lapply(gc_ester_labels, function(base_metab) {
+#       val_col <- paste(tube_num, base_metab)
+#       stdev_col <- paste("StDev", val_col)
+#       data.frame(
+#         time = df[["Time (h)"]],
+#         value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
+#         sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
+#         compound = base_metab,
+#         experiment = exp_labels[e],
+#         stringsAsFactors = FALSE
+#       )
+#     }))
+#   }))
+#   plot_data <- plot_data[!is.na(plot_data$value), ]
+# 
+#   ggplot(
+#     plot_data,
+#     aes(
+#       x = time, y = value,
+#       colour = compound,
+#       linetype = experiment,
+#       group = interaction(compound, experiment)
+#     )
+#   ) +
+#     geom_line() +
+#     geom_point() +
+#     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
+#     scale_colour_manual(name = "Metabolites", values = metabolites_map) +
+#     scale_linetype_manual(name = "Experiment", values = linetype_map) +
+#     labs(title = paste0("GC Esters TT", tube_num), x = "Time (h)", y = "Concentration (mg/L)") +
+#     theme_minimal() +
+#     theme(legend.position = "right")
+# }
 
 # -----------------------------------------------------------------------------
 # plot_cmp_gc_ketones_tube()
 # Overlay N experiments on a single GC Ketones chart for one tube.
 # -----------------------------------------------------------------------------
-plot_cmp_gc_ketones_tube <- function(df_list, exp_labels, tube_num) {
-  metabolites_map <- setNames(gc_ketone_colours, gc_ketone_labels)
-  linetypes <- exp_linetypes_palette[seq_along(df_list)]
-  linetype_map <- setNames(linetypes, exp_labels)
-
-  plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
-    df <- df_list[[e]][["GC_ketones"]]
-    do.call(rbind, lapply(gc_ketone_labels, function(base_metab) {
-      val_col <- paste(tube_num, base_metab)
-      stdev_col <- paste("StDev", val_col)
-      data.frame(
-        time = df[["Time (h)"]],
-        value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
-        sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
-        compound = base_metab,
-        experiment = exp_labels[e],
-        stringsAsFactors = FALSE
-      )
-    }))
-  }))
-  plot_data <- plot_data[!is.na(plot_data$value), ]
-
-  ggplot(
-    plot_data,
-    aes(
-      x = time, y = value,
-      colour = compound,
-      linetype = experiment,
-      group = interaction(compound, experiment)
-    )
-  ) +
-    geom_line() +
-    geom_point() +
-    geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
-    scale_colour_manual(name = "Metabolites", values = metabolites_map) +
-    scale_linetype_manual(name = "Experiment", values = linetype_map) +
-    labs(title = paste0("GC Ketones TT", tube_num), x = "Time (h)", y = "Concentration (mg/L)") +
-    theme_minimal() +
-    theme(legend.position = "right")
-}
+# plot_cmp_gc_ketones_tube <- function(df_list, exp_labels, tube_num) {
+#   metabolites_map <- setNames(gc_ketone_colours, gc_ketone_labels)
+#   linetypes <- exp_linetypes_palette[seq_along(df_list)]
+#   linetype_map <- setNames(linetypes, exp_labels)
+# 
+#   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+#     df <- df_list[[e]][["GC_ketones"]]
+#     do.call(rbind, lapply(gc_ketone_labels, function(base_metab) {
+#       val_col <- paste(tube_num, base_metab)
+#       stdev_col <- paste("StDev", val_col)
+#       data.frame(
+#         time = df[["Time (h)"]],
+#         value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
+#         sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
+#         compound = base_metab,
+#         experiment = exp_labels[e],
+#         stringsAsFactors = FALSE
+#       )
+#     }))
+#   }))
+#   plot_data <- plot_data[!is.na(plot_data$value), ]
+# 
+#   ggplot(
+#     plot_data,
+#     aes(
+#       x = time, y = value,
+#       colour = compound,
+#       linetype = experiment,
+#       group = interaction(compound, experiment)
+#     )
+#   ) +
+#     geom_line() +
+#     geom_point() +
+#     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
+#     scale_colour_manual(name = "Metabolites", values = metabolites_map) +
+#     scale_linetype_manual(name = "Experiment", values = linetype_map) +
+#     labs(title = paste0("GC Ketones TT", tube_num), x = "Time (h)", y = "Concentration (mg/L)") +
+#     theme_minimal() +
+#     theme(legend.position = "right")
+# }
 
 # -----------------------------------------------------------------------------
 # plot_cmp_att()
