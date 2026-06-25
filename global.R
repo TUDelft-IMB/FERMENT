@@ -67,7 +67,7 @@ library(bsicons)
 # Initialize EXCEL_DIR from environment variable or fallback
 # check for TT_EXCEL_DIR availability from .Renviron
 if (Sys.getenv("TT_EXCEL_DIR") == "") {
-  EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "PATH/PATH") # replace PATH/PATH
+  EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR", "PATH/PATH") # replace PATH/PATH inside quotation marks
 } else {
   EXCEL_DIR <- Sys.getenv("TT_EXCEL_DIR")
 }
