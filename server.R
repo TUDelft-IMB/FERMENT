@@ -53,6 +53,23 @@ server <- function(input, output, session) {
         if (is.null(params) || nrow(params) < 1) {
           return(NULL)
         }
+        # Read the Notes sheet for A1 — silently returns NA if missing
+        notes_val <- tryCatch({
+          notes_sheet <- read_excel(path, sheet = "Notes", col_names = FALSE)
+          as.character(notes_sheet[[1]][1])
+        }, error = function(e) NA_character_)
+        
+        # H2 = column 8, row 1 (after header row). Format as dd/mm/yyyy.
+        raw_date <- params[[8]][1]
+        
+        formatted_date <- tryCatch({
+          if (inherits(raw_date, "POSIXct") || inherits(raw_date, "Date")) {
+            format(as.Date(raw_date), "%d/%m/%Y")
+          } else {
+            # fallback: treat as Excel serial number
+            format(as.Date(as.numeric(raw_date), origin = "1899-12-30"), "%d/%m/%Y")
+          }
+        }, error = function(e) as.character(raw_date))
         # Build a one-row data frame from the first data row (row 2 of the sheet,
         # since row 1 is the header). Column positions match the sheet layout:
         # [[2]] = B = Species
@@ -69,6 +86,8 @@ server <- function(input, output, session) {
           inoculum = as.character(params[[5]][1]),
           temperature = as.character(params[[6]][1]),
           exp_number = as.character(params[[7]][1]),
+          date        = formatted_date,
+          notes       = ifelse(is.na(notes_val), "", notes_val),
           stringsAsFactors = FALSE
         )
       }))
@@ -303,14 +322,17 @@ server <- function(input, output, session) {
         return(NULL)
       }
       meta %>%
-        group_by(species, strain, gravity, temperature, inoculum) %>%
-        summarise(
-          `Exp Count` = n(),
-          `Exp Numbers` = paste(unique(exp_number), collapse = ", "),
-          .groups = "drop"
-        ) %>%
         arrange(species, strain, as.numeric(gravity), as.numeric(temperature)) %>%
-        mutate(species = paste0("<i>", species, "</i>"))
+        transmute(
+          `Experiment` = paste0("Experiment #", exp_number),
+          `Species` = paste0("<i>", species, "</i>"),
+          `Strain` = strain,
+          `Gravity` = gravity,
+          `Inoculum` = inoculum,
+          `Temp.` = temperature,
+          `Date start exp.` = date,
+          `Additional notes` = notes
+        )
     },
     options = list(pageLength = 15, scrollX = TRUE),
     rownames = FALSE,
@@ -338,7 +360,9 @@ server <- function(input, output, session) {
       `Strain` = matched$strain,
       `Gravity` = matched$gravity,
       `Inoculum` = matched$inoculum,
-      `Temperature` = matched$temperature,
+      `Temp.` = matched$temperature,
+      `Date start exp.` = matched$date,
+      `Additional notes` = matched$notes,
       check.names = FALSE,
       stringsAsFactors = FALSE
     )
