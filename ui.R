@@ -346,22 +346,19 @@ ui <- navbarPage(
           tabPanel(
             "HPLC",
             fluidRow(
-              column(6, spinner(plotlyOutput("cmpHplcTT1Plot", height = "450px"))),
-              column(6, spinner(plotlyOutput("cmpHplcTT2Plot", height = "450px")))
+              column(12, spinner(plotlyOutput("cmpHplcPlot", height = "500px")))
             )
           ),
           tabPanel(
             "GC Esters",
             fluidRow(
-              column(6, spinner(plotlyOutput("cmpGcEstersTT1Plot", height = "450px"))),
-              column(6, spinner(plotlyOutput("cmpGcEstersTT2Plot", height = "450px")))
+              column(12, spinner(plotlyOutput("cmpGcEstersPlot", height = "500px")))
             )
           ),
           tabPanel(
             "GC Ketones",
             fluidRow(
-              column(6, spinner(plotlyOutput("cmpGcKetonesTT1Plot", height = "450px"))),
-              column(6, spinner(plotlyOutput("cmpGcKetonesTT2Plot", height = "450px")))
+              column(12, spinner(plotlyOutput("cmpGcKetonesPlot", height = "500px")))
             )
           ),
           tabPanel(

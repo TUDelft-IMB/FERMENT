@@ -24,7 +24,7 @@ server <- function(input, output, session) {
   # reactive() means this code re-runs automatically if EXCEL_DIR changes.
   # In practice it runs once at startup.
   # ---------------------------------------------------------------------------
-
+  
   # Build metadata table from Experimental_parameters sheet
   file_metadata <- reactive({
     # List all .xlsx files in the configured folder (filenames only, not paths)
@@ -371,7 +371,14 @@ server <- function(input, output, session) {
   # Step 5: Keep the experiment dropdown in sync with the active filters.
   # ---------------------------------------------------------------------------
   observe({
-    updateSelectInput(session, "experiment", choices = filtered_files())
+    choices <- filtered_files()
+    
+    updateSelectInput(
+      session,
+      "experiment",
+      choices = c("Select an experiment..." = "", choices),
+      selected = ""
+    )
   })
 
   # Step 5a: Clear Single Experiment filters.
@@ -761,34 +768,22 @@ server <- function(input, output, session) {
   # column names don't follow the "N compound" pattern that HPLC/GC use.
   # ---------------------------------------------------------------------------
 
-  # HPLC: one line per compound per experiment, TT1 and TT2 side by side
-  output$cmpHplcTT1Plot <- renderPlotly({
+  # HPLC: one line per compound per experiment, TT1 and TT2 overlaid
+  output$cmpHplcPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_hplc_tube(cmp_data_list(), cmp_exp_labels(), tube_num = 1))
+    ggplotly(plot_cmp_hplc(cmp_data_list(), cmp_exp_labels()))
   })
-  output$cmpHplcTT2Plot <- renderPlotly({
+  
+  # GC Esters: one line per compound per experiment, TT1 and TT2 overlaid
+  output$cmpGcEstersPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_hplc_tube(cmp_data_list(), cmp_exp_labels(), tube_num = 2))
+    ggplotly(plot_cmp_gc_esters(cmp_data_list(), cmp_exp_labels()))
   })
-
-  # GC Esters: one line per compound per experiment, TT1 and TT2 side by side
-  output$cmpGcEstersTT1Plot <- renderPlotly({
+  
+  # GC Ketones: one line per compound per experiment, TT1 and TT2 overlaid
+  output$cmpGcKetonesPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_gc_esters_tube(cmp_data_list(), cmp_exp_labels(), tube_num = 1))
-  })
-  output$cmpGcEstersTT2Plot <- renderPlotly({
-    req(cmp_data_list())
-    ggplotly(plot_cmp_gc_esters_tube(cmp_data_list(), cmp_exp_labels(), tube_num = 2))
-  })
-
-  # GC Ketones: one line per compound per experiment, TT1 and TT2 side by side
-  output$cmpGcKetonesTT1Plot <- renderPlotly({
-    req(cmp_data_list())
-    ggplotly(plot_cmp_gc_ketones_tube(cmp_data_list(), cmp_exp_labels(), tube_num = 1))
-  })
-  output$cmpGcKetonesTT2Plot <- renderPlotly({
-    req(cmp_data_list())
-    ggplotly(plot_cmp_gc_ketones_tube(cmp_data_list(), cmp_exp_labels(), tube_num = 2))
+    ggplotly(plot_cmp_gc_ketones(cmp_data_list(), cmp_exp_labels()))
   })
 
   # Attenuation: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
