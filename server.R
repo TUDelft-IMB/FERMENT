@@ -324,7 +324,7 @@ server <- function(input, output, session) {
       meta %>%
         arrange(species, strain, as.numeric(gravity), as.numeric(temperature)) %>%
         transmute(
-          `Experiment` = paste0("Experiment #", exp_number),
+          `Experiment` = paste0("#", exp_number),
           `Species` = paste0("<i>", species, "</i>"),
           `Strain` = strain,
           `Gravity` = gravity,
@@ -355,7 +355,7 @@ server <- function(input, output, session) {
     # Preserve the order the user selected them in
     matched <- matched[match(filenames, matched$filename), ]
     data.frame(
-      `Experiment` = paste0("Experiment #", matched$exp_number),
+      `Experiment` = paste0("#", matched$exp_number),
       `Species` = paste0("<i>", matched$species, "</i>"),
       `Strain` = matched$strain,
       `Gravity` = matched$gravity,
@@ -387,8 +387,7 @@ server <- function(input, output, session) {
     if (nrow(matched) == 0) {
       return(character(0))
     }
-    # Return a named vector: label "Experiment #N" maps to the filename
-    setNames(matched$filename, paste0("Experiment #", matched$exp_number))
+    matched$filename
   })
 
   # ---------------------------------------------------------------------------
@@ -572,7 +571,7 @@ server <- function(input, output, session) {
     if (nrow(matched) == 0) {
       return(character(0))
     }
-    setNames(matched$filename, paste0("Experiment #", matched$exp_number))
+    matched$filename
   })
 
   # Step 11a: Keep avg_experiments in sync with filters.
@@ -613,7 +612,7 @@ server <- function(input, output, session) {
     filenames <- names(avg_data_list())
     matched <- meta[meta$filename %in% filenames, ]
     # Match labels to filenames in the exact order the user selected them
-    paste0("Experiment #", matched$exp_number[match(filenames, matched$filename)])
+    paste0("#", matched$exp_number[match(filenames, matched$filename)])
   })
 
   # Step 12a: Averages summary table — one row per selected experiment.
@@ -716,7 +715,7 @@ server <- function(input, output, session) {
     if (nrow(matched) == 0) {
       return(character(0))
     }
-    setNames(matched$filename, paste0("Experiment #", matched$exp_number))
+    matched$filename
   })
 
   # Step 15: Keep cmp_experiments in sync with filters.
@@ -757,7 +756,7 @@ server <- function(input, output, session) {
     meta <- file_metadata()
     filenames <- names(cmp_data_list())
     matched <- meta[meta$filename %in% filenames, ]
-    paste0("Experiment #", matched$exp_number[match(filenames, matched$filename)])
+    paste0("#", matched$exp_number[match(filenames, matched$filename)])
   })
 
   output$cmp_status <- renderText({
