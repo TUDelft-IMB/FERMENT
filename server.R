@@ -24,7 +24,7 @@ server <- function(input, output, session) {
   # reactive() means this code re-runs automatically if EXCEL_DIR changes.
   # In practice it runs once at startup.
   # ---------------------------------------------------------------------------
-  
+
   # Build metadata table from Experimental_parameters sheet
   file_metadata <- reactive({
     # List all .xlsx files in the configured folder (filenames only, not paths)
@@ -54,22 +54,28 @@ server <- function(input, output, session) {
           return(NULL)
         }
         # Read the Notes sheet for A1 — silently returns NA if missing
-        notes_val <- tryCatch({
-          notes_sheet <- read_excel(path, sheet = "Notes", col_names = FALSE)
-          as.character(notes_sheet[[1]][1])
-        }, error = function(e) NA_character_)
-        
+        notes_val <- tryCatch(
+          {
+            notes_sheet <- read_excel(path, sheet = "Notes", col_names = FALSE)
+            as.character(notes_sheet[[1]][1])
+          },
+          error = function(e) NA_character_
+        )
+
         # H2 = column 8, row 1 (after header row). Format as dd/mm/yyyy.
         raw_date <- params[[8]][1]
-        
-        formatted_date <- tryCatch({
-          if (inherits(raw_date, "POSIXct") || inherits(raw_date, "Date")) {
-            format(as.Date(raw_date), "%d/%m/%Y")
-          } else {
-            # fallback: treat as Excel serial number
-            format(as.Date(as.numeric(raw_date), origin = "1899-12-30"), "%d/%m/%Y")
-          }
-        }, error = function(e) as.character(raw_date))
+
+        formatted_date <- tryCatch(
+          {
+            if (inherits(raw_date, "POSIXct") || inherits(raw_date, "Date")) {
+              format(as.Date(raw_date), "%d/%m/%Y")
+            } else {
+              # fallback: treat as Excel serial number
+              format(as.Date(as.numeric(raw_date), origin = "1899-12-30"), "%d/%m/%Y")
+            }
+          },
+          error = function(e) as.character(raw_date)
+        )
         # Build a one-row data frame from the first data row (row 2 of the sheet,
         # since row 1 is the header). Column positions match the sheet layout:
         # [[2]] = B = Species
@@ -86,8 +92,8 @@ server <- function(input, output, session) {
           inoculum = as.character(params[[5]][1]),
           temperature = as.character(params[[6]][1]),
           exp_number = as.character(params[[7]][1]),
-          date        = formatted_date,
-          notes       = ifelse(is.na(notes_val), "", notes_val),
+          date = formatted_date,
+          notes = ifelse(is.na(notes_val), "", notes_val),
           stringsAsFactors = FALSE
         )
       }))
@@ -314,7 +320,7 @@ server <- function(input, output, session) {
 
     ggplotly(p, tooltip = "text")
   })
-  
+
   output$conditions_summary_table <- renderDT(
     {
       meta <- file_metadata()
@@ -395,7 +401,7 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
   observe({
     choices <- filtered_files()
-    
+
     updateSelectInput(
       session,
       "experiment",
@@ -456,7 +462,8 @@ server <- function(input, output, session) {
       make_summary_table(input$experiment, file_metadata())
     },
     options = list(dom = "t", ordering = FALSE),
-    rownames = FALSE, escape = FALSE
+    rownames = FALSE,
+    escape = FALSE
   )
 
   # ---------------------------------------------------------------------------
@@ -622,7 +629,8 @@ server <- function(input, output, session) {
       make_summary_table(input$avg_experiments, file_metadata())
     },
     options = list(dom = "t", ordering = TRUE),
-    rownames = FALSE, escape = FALSE
+    rownames = FALSE,
+    escape = FALSE
   )
 
   # ---------------------------------------------------------------------------
@@ -670,7 +678,7 @@ server <- function(input, output, session) {
     req(avg_data_list())
     ggplotly(plot_avg_gc_ratio_bar(avg_data_list(), avg_exp_labels()))
   })
-  
+
   # Attenuation, pH, Cell Count, Viability: one line per experiment
   output$avgAttenuationPlot <- renderPlotly({
     req(avg_data_list())
@@ -781,7 +789,8 @@ server <- function(input, output, session) {
       make_summary_table(input$cmp_experiments, file_metadata())
     },
     options = list(dom = "t", ordering = TRUE),
-    rownames = FALSE, escape = FALSE
+    rownames = FALSE,
+    escape = FALSE
   )
 
   # ---------------------------------------------------------------------------
@@ -802,13 +811,13 @@ server <- function(input, output, session) {
     req(cmp_data_list())
     ggplotly(plot_cmp_hplc(cmp_data_list(), cmp_exp_labels()))
   })
-  
+
   # GC Esters: one line per compound per experiment, TT1 and TT2 overlaid
   output$cmpGcEstersPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_gc_esters(cmp_data_list(), cmp_exp_labels()))
   })
-  
+
   # GC Ketones: one line per compound per experiment, TT1 and TT2 overlaid
   output$cmpGcKetonesPlot <- renderPlotly({
     req(cmp_data_list())
