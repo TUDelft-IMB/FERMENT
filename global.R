@@ -58,11 +58,11 @@ library(bsicons)
 # =============================================================================
 # EXCEL_DIR is the folder that holds all .xlsx experiment files.
 # Set the environment variable TT_EXCEL_DIR in .Renviron before running the app
-# so that no file path is hard-coded in the source. 
+# so that no file path is hard-coded in the source.
 
 # If .Renviron cannot be set or does not work, set the path in line 70 below
 # replace PATH/PATH with the path and save the changes
-# DO NOT commit nor push the change so your path does not become public 
+# DO NOT commit nor push the change so your path does not become public
 
 # Initialize EXCEL_DIR from environment variable or fallback
 # check for TT_EXCEL_DIR availability from .Renviron
@@ -74,7 +74,7 @@ if (Sys.getenv("TT_EXCEL_DIR") == "") {
 
 # The fallback "PATH/PATH" will cause an informative error if the variable
 # is not set, rather than rendering an empty dashboard later.
-if (EXCEL_DIR == "PATH/PATH") {     # Do not change this PATH/PATH
+if (EXCEL_DIR == "PATH/PATH") { # Do not change this PATH/PATH
   stop("Environment variable TT_EXCEL_DIR is not set.")
 }
 
@@ -708,7 +708,7 @@ plot_avg_gc_ratio_bar <- function(df_list, exp_labels) {
   }))
   bar_data <- bar_data[!is.na(bar_data$value), ]
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
-  
+
   ggplot(bar_data, aes(x = experiment, y = value, fill = experiment)) +
     geom_col(width = 0.6) +
     scale_fill_manual(values = setNames(cmp_exp_colours[seq_along(exp_labels)], exp_labels)) +
@@ -749,8 +749,8 @@ cmp_exp_colours <- c(
 )
 
 # -----------------------------------------------------------------------------
-# Helper plot_tube_overlay() — a helper function for plotting/overlaying 
-# multiple TT1/TT2 experiments for HPLC, GC esters and GC ketones 
+# Helper plot_tube_overlay() — a helper function for plotting/overlaying
+# multiple TT1/TT2 experiments for HPLC, GC esters and GC ketones
 # -----------------------------------------------------------------------------
 plot_cmp_tube_overlay <- function(df_list, exp_labels,
                                   sheet_name,
@@ -759,38 +759,38 @@ plot_cmp_tube_overlay <- function(df_list, exp_labels,
                                   title = "",
                                   y_label = "") {
   metabolites_map <- setNames(compound_colours, compound_labels)
-  
+
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][[sheet_name]]
-    
+
     do.call(rbind, lapply(compound_labels, function(base_metab) {
       do.call(rbind, lapply(c(1, 2), function(tube_num) {
-        val_col   <- paste(tube_num, base_metab)
+        val_col <- paste(tube_num, base_metab)
         stdev_col <- paste("StDev", val_col)
-        
+
         data.frame(
-          time       = df[["Time (h)"]],
-          value      = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
-          sd         = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
-          compound   = base_metab,
+          time = df[["Time (h)"]],
+          value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
+          sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
+          compound = base_metab,
           experiment = exp_labels[e],
-          tube       = paste0("TT", tube_num),
-          exp_tube   = paste0(exp_labels[e], " ", paste0("TT", tube_num)),
-          trace_id   = paste(exp_labels[e], paste0("TT", tube_num), base_metab),
+          tube = paste0("TT", tube_num),
+          exp_tube = paste0(exp_labels[e], " ", paste0("TT", tube_num)),
+          trace_id = paste(exp_labels[e], paste0("TT", tube_num), base_metab),
           stringsAsFactors = FALSE
         )
       }))
     }))
   }))
-  
+
   plot_data <- plot_data[!is.na(plot_data$value), ]
 
   exp_tube_levels <- as.vector(t(outer(exp_labels, c("TT1", "TT2"), paste)))
   plot_data$exp_tube <- factor(plot_data$exp_tube, levels = exp_tube_levels)
-  
+
   linetype_values <- rep(exp_linetypes_palette[seq_along(exp_labels)], each = 2)
   names(linetype_values) <- exp_tube_levels
-  
+
   ggplot(
     plot_data,
     aes(
