@@ -694,6 +694,17 @@ plot_avg_cone_viability <- function(df_list, exp_labels) {
     theme(legend.position = "none")
 }
 
+# Ethyl Acetate / Isoamyl Acetate ratio over time - single series, no SD column
+plot_avg_gc_ratio <- function(df_list, exp_labels) {
+  plot_averages(df_list, exp_labels,
+                avg_cols = "Ratio_Ethylacetate_isoamyl_acetate",
+                sd_cols = NULL,
+                comp_colours = "darkblue",
+                comp_labels = "Ethyl acetate / Isoamyl acetate",
+                title = "GC Ratio (Ethyl Acetate / Isoamyl Acetate)",
+                y_label = "Ratio"
+  )
+}
 
 # =============================================================================
 # 7. PLOT FUNCTIONS — COMPARE (multiple raw experiments overlaid)
