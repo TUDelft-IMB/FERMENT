@@ -736,9 +736,7 @@ plot_cmp_tube_overlay <- function(df_list, exp_labels,
                                   compound_colours,
                                   title = "",
                                   y_label = "") {
-  tube_labels     <- paste0(rep(compound_labels, each = 2), " TT", 1:2)
-  tube_colours    <- rep(compound_colours, each = 2)
-  metabolites_map <- setNames(tube_colours, tube_labels)
+  metabolites_map <- setNames(compound_colours, compound_labels)
   
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][[sheet_name]]
@@ -752,7 +750,7 @@ plot_cmp_tube_overlay <- function(df_list, exp_labels,
           time       = df[["Time (h)"]],
           value      = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
           sd         = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
-          compound   = paste0(base_metab, " TT", tube_num),
+          compound   = base_metab,
           experiment = exp_labels[e],
           tube       = paste0("TT", tube_num),
           exp_tube   = paste0(exp_labels[e], " ", paste0("TT", tube_num)),
@@ -764,12 +762,12 @@ plot_cmp_tube_overlay <- function(df_list, exp_labels,
   }))
   
   plot_data <- plot_data[!is.na(plot_data$value), ]
+
+  exp_tube_levels <- as.vector(t(outer(exp_labels, c("TT1", "TT2"), paste)))
+  plot_data$exp_tube <- factor(plot_data$exp_tube, levels = exp_tube_levels)
   
-  linetype_levels <- unique(plot_data$exp_tube)
-  exp_only        <- sub(" TT[12]$", "", linetype_levels)
-  exp_match       <- match(exp_only, exp_labels)
-  linetype_values <- exp_linetypes_palette[exp_match]
-  names(linetype_values) <- linetype_levels
+  linetype_values <- rep(exp_linetypes_palette[seq_along(exp_labels)], each = 2)
+  names(linetype_values) <- exp_tube_levels
   
   ggplot(
     plot_data,
