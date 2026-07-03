@@ -664,12 +664,6 @@ server <- function(input, output, session) {
     req(avg_data_list())
     ggplotly(plot_avg_diketones(avg_data_list(), avg_exp_labels()))
   })
-  
-  # GC Ratio plot
-  output$avg_gc_ratio_plot <- renderPlotly({
-    req(avg_data_list())
-    ggplotly(plot_avg_gc_ratio_bar(avg_data_list(), avg_exp_labels()))
-  })
 
   # Attenuation, pH, Cell Count, Viability: one line per experiment
   output$avgAttenuationPlot <- renderPlotly({
