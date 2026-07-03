@@ -566,6 +566,12 @@ ui <- tagList(
                 )
               ),
               tabPanel(
+                "GC Ratio",
+                fluidRow(
+                  column(12, spinner(plotlyOutput("avg_gc_ratio_plot", height = "450px")))
+                )
+              ),
+              tabPanel(
                 "Attenuation",
                 fluidRow(
                   column(12, spinner(plotlyOutput("avgAttenuationPlot", height = "450px")))
