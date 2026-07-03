@@ -694,6 +694,28 @@ plot_avg_cone_viability <- function(df_list, exp_labels) {
     theme(legend.position = "none")
 }
 
+# Ethyl Acetate / Isoamyl Acetate ratio — one bar per experiment (final value)
+plot_avg_gc_ratio_bar <- function(df_list, exp_labels) {
+  bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    vals <- as.numeric(df[["Ratio_Ethylacetate_isoamyl_acetate"]])
+    last_val <- if (any(!is.na(vals))) tail(vals[!is.na(vals)], 1) else NA_real_
+    data.frame(
+      experiment = exp_labels[e],
+      value = last_val,
+      stringsAsFactors = FALSE
+    )
+  }))
+  bar_data <- bar_data[!is.na(bar_data$value), ]
+  bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
+  
+  ggplot(bar_data, aes(x = experiment, y = value, fill = experiment)) +
+    geom_col(width = 0.6) +
+    scale_fill_manual(values = setNames(cmp_exp_colours[seq_along(exp_labels)], exp_labels)) +
+    labs(title = "GC Ratio (Ethyl Acetate / Isoamyl Acetate)", x = "Experiment", y = "Ratio") +
+    theme_minimal() +
+    theme(legend.position = "none")
+}
 
 # =============================================================================
 # 7. PLOT FUNCTIONS — COMPARE (multiple raw experiments overlaid)
