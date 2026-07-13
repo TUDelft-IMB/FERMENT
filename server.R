@@ -218,11 +218,11 @@ server <- function(input, output, session) {
       return(NULL)
     }
 
-    # Recreate color palette from above
+    # Generate consistent color palette (same as species plot)
     unique_species <- sort(unique(meta$species))
     species_colors <- setNames(
       hcl.colors(length(unique_species), palette = "Dynamic"),
-      paste0("<i>", unique_species, "</i>")
+      unique_species
     )
 
     strain_counts <- meta %>%
@@ -240,26 +240,29 @@ server <- function(input, output, session) {
 
     plot_ly(
       data = strain_counts,
-      x = ~strain,
-      y = ~n,
-      color = ~species_label,
-      colors = species_colors, # Pass the named palette vector directly to Plotly
-      type = "bar"
+      y = ~strain,
+      x = ~n,
+      color = ~species,
+      colors = species_colors,
+      type = "bar",
+      orientation = "h"
     ) %>%
       layout(
         showlegend = FALSE,
-        hoverlabel = list(namelength = -1), # Forces Plotly to show the full species name
+        hoverlabel = list(namelength = -1),
         xaxis = list(
-          title = "Strain",
-          tickangle = -45
-        ),
-        yaxis = list(
           title = "Number of Experiments",
+          side = "top",
           showgrid = TRUE,
           gridcolor = "gray90"
         ),
+        yaxis = list(
+          title = "Strain",
+          autorange = "reversed"
+        ),
         plot_bgcolor = "rgba(0,0,0,0)",
-        paper_bgcolor = "rgba(0,0,0,0)"
+        paper_bgcolor = "rgba(0,0,0,0)",
+        margin = list(l = 150)
       )
   })
 

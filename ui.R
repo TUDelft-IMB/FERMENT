@@ -175,7 +175,7 @@ ui <- tagList(
           column(
             6,
             h3("Experiments per Strain"),
-            spinner(plotlyOutput("experiments_per_strain_plot", height = "350px"))
+            spinner(plotlyOutput("experiments_per_strain_plot", height = "1400px")) # 350 x 4
           )
         ),
         br(),
