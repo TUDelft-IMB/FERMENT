@@ -263,6 +263,61 @@ server <- function(input, output, session) {
       )
   })
 
+  output$gravity_distribution_plot <- renderPlotly({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) {
+      return(NULL)
+    }
+
+    gravity_data <- meta %>%
+      mutate(gravity = as.numeric(gravity)) %>%
+      filter(!is.na(gravity)) %>%
+      group_by(gravity) %>%
+      summarise(n = n(), .groups = "drop") %>%
+      arrange(gravity)
+
+    p <- ggplot(gravity_data, aes(x = as.factor(gravity), y = n, fill = gravity, text = n)) +
+      geom_bar(stat = "identity") +
+      scale_fill_gradient(low = "lightyellow", high = "darkgoldenrod") +
+      theme_minimal() +
+      labs(x = "Starting Gravity (SG)", y = "Number of Experiments") +
+      theme(
+        legend.position = "none",
+        panel.grid.major.y = element_line(colour = "gray90")
+      )
+
+    ggplotly(p, tooltip = "text")
+  })
+
+  output$inoculum_distribution_plot <- renderPlotly({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) {
+      return(NULL)
+    }
+
+    inoculum_data <- meta %>%
+      mutate(inoculum = as.character(inoculum)) %>%
+      filter(!is.na(inoculum), inoculum != "") %>%
+      group_by(inoculum) %>%
+      summarise(n = n(), .groups = "drop") %>%
+      arrange(inoculum)
+
+    p <- ggplot(
+      inoculum_data,
+      aes(x = inoculum, y = n, fill = inoculum, text = n)
+    ) +
+      geom_bar(stat = "identity") +
+      scale_fill_brewer(palette = "Set2") +
+      theme_minimal() +
+      labs(x = "Inoculum", y = "Number of Experiments") +
+      theme(
+        legend.position = "none",
+        panel.grid.major.y = element_line(colour = "gray90")
+      )
+
+    ggplotly(p, tooltip = "text")
+  })
+
   output$temperature_distribution_plot <- renderPlotly({
     meta <- file_metadata()
     if (is.null(meta) || nrow(meta) == 0) {
@@ -289,32 +344,6 @@ server <- function(input, output, session) {
     ggplotly(p, tooltip = "text")
   })
 
-  output$gravity_distribution_plot <- renderPlotly({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) {
-      return(NULL)
-    }
-
-    gravity_data <- meta %>%
-      mutate(gravity = as.numeric(gravity)) %>%
-      filter(!is.na(gravity)) %>%
-      group_by(gravity) %>%
-      summarise(n = n(), .groups = "drop") %>%
-      arrange(gravity)
-
-    p <- ggplot(gravity_data, aes(x = as.factor(gravity), y = n, fill = gravity, text = n)) +
-      geom_bar(stat = "identity") +
-      scale_fill_gradient(low = "lightyellow", high = "darkgoldenrod") +
-      theme_minimal() +
-      labs(x = "Starting Gravity (SG)", y = "Number of Experiments") +
-      theme(
-        legend.position = "none",
-        panel.grid.major.y = element_line(colour = "gray90")
-      )
-
-    ggplotly(p, tooltip = "text")
-  })
-  
   output$conditions_summary_table <- renderDT(
     {
       meta <- file_metadata()
