@@ -35,7 +35,24 @@ server <- function(input, output, session) {
     if (length(files) == 0) {
       return(data.frame())
     }
-
+    # Path to the cache file, stored alongside the Excel files
+    cache_path <- file.path(EXCEL_DIR, ".metadata_cache.rds")
+    
+    # Modification times for all current files — used to detect changes
+    mtimes <- file.mtime(file.path(EXCEL_DIR, files))
+    
+    # Try the cache first: only reuse it if the exact same files with the
+    # exact same modification times are present (nothing added, removed, or edited)
+    if (file.exists(cache_path)) {
+      cached <- tryCatch(readRDS(cache_path), error = function(e) NULL)
+      if (!is.null(cached) &&
+          !is.null(cached$files) && !is.null(cached$mtimes) &&
+          identical(sort(files), sort(cached$files)) &&
+          identical(mtimes[order(files)], cached$mtimes[order(cached$files)])) {
+        return(cached$data)
+      }
+    }
+    
     withProgress(message = "Scanning experiment files...", value = 0, {
       # Loop over every file, read its parameters sheet, and build one data frame
       # row per file. do.call(rbind, ...) stacks all rows into a single table.
@@ -98,6 +115,13 @@ server <- function(input, output, session) {
         )
       }))
     })
+    
+    # Save the freshly scanned result to the cache for next time
+    tryCatch(
+      saveRDS(list(data = result, files = files, mtimes = mtimes), cache_path),
+      error = function(e) NULL
+    )
+    
     result
   })
 
