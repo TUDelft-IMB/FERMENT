@@ -409,7 +409,19 @@ plot_viability <- function(viability) {
     theme_minimal() +
     theme(legend.position = "right")
 }
-
+# -----------------------------------------------------------------------------
+# plot_CO2() — CO2 production (ml/min over time, TT1 vs TT2
+# Uses tt_colours from section 4 via scale_colour_manual().
+# --------------------------------------------------------------------------
+plot_CO2 <- function(CO2) {
+ggplot(CO2) +
+  geom_line(aes(x = `Time (days)`, y = `TT1`, colour = "TT1")) +
+  geom_line(aes(x = `Time (days)`, y = `TT2`, colour = "TT2")) +
+  scale_colour_manual(name = "Tube", values = tt_colours) +
+  labs(title = "CO_2 production", x = "Time (days)", y = "CO2 (ml/min)") +
+  theme_minimal() +
+  theme(legend.position = "right")
+}
 
 # =============================================================================
 # 6. PLOT FUNCTIONS — AVERAGES
@@ -1044,6 +1056,49 @@ plot_cmp_viability <- function(df_list, exp_labels) {
     scale_linetype_manual(name = "TT", values = tube_lty) +
     scale_y_continuous(limits = c(0, 1)) +
     labs(title = "Viability", x = "Time (h)", y = "Viability (fraction)") +
+    theme_minimal() +
+    theme(legend.position = "right")
+}
+# -----------------------------------------------------------------------------
+# plot_cmp_CO2()
+
+# -----------------------------------------------------------------------------
+plot_cmp_CO2 <- function(df_list, exp_labels) {
+  tube_cols <- c("TT1", "TT2")
+  tube_lty <- c("TT1" = "solid", "TT2" = "dashed")
+  colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
+  
+  plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]][["CO2"]]
+    do.call(rbind, lapply(names(tube_cols), function(tube_label) {
+      col <- tube_cols[[tube_label]]
+      data.frame(
+        time = as.numeric(df[["Time (days)"]]),
+        value = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
+        experiment = exp_labels[e],
+        tube = tube_label,
+        trace_id = paste(exp_labels[e], tube_label),
+        stringsAsFactors = FALSE
+      )
+    }))
+  }))
+  plot_data <- plot_data[!is.na(plot_data$value), ]
+  
+  ggplot(
+    plot_data,
+    aes(
+      x = time, y = value,
+      colour = experiment,
+      linetype = tube,
+      group = trace_id
+    )
+  ) +
+    geom_line() +
+    geom_point() +
+    scale_colour_manual(name = "Experiment", values = colour_map) +
+    scale_linetype_manual(name = "TT", values = tube_lty) +
+    scale_y_continuous(limits = c(0, 1)) +
+    labs(title = "CO2 production", x = "Time (days)", y = "CO2 production (ml/min)") +
     theme_minimal() +
     theme(legend.position = "right")
 }

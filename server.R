@@ -498,6 +498,11 @@ server <- function(input, output, session) {
     req(tt_data())
     tt_data()[["CellCount_Viability"]]
   })
+  CO2 <- reactive({
+  req(tt_data())
+  tt_data()[["CO2"]]
+  })
+  
   # ---------------------------------------------------------------------------
   # Step 10: Render single-experiment plots.
   #
@@ -561,6 +566,12 @@ server <- function(input, output, session) {
     ggplotly(plot_viability(viability()))
   })
 
+  # Cell Count and Viability: one line per tube (TT1 and TT2)
+  output$CO2Plot <- renderPlotly({
+    req(CO2())
+    ggplotly(plot_CO2(CO2()))
+  })
+  
   # ---------------------------------------------------------------------------
   # Step 11: Averages — filter the pool of available experiments.
   # ---------------------------------------------------------------------------
@@ -847,4 +858,11 @@ server <- function(input, output, session) {
     req(cmp_data_list())
     ggplotly(plot_cmp_viability(cmp_data_list(), cmp_exp_labels()))
   })
+  
+  # CO2: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
+  output$cmpCO2Plot <- renderPlotly({
+    req(cmp_data_list())
+    ggplotly(plot_cmp_CO2(cmp_data_list(), cmp_exp_labels()))
+  })
+
 } # end server
