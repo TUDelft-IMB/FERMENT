@@ -94,31 +94,89 @@ if (EXCEL_DIR == "PATH/PATH") { # Do not change this PATH/PATH
 #
 # Returns: a named list of data frames, one per sheet.
 # -----------------------------------------------------------------------------
+# read_tt_workbook <- function(file_path) {
+#   # Get the names of all sheets in the workbook
+#   sheets <- excel_sheets(file_path)
+#   # Read every sheet into a list of data frames
+#   data_list <- lapply(sheets, function(x) read_excel(file_path, sheet = x))
+#   # Name each element of the list after its sheet
+#   names(data_list) <- sheets
+# 
+#   # Fix the Attenuation sheet: promote row 1 to column names, then
+#   # automatically convert all columns to the right type (numeric, etc.)
+#   if ("Attenuation" %in% names(data_list)) {
+#     data_list[["Attenuation"]] <- data_list[["Attenuation"]] |>
+#       row_to_names(row_number = 1) |>
+#       type.convert(as.is = TRUE)
+#   }
+# 
+#   # Fix the pH sheet: promote row 1 to column names, then
+#   # automatically convert all columns to the right type (numeric, etc.)
+#   if ("pH" %in% names(data_list)) {
+#     data_list[["pH"]] <- data_list[["pH"]] |>
+#       row_to_names(row_number = 1) |>
+#       type.convert(as.is = TRUE)
+#   }
+#   # Return the complete named list of data frames
+#   data_list
+# }
+
+# -----------------------------------------------------------------------------
+# read_tt_workbook()
+# Returns a lightweight "tt_workbook" handle for a given experiment file —
+# it does NOT read any sheets immediately. Each sheet is only read (and
+# cached) the first time it is accessed via `[[` or `$`, e.g. wb$HPLC or
+# wb[["HPLC"]]. This avoids reading all 6 sheets when only 1-2 are needed.
+#
+# Sheet access is delegated to read_tt_sheet_cached(), which also applies
+# the header-row fix for "Attenuation" and "pH" (their Excel layout has a
+# second header row that readxl would otherwise treat as a data row).
+#
+# Returns: an object of class "tt_workbook" (path only; sheets load on demand).
+# -----------------------------------------------------------------------------
+
+# Lazy, cached version — returns a lightweight handle instead of reading
+# all sheets immediately. Sheets are read (and cached) only on first access.
 read_tt_workbook <- function(file_path) {
-  # Get the names of all sheets in the workbook
-  sheets <- excel_sheets(file_path)
-  # Read every sheet into a list of data frames
-  data_list <- lapply(sheets, function(x) read_excel(file_path, sheet = x))
-  # Name each element of the list after its sheet
-  names(data_list) <- sheets
+  structure(list(path = file_path), class = "tt_workbook")
+}
 
-  # Fix the Attenuation sheet: promote row 1 to column names, then
-  # automatically convert all columns to the right type (numeric, etc.)
-  if ("Attenuation" %in% names(data_list)) {
-    data_list[["Attenuation"]] <- data_list[["Attenuation"]] |>
+`[[.tt_workbook` <- function(x, sheet_name) {
+  path <- .subset2(x, "path")
+  read_tt_sheet_cached(path, sheet_name)
+}
+
+`$.tt_workbook` <- function(x, name) {
+  x[[name]]
+}
+
+# In-memory cache shared across all sessions (defined once in global.R).
+# Keyed by file path + sheet name + modification time, so edited files
+# automatically invalidate their cached sheet.
+tt_sheet_cache <- new.env(parent = emptyenv())
+
+read_tt_sheet_cached <- function(file_path, sheet_name) {
+  mtime <- as.character(file.mtime(file_path))
+  key <- paste(file_path, sheet_name, mtime, sep = "||")
+  
+  if (!is.null(tt_sheet_cache[[key]])) {
+    return(tt_sheet_cache[[key]])
+  }
+  
+  df <- tryCatch(
+    read_excel(file_path, sheet = sheet_name),
+    error = function(e) NULL
+  )
+  
+  # Preserve the original header-row fix for these two sheets
+  if (!is.null(df) && sheet_name %in% c("Attenuation", "pH")) {
+    df <- df |>
       row_to_names(row_number = 1) |>
       type.convert(as.is = TRUE)
   }
-
-  # Fix the pH sheet: promote row 1 to column names, then
-  # automatically convert all columns to the right type (numeric, etc.)
-  if ("pH" %in% names(data_list)) {
-    data_list[["pH"]] <- data_list[["pH"]] |>
-      row_to_names(row_number = 1) |>
-      type.convert(as.is = TRUE)
-  }
-  # Return the complete named list of data frames
-  data_list
+  
+  tt_sheet_cache[[key]] <- df
+  df
 }
 
 # -----------------------------------------------------------------------------
