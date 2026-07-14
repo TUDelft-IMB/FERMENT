@@ -58,11 +58,11 @@ library(bsicons)
 # =============================================================================
 # EXCEL_DIR is the folder that holds all .xlsx experiment files.
 # Set the environment variable TT_EXCEL_DIR in .Renviron before running the app
-# so that no file path is hard-coded in the source. 
+# so that no file path is hard-coded in the source.
 
 # If .Renviron cannot be set or does not work, set the path in line 70 below
 # replace PATH/PATH with the path and save the changes
-# DO NOT commit nor push the change so your path does not become public 
+# DO NOT commit nor push the change so your path does not become public
 
 # Initialize EXCEL_DIR from environment variable or fallback
 # check for TT_EXCEL_DIR availability from .Renviron
@@ -74,7 +74,7 @@ if (Sys.getenv("TT_EXCEL_DIR") == "") {
 
 # The fallback "PATH/PATH" will cause an informative error if the variable
 # is not set, rather than rendering an empty dashboard later.
-if (EXCEL_DIR == "PATH/PATH") {     # Do not change this PATH/PATH
+if (EXCEL_DIR == "PATH/PATH") { # Do not change this PATH/PATH
   stop("Environment variable TT_EXCEL_DIR is not set.")
 }
 
@@ -84,41 +84,60 @@ if (EXCEL_DIR == "PATH/PATH") {     # Do not change this PATH/PATH
 
 # -----------------------------------------------------------------------------
 # read_tt_workbook()
-# Reads every sheet from a single experiment workbook into a named list.
+# Returns a lightweight "tt_workbook" handle for a given experiment file —
+# it does NOT read any sheets immediately. Each sheet is only read (and
+# cached) the first time it is accessed via `[[` or `$`, e.g. wb$HPLC or
+# wb[["HPLC"]]. This avoids reading all 6 sheets when only 1-2 are needed.
 #
-# Two sheets need special treatment because their Excel layout includes a
-# second header row that readxl would otherwise treat as a data row:
-#   - "Attenuation": row 1 is promoted to column names, then all columns
-#     are coerced to appropriate types (numeric, etc.) via type.convert().
-#   - "pH": same fix applied.
+# Sheet access is delegated to read_tt_sheet_cached(), which also applies
+# the header-row fix for "Attenuation" and "pH" (their Excel layout has a
+# second header row that readxl would otherwise treat as a data row).
 #
-# Returns: a named list of data frames, one per sheet.
+# Returns: an object of class "tt_workbook" (path only; sheets load on demand).
 # -----------------------------------------------------------------------------
+
+# Lazy, cached version — returns a lightweight handle instead of reading
+# all sheets immediately. Sheets are read (and cached) only on first access.
 read_tt_workbook <- function(file_path) {
-  # Get the names of all sheets in the workbook
-  sheets <- excel_sheets(file_path)
-  # Read every sheet into a list of data frames
-  data_list <- lapply(sheets, function(x) read_excel(file_path, sheet = x))
-  # Name each element of the list after its sheet
-  names(data_list) <- sheets
+  structure(list(path = file_path), class = "tt_workbook")
+}
 
-  # Fix the Attenuation sheet: promote row 1 to column names, then
-  # automatically convert all columns to the right type (numeric, etc.)
-  if ("Attenuation" %in% names(data_list)) {
-    data_list[["Attenuation"]] <- data_list[["Attenuation"]] |>
+`[[.tt_workbook` <- function(x, sheet_name) {
+  path <- .subset2(x, "path")
+  read_tt_sheet_cached(path, sheet_name)
+}
+
+`$.tt_workbook` <- function(x, name) {
+  x[[name]]
+}
+
+# In-memory cache shared across all sessions (defined once in global.R).
+# Keyed by file path + sheet name + modification time, so edited files
+# automatically invalidate their cached sheet.
+tt_sheet_cache <- new.env(parent = emptyenv())
+
+read_tt_sheet_cached <- function(file_path, sheet_name) {
+  mtime <- as.character(file.mtime(file_path))
+  key <- paste(file_path, sheet_name, mtime, sep = "||")
+  
+  if (!is.null(tt_sheet_cache[[key]])) {
+    return(tt_sheet_cache[[key]])
+  }
+  
+  df <- tryCatch(
+    read_excel(file_path, sheet = sheet_name),
+    error = function(e) NULL
+  )
+  
+  # Preserve the original header-row fix for these two sheets
+  if (!is.null(df) && sheet_name %in% c("Attenuation", "pH")) {
+    df <- df |>
       row_to_names(row_number = 1) |>
       type.convert(as.is = TRUE)
   }
-
-  # Fix the pH sheet: promote row 1 to column names, then
-  # automatically convert all columns to the right type (numeric, etc.)
-  if ("pH" %in% names(data_list)) {
-    data_list[["pH"]] <- data_list[["pH"]] |>
-      row_to_names(row_number = 1) |>
-      type.convert(as.is = TRUE)
-  }
-  # Return the complete named list of data frames
-  data_list
+  
+  tt_sheet_cache[[key]] <- df
+  df
 }
 
 # -----------------------------------------------------------------------------
@@ -708,7 +727,7 @@ plot_avg_gc_ratio_bar <- function(df_list, exp_labels) {
   }))
   bar_data <- bar_data[!is.na(bar_data$value), ]
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
-  
+
   ggplot(bar_data, aes(x = experiment, y = value, fill = experiment)) +
     geom_col(width = 0.6) +
     scale_fill_manual(values = setNames(cmp_exp_colours[seq_along(exp_labels)], exp_labels)) +
@@ -749,8 +768,8 @@ cmp_exp_colours <- c(
 )
 
 # -----------------------------------------------------------------------------
-# Helper plot_tube_overlay() — a helper function for plotting/overlaying 
-# multiple TT1/TT2 experiments for HPLC, GC esters and GC ketones 
+# Helper plot_tube_overlay() — a helper function for plotting/overlaying
+# multiple TT1/TT2 experiments for HPLC, GC esters and GC ketones
 # -----------------------------------------------------------------------------
 plot_cmp_tube_overlay <- function(df_list, exp_labels,
                                   sheet_name,
@@ -759,38 +778,38 @@ plot_cmp_tube_overlay <- function(df_list, exp_labels,
                                   title = "",
                                   y_label = "") {
   metabolites_map <- setNames(compound_colours, compound_labels)
-  
+
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][[sheet_name]]
-    
+
     do.call(rbind, lapply(compound_labels, function(base_metab) {
       do.call(rbind, lapply(c(1, 2), function(tube_num) {
-        val_col   <- paste(tube_num, base_metab)
+        val_col <- paste(tube_num, base_metab)
         stdev_col <- paste("StDev", val_col)
-        
+
         data.frame(
-          time       = df[["Time (h)"]],
-          value      = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
-          sd         = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
-          compound   = base_metab,
+          time = df[["Time (h)"]],
+          value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
+          sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
+          compound = base_metab,
           experiment = exp_labels[e],
-          tube       = paste0("TT", tube_num),
-          exp_tube   = paste0(exp_labels[e], " ", paste0("TT", tube_num)),
-          trace_id   = paste(exp_labels[e], paste0("TT", tube_num), base_metab),
+          tube = paste0("TT", tube_num),
+          exp_tube = paste0(exp_labels[e], " ", paste0("TT", tube_num)),
+          trace_id = paste(exp_labels[e], paste0("TT", tube_num), base_metab),
           stringsAsFactors = FALSE
         )
       }))
     }))
   }))
-  
+
   plot_data <- plot_data[!is.na(plot_data$value), ]
 
   exp_tube_levels <- as.vector(t(outer(exp_labels, c("TT1", "TT2"), paste)))
   plot_data$exp_tube <- factor(plot_data$exp_tube, levels = exp_tube_levels)
-  
+
   linetype_values <- rep(exp_linetypes_palette[seq_along(exp_labels)], each = 2)
   names(linetype_values) <- exp_tube_levels
-  
+
   ggplot(
     plot_data,
     aes(
