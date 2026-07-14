@@ -84,45 +84,6 @@ if (EXCEL_DIR == "PATH/PATH") { # Do not change this PATH/PATH
 
 # -----------------------------------------------------------------------------
 # read_tt_workbook()
-# Reads every sheet from a single experiment workbook into a named list.
-#
-# Two sheets need special treatment because their Excel layout includes a
-# second header row that readxl would otherwise treat as a data row:
-#   - "Attenuation": row 1 is promoted to column names, then all columns
-#     are coerced to appropriate types (numeric, etc.) via type.convert().
-#   - "pH": same fix applied.
-#
-# Returns: a named list of data frames, one per sheet.
-# -----------------------------------------------------------------------------
-# read_tt_workbook <- function(file_path) {
-#   # Get the names of all sheets in the workbook
-#   sheets <- excel_sheets(file_path)
-#   # Read every sheet into a list of data frames
-#   data_list <- lapply(sheets, function(x) read_excel(file_path, sheet = x))
-#   # Name each element of the list after its sheet
-#   names(data_list) <- sheets
-# 
-#   # Fix the Attenuation sheet: promote row 1 to column names, then
-#   # automatically convert all columns to the right type (numeric, etc.)
-#   if ("Attenuation" %in% names(data_list)) {
-#     data_list[["Attenuation"]] <- data_list[["Attenuation"]] |>
-#       row_to_names(row_number = 1) |>
-#       type.convert(as.is = TRUE)
-#   }
-# 
-#   # Fix the pH sheet: promote row 1 to column names, then
-#   # automatically convert all columns to the right type (numeric, etc.)
-#   if ("pH" %in% names(data_list)) {
-#     data_list[["pH"]] <- data_list[["pH"]] |>
-#       row_to_names(row_number = 1) |>
-#       type.convert(as.is = TRUE)
-#   }
-#   # Return the complete named list of data frames
-#   data_list
-# }
-
-# -----------------------------------------------------------------------------
-# read_tt_workbook()
 # Returns a lightweight "tt_workbook" handle for a given experiment file —
 # it does NOT read any sheets immediately. Each sheet is only read (and
 # cached) the first time it is accessed via `[[` or `$`, e.g. wb$HPLC or
