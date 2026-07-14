@@ -226,14 +226,14 @@ server <- function(input, output, session) {
     )
 
     strain_counts <- meta %>%
-      group_by(species, strain) %>%
-      summarise(n = n(), .groups = "drop") %>%
-      group_by(species) %>%
-      mutate(species_total = sum(n)) %>%
-      ungroup() %>%
-      arrange(desc(species_total), desc(n)) %>%
+      group_by(strain) %>%
+      summarise(
+        n = n(),
+        species = first(species),
+        .groups = "drop"
+      ) %>%
+      arrange(desc(n), strain) %>%
       mutate(
-        species_label = paste0("<i>", species, "</i>"),
         strain = factor(strain, levels = unique(strain)),
         species = factor(species, levels = unique(species))
       )
@@ -245,7 +245,8 @@ server <- function(input, output, session) {
       color = ~species,
       colors = species_colors,
       type = "bar",
-      orientation = "h"
+      orientation = "h",
+      offset = 0
     ) %>%
       layout(
         showlegend = FALSE,
@@ -258,6 +259,14 @@ server <- function(input, output, session) {
         ),
         yaxis = list(
           title = "Strain",
+          title = list(text = "Strains", standoff = 10),
+          tickmode = "array",
+          tickvals = levels(strain_counts$strain),
+          ticktext = levels(strain_counts$strain),
+          tickson = "labels",
+          ticks = "outside",
+          tickwidth = 2,
+          ticklen = 10,
           autorange = "reversed"
         ),
         plot_bgcolor = "rgba(0,0,0,0)",
