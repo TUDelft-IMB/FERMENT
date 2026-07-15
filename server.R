@@ -36,7 +36,7 @@ server <- function(input, output, session) {
       return(data.frame())
     }
     # Path to the cache file, stored alongside the Excel files
-    cache_path <- file.path(EXCEL_DIR, ".metadata_cache.rds")
+    cache_path <- metadata_cache_path
     
     # Modification times for all current files — used to detect changes
     mtimes <- file.mtime(file.path(EXCEL_DIR, files))
