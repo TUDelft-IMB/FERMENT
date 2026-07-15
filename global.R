@@ -78,6 +78,17 @@ if (EXCEL_DIR == "PATH/PATH") { # Do not change this PATH/PATH
   stop("Environment variable TT_EXCEL_DIR is not set.")
 }
 
+# Caching paths
+
+os_tag <- switch(
+  Sys.info()[["sysname"]],
+  "Darwin"  = "macos",
+  "Windows" = "windows",
+  "Linux"   = "linux",
+  "unknown"
+)
+
+metadata_cache_path <- file.path(EXCEL_DIR, paste0(".metadata_cache_", os_tag, ".rds"))
 # =============================================================================
 # 3. DATA-LOADING FUNCTIONS
 # =============================================================================
