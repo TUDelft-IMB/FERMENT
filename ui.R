@@ -165,7 +165,16 @@ ui <- tagList(
           ),
           column(
             6,
-            h3("Experiments per Strain (top 50 strains)"),
+            h3(span("Experiments per Strain",
+              tooltip(
+                trigger = tags$span(
+                  style = "vertical-align: super; font-size: 0.65em;",
+                  bs_icon("info-circle")
+                ),
+                "Top 50 strains are displayed."
+              )
+            )
+            ),
             spinner(plotlyOutput("experiments_per_strain_plot", height = "1650px"))
           )
         ),
