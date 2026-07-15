@@ -40,19 +40,19 @@ server <- function(input, output, session) {
     
     # Modification times for all current files — used to detect changes
     mtimes <- file.mtime(file.path(EXCEL_DIR, files))
-    
+
     # Try the cache first: only reuse it if the exact same files with the
     # exact same modification times are present (nothing added, removed, or edited)
     if (file.exists(cache_path)) {
       cached <- tryCatch(readRDS(cache_path), error = function(e) NULL)
       if (!is.null(cached) &&
-          !is.null(cached$files) && !is.null(cached$mtimes) &&
-          identical(sort(files), sort(cached$files)) &&
-          identical(mtimes[order(files)], cached$mtimes[order(cached$files)])) {
+        !is.null(cached$files) && !is.null(cached$mtimes) &&
+        identical(sort(files), sort(cached$files)) &&
+        identical(mtimes[order(files)], cached$mtimes[order(cached$files)])) {
         return(cached$data)
       }
     }
-    
+
     withProgress(message = "Scanning experiment files...", value = 0, {
       # Loop over every file, read its parameters sheet, and build one data frame
       # row per file. do.call(rbind, ...) stacks all rows into a single table.
@@ -115,13 +115,13 @@ server <- function(input, output, session) {
         )
       }))
     })
-    
+
     # Save the freshly scanned result to the cache for next time
     tryCatch(
       saveRDS(list(data = result, files = files, mtimes = mtimes), cache_path),
       error = function(e) NULL
     )
-    
+
     result
   })
 
@@ -256,16 +256,22 @@ server <- function(input, output, session) {
     )
 
     strain_counts <- meta %>%
+      group_by(strain, species) %>%
+      summarise(n = n(), .groups = "drop")
+
+    strain_order <- strain_counts %>%
       group_by(strain) %>%
-      summarise(
-        n = n(),
-        species = first(species),
-        .groups = "drop"
-      ) %>%
-      arrange(desc(n), strain) %>%
+      summarise(total_n = sum(n), .groups = "drop") %>%
+      arrange(desc(total_n), strain) %>%
+      slice_head(n = 50) %>%
+      pull(strain)
+
+    strain_counts <- strain_counts %>%
       mutate(
-        strain = factor(strain, levels = unique(strain)),
-        species = factor(species, levels = unique(species))
+        strain = factor(strain, levels = strain_order),
+        species = factor(species, levels = sort(unique(meta$species))),
+        # Italicized label used only for hover/legend display
+        species_label = paste0("<i>", species, "</i>")
       )
 
     plot_ly(
@@ -276,7 +282,11 @@ server <- function(input, output, session) {
       colors = species_colors,
       type = "bar",
       orientation = "h",
-      offset = 0
+      offset = 0,
+      hovertext = ~species_label,
+      hovertemplate = paste0(
+        "%{y}<br>", "%{hovertext}", "<br>%{x} experiments<extra></extra>"
+      )
     ) %>%
       layout(
         showlegend = FALSE,
@@ -297,6 +307,7 @@ server <- function(input, output, session) {
           ticks = "outside",
           tickwidth = 2,
           ticklen = 10,
+          categoryarray = levels(strain_counts$strain),
           autorange = "reversed"
         ),
         plot_bgcolor = "rgba(0,0,0,0)",
