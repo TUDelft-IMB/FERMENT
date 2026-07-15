@@ -460,7 +460,7 @@ ui <- tagList(
                 "CO\u2082",
                 # Same encoding: solid = TT1, dashed = TT2, colour = experiment.
                 fluidRow(
-                  column(6, spinner(plotlyOutput("cmpCO2Plot", height = "450px"))),
+                  column(12, spinner(plotlyOutput("cmpCO2Plot", height = "500px"))),
                 )
               )
             ),

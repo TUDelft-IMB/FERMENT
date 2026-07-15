@@ -414,11 +414,13 @@ plot_viability <- function(viability) {
 # Uses tt_colours from section 4 via scale_colour_manual().
 # --------------------------------------------------------------------------
 plot_CO2 <- function(CO2) {
+#conversion from days to hours
+CO2['Time (days)'] <- CO2['Time (days)']*24
 ggplot(CO2) +
   geom_line(aes(x = `Time (days)`, y = `TT1`, colour = "TT1")) +
   geom_line(aes(x = `Time (days)`, y = `TT2`, colour = "TT2")) +
   scale_colour_manual(name = "Tube", values = tt_colours) +
-  labs(title = "CO_2 production", x = "Time (days)", y = "CO2 (ml/min)") +
+  labs(title = "CO_2 production", x = "Time (h)", y = "CO2 (ml/min)") +
   theme_minimal() +
   theme(legend.position = "right")
 }
@@ -1027,6 +1029,7 @@ plot_cmp_viability <- function(df_list, exp_labels) {
 
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["CellCount_Viability"]]
+    
     do.call(rbind, lapply(names(tube_cols), function(tube_label) {
       col <- tube_cols[[tube_label]]
       data.frame(
@@ -1063,21 +1066,22 @@ plot_cmp_viability <- function(df_list, exp_labels) {
 # plot_cmp_CO2()
 
 # -----------------------------------------------------------------------------
+
 plot_cmp_CO2 <- function(df_list, exp_labels) {
   tube_cols <- c("TT1", "TT2")
-  tube_lty <- c("TT1" = "solid", "TT2" = "dashed")
+  tube_lty <- c("TT1" = "solid", "TT2" = "solid")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
   
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["CO2"]]
-    do.call(rbind, lapply(names(tube_cols), function(tube_label) {
-      col <- tube_cols[[tube_label]]
+    do.call(rbind, lapply(tube_cols, function(tc) {
       data.frame(
-        time = as.numeric(df[["Time (days)"]]),
-        value = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
+        time = as.numeric(df[["Time (days)"]])*24, # to convert days to hours
+        value = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
         experiment = exp_labels[e],
-        tube = tube_label,
-        trace_id = paste(exp_labels[e], tube_label),
+        tube = tc,
+        # trace_id used for the group aesthetic so lines don't cross tubes
+        trace_id = paste(exp_labels[e], tc),
         stringsAsFactors = FALSE
       )
     }))
@@ -1094,11 +1098,10 @@ plot_cmp_CO2 <- function(df_list, exp_labels) {
     )
   ) +
     geom_line() +
-    geom_point() +
+#    geom_point() +
     scale_colour_manual(name = "Experiment", values = colour_map) +
     scale_linetype_manual(name = "TT", values = tube_lty) +
-    scale_y_continuous(limits = c(0, 1)) +
-    labs(title = "CO2 production", x = "Time (days)", y = "CO2 production (ml/min)") +
+    labs(title = "Attenuation", x = "Time (h)", y = "CO\u2082 production (ml/min") +
     theme_minimal() +
     theme(legend.position = "right")
 }
