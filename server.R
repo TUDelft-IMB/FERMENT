@@ -263,6 +263,7 @@ server <- function(input, output, session) {
       group_by(strain) %>%
       summarise(total_n = sum(n), .groups = "drop") %>%
       arrange(desc(total_n), strain) %>%
+      slice_head(n = 50) %>%
       pull(strain)
 
     strain_counts <- strain_counts %>%

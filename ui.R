@@ -120,7 +120,7 @@ ui <- tagList(
           column(
             4,
             div(
-              style = "border: 1px solid #ddd; padding: 30px border-radius: 5px;",
+              style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
               h4("Unique Species"),
               textOutput("unique_species_count"),
               style = "text-align: center; background-color: #f9f9f9;"
@@ -129,7 +129,7 @@ ui <- tagList(
           column(
             4,
             div(
-              style = "border: 1px solid #ddd; padding: 30px; border-radius: 5px;",
+              style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
               h4("Unique Strains"),
               textOutput("unique_strains_count"),
               style = "text-align: center; background-color: #f9f9f9;"
@@ -138,7 +138,7 @@ ui <- tagList(
           column(
             4,
             div(
-              style = "border: 1px solid #ddd; padding: 30px; border-radius: 5px;",
+              style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
               h4("Total Experiments"),
               textOutput("total_experiments_count"),
               style = "text-align: center; background-color: #f9f9f9;"
@@ -165,7 +165,7 @@ ui <- tagList(
           ),
           column(
             6,
-            h3("Experiments per Strain"),
+            h3("Experiments per Strain (top 50 strains)"),
             spinner(plotlyOutput("experiments_per_strain_plot", height = "1650px"))
           )
         ),
