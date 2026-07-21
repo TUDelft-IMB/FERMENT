@@ -118,7 +118,7 @@ ui <- tagList(
         ),
         fluidRow(
           column(
-            3,
+            4,
             div(
               style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
               h4("Unique Species"),
@@ -127,7 +127,7 @@ ui <- tagList(
             )
           ),
           column(
-            3,
+            4,
             div(
               style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
               h4("Unique Strains"),
@@ -136,16 +136,7 @@ ui <- tagList(
             )
           ),
           column(
-            3,
-            div(
-              style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
-              h4("Unique Temperatures"),
-              textOutput("unique_temps_count"),
-              style = "text-align: center; background-color: #f9f9f9;"
-            )
-          ),
-          column(
-            3,
+            4,
             div(
               style = "border: 1px solid #ddd; padding: 15px; border-radius: 5px;",
               h4("Total Experiments"),
@@ -155,31 +146,36 @@ ui <- tagList(
           )
         ),
         br(),
-
+        
         # Charts and tables
         fluidRow(
           column(
             6,
             h3("Experiments per Species"),
-            spinner(plotlyOutput("experiments_per_species_plot", height = "350px"))
-          ),
-          column(
-            6,
-            h3("Experiments per Strain"),
-            spinner(plotlyOutput("experiments_per_strain_plot", height = "350px"))
-          )
-        ),
-        br(),
-        fluidRow(
-          column(
-            6,
+            spinner(plotlyOutput("experiments_per_species_plot", height = "350px")),
+            br(),
+            h3("Gravity Distribution"),
+            spinner(plotlyOutput("gravity_distribution_plot", height = "350px")),
+            br(),
+            h3("Inoculum Distribution"),
+            spinner(plotlyOutput("inoculum_distribution_plot", height = "350px")),
+            br(),
             h3("Temperature Distribution"),
             spinner(plotlyOutput("temperature_distribution_plot", height = "350px"))
           ),
           column(
             6,
-            h3("Gravity Distribution"),
-            spinner(plotlyOutput("gravity_distribution_plot", height = "350px"))
+            h3(span("Experiments per Strain",
+              tooltip(
+                trigger = tags$span(
+                  style = "vertical-align: super; font-size: 0.65em;",
+                  bs_icon("info-circle")
+                ),
+                "Top 50 strains are displayed."
+              )
+            )
+            ),
+            spinner(plotlyOutput("experiments_per_strain_plot", height = "1650px"))
           )
         ),
         br(),

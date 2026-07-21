@@ -35,6 +35,23 @@ server <- function(input, output, session) {
     if (length(files) == 0) {
       return(data.frame())
     }
+    # Path to the cache file, stored alongside the Excel files
+    cache_path <- metadata_cache_path
+    
+    # Modification times for all current files — used to detect changes
+    mtimes <- file.mtime(file.path(EXCEL_DIR, files))
+
+    # Try the cache first: only reuse it if the exact same files with the
+    # exact same modification times are present (nothing added, removed, or edited)
+    if (file.exists(cache_path)) {
+      cached <- tryCatch(readRDS(cache_path), error = function(e) NULL)
+      if (!is.null(cached) &&
+        !is.null(cached$files) && !is.null(cached$mtimes) &&
+        identical(sort(files), sort(cached$files)) &&
+        identical(mtimes[order(files)], cached$mtimes[order(cached$files)])) {
+        return(cached$data)
+      }
+    }
 
     withProgress(message = "Scanning experiment files...", value = 0, {
       # Loop over every file, read its parameters sheet, and build one data frame
@@ -98,6 +115,13 @@ server <- function(input, output, session) {
         )
       }))
     })
+
+    # Save the freshly scanned result to the cache for next time
+    tryCatch(
+      saveRDS(list(data = result, files = files, mtimes = mtimes), cache_path),
+      error = function(e) NULL
+    )
+
     result
   })
 
@@ -224,75 +248,72 @@ server <- function(input, output, session) {
       return(NULL)
     }
 
-    # Recreate color palette from above
+    # Generate consistent color palette (same as species plot)
     unique_species <- sort(unique(meta$species))
     species_colors <- setNames(
       hcl.colors(length(unique_species), palette = "Dynamic"),
-      paste0("<i>", unique_species, "</i>")
+      unique_species
     )
 
     strain_counts <- meta %>%
-      group_by(species, strain) %>%
-      summarise(n = n(), .groups = "drop") %>%
-      group_by(species) %>%
-      mutate(species_total = sum(n)) %>%
-      ungroup() %>%
-      arrange(desc(species_total), desc(n)) %>%
+      group_by(strain, species) %>%
+      summarise(n = n(), .groups = "drop")
+
+    strain_order <- strain_counts %>%
+      group_by(strain) %>%
+      summarise(total_n = sum(n), .groups = "drop") %>%
+      arrange(desc(total_n), strain) %>%
+      slice_head(n = 50) %>%
+      pull(strain)
+
+    strain_counts <- strain_counts %>%
       mutate(
-        species_label = paste0("<i>", species, "</i>"),
-        strain = factor(strain, levels = unique(strain)),
-        species = factor(species, levels = unique(species))
+        strain = factor(strain, levels = strain_order),
+        species = factor(species, levels = sort(unique(meta$species))),
+        # Italicized label used only for hover/legend display
+        species_label = paste0("<i>", species, "</i>")
       )
 
     plot_ly(
       data = strain_counts,
-      x = ~strain,
-      y = ~n,
-      color = ~species_label,
-      colors = species_colors, # Pass the named palette vector directly to Plotly
-      type = "bar"
+      y = ~strain,
+      x = ~n,
+      color = ~species,
+      colors = species_colors,
+      type = "bar",
+      orientation = "h",
+      offset = 0,
+      hovertext = ~species_label,
+      hovertemplate = paste0(
+        "%{y}<br>", "%{hovertext}", "<br>%{x} experiments<extra></extra>"
+      )
     ) %>%
       layout(
         showlegend = FALSE,
-        hoverlabel = list(namelength = -1), # Forces Plotly to show the full species name
+        hoverlabel = list(namelength = -1),
         xaxis = list(
-          title = "Strain",
-          tickangle = -45
-        ),
-        yaxis = list(
           title = "Number of Experiments",
+          side = "top",
           showgrid = TRUE,
           gridcolor = "gray90"
         ),
+        yaxis = list(
+          title = "Strain",
+          title = list(text = "Strains", standoff = 10),
+          tickmode = "array",
+          tickvals = levels(strain_counts$strain),
+          ticktext = levels(strain_counts$strain),
+          tickson = "labels",
+          ticks = "outside",
+          tickwidth = 2,
+          ticklen = 10,
+          categoryarray = levels(strain_counts$strain),
+          autorange = "reversed"
+        ),
         plot_bgcolor = "rgba(0,0,0,0)",
-        paper_bgcolor = "rgba(0,0,0,0)"
+        paper_bgcolor = "rgba(0,0,0,0)",
+        margin = list(l = 150)
       )
-  })
-
-  output$temperature_distribution_plot <- renderPlotly({
-    meta <- file_metadata()
-    if (is.null(meta) || nrow(meta) == 0) {
-      return(NULL)
-    }
-
-    temp_data <- meta %>%
-      mutate(temperature = as.numeric(temperature)) %>%
-      filter(!is.na(temperature)) %>%
-      group_by(temperature) %>%
-      summarise(n = n(), .groups = "drop") %>%
-      arrange(temperature)
-
-    p <- ggplot(temp_data, aes(x = as.factor(temperature), y = n, fill = temperature, text = n)) +
-      geom_bar(stat = "identity") +
-      scale_fill_gradient(low = "lightblue", high = "darkred") +
-      theme_minimal() +
-      labs(x = "Temperature (°C)", y = "Number of Experiments") +
-      theme(
-        legend.position = "none",
-        panel.grid.major.y = element_line(colour = "gray90")
-      )
-
-    ggplotly(p, tooltip = "text")
   })
 
   output$gravity_distribution_plot <- renderPlotly({
@@ -313,6 +334,61 @@ server <- function(input, output, session) {
       scale_fill_gradient(low = "lightyellow", high = "darkgoldenrod") +
       theme_minimal() +
       labs(x = "Starting Gravity (SG)", y = "Number of Experiments") +
+      theme(
+        legend.position = "none",
+        panel.grid.major.y = element_line(colour = "gray90")
+      )
+
+    ggplotly(p, tooltip = "text")
+  })
+
+  output$inoculum_distribution_plot <- renderPlotly({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) {
+      return(NULL)
+    }
+
+    inoculum_data <- meta %>%
+      mutate(inoculum = as.character(inoculum)) %>%
+      filter(!is.na(inoculum), inoculum != "") %>%
+      group_by(inoculum) %>%
+      summarise(n = n(), .groups = "drop") %>%
+      arrange(inoculum)
+
+    p <- ggplot(
+      inoculum_data,
+      aes(x = inoculum, y = n, fill = inoculum, text = n)
+    ) +
+      geom_bar(stat = "identity") +
+      scale_fill_brewer(palette = "Set2") +
+      theme_minimal() +
+      labs(x = "Inoculum", y = "Number of Experiments") +
+      theme(
+        legend.position = "none",
+        panel.grid.major.y = element_line(colour = "gray90")
+      )
+
+    ggplotly(p, tooltip = "text")
+  })
+
+  output$temperature_distribution_plot <- renderPlotly({
+    meta <- file_metadata()
+    if (is.null(meta) || nrow(meta) == 0) {
+      return(NULL)
+    }
+
+    temp_data <- meta %>%
+      mutate(temperature = as.numeric(temperature)) %>%
+      filter(!is.na(temperature)) %>%
+      group_by(temperature) %>%
+      summarise(n = n(), .groups = "drop") %>%
+      arrange(temperature)
+
+    p <- ggplot(temp_data, aes(x = as.factor(temperature), y = n, fill = temperature, text = n)) +
+      geom_bar(stat = "identity") +
+      scale_fill_gradient(low = "lightblue", high = "darkred") +
+      theme_minimal() +
+      labs(x = "Temperature (°C)", y = "Number of Experiments") +
       theme(
         legend.position = "none",
         panel.grid.major.y = element_line(colour = "gray90")
