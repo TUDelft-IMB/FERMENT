@@ -533,6 +533,53 @@ plot_averages <- function(df_list, exp_labels,
 }
 
 # -----------------------------------------------------------------------------
+# plot_avg_by_experiment()
+# Single-series averages plot, coloured by experiment (no compound/linetype
+# split needed, since each experiment only has one averaged reading).
+# Same colour encoding as the Compare tab (cmp_exp_colours).
+# -----------------------------------------------------------------------------
+plot_avg_by_experiment <- function(df_list, exp_labels,
+                                   avg_col, sd_col,
+                                   title = "", y_label = "", y_limits = NULL) {
+  if (length(df_list) == 0 || length(exp_labels) == 0) {
+    return(ggplot() + theme_minimal() + labs(title = title, x = "Time (h)", y = y_label))
+  }
+  
+  colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
+  
+  plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    data.frame(
+      time = as.numeric(df[["Time (h)"]]),
+      value = if (avg_col %in% names(df)) as.numeric(df[[avg_col]]) else NA_real_,
+      sd = if (!is.null(sd_col) && sd_col %in% names(df)) as.numeric(df[[sd_col]]) else NA_real_,
+      experiment = exp_labels[e],
+      stringsAsFactors = FALSE
+    )
+  }))
+  plot_data <- plot_data[!is.na(plot_data$value), ]
+  
+  if (nrow(plot_data) == 0) {
+    return(ggplot() + theme_minimal() + labs(title = title, x = "Time (h)", y = y_label))
+  }
+  
+  p <- ggplot(
+    plot_data,
+    aes(x = time, y = value, colour = experiment, group = experiment)
+  ) +
+    geom_line() +
+    geom_point() +
+    geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
+    scale_colour_manual(name = "Experiment", values = colour_map) +
+    labs(title = title, x = "Time (h)", y = y_label) +
+    theme_minimal() +
+    theme(legend.position = "right")
+  
+  if (!is.null(y_limits)) p <- p + scale_y_continuous(limits = y_limits)
+  p
+}
+
+# -----------------------------------------------------------------------------
 # plot_avg_stacked_bar() — generic stacked bar helper used by GC esters and
 #                          higher alcohols averages.
 #
@@ -615,51 +662,47 @@ plot_avg_diketones <- function(df_list, exp_labels) {
 
 # Attenuation over time
 plot_avg_attenuation <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = "Attenuation_average",
-    sd_cols      = "Attenuation_stdev",
-    comp_colours = att_colour,
-    comp_labels  = "Attenuation",
-    title        = "Attenuation",
-    y_label      = "Attenuation (degrees P)"
+  plot_avg_by_experiment(
+    df_list, exp_labels,
+    avg_col = "Attenuation_average",
+    sd_col = "Attenuation_stdev",
+    title = "Attenuation",
+    y_label = "Attenuation (degrees P)"
   )
 }
 
 # pH over time — y-axis fixed at 0-7
 plot_avg_ph <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = "pH_average",
-    sd_cols      = "pH_stdev",
-    comp_colours = avg_ph_colour,
-    comp_labels  = "pH",
-    title        = "pH",
-    y_label      = "pH",
-    y_limits     = c(0, 7)
+  plot_avg_by_experiment(
+    df_list, exp_labels,
+    avg_col = "pH_average",
+    sd_col = "pH_stdev",
+    title = "pH",
+    y_label = "pH",
+    y_limits = c(0, 7)
   )
 }
 
 # Cell Count over time
 plot_avg_cell_count <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = "CellCount_average",
-    sd_cols      = "CellCount_stdev",
-    comp_colours = cell_count_colour,
-    comp_labels  = "Cell Count",
-    title        = "Cell Count",
-    y_label      = "Cell count (cells/ml)"
+  plot_avg_by_experiment(
+    df_list, exp_labels,
+    avg_col = "CellCount_average",
+    sd_col = "CellCount_stdev",
+    title = "Cell Count",
+    y_label = "Cell count (cells/ml)"
   )
 }
 
 # Viability over time — y-axis fixed at 0-1 (fraction)
 plot_avg_viability <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = "Viability_average",
-    sd_cols      = "Viability_stdev",
-    comp_colours = viability_colour,
-    comp_labels  = "Viability",
-    title        = "Viability",
-    y_label      = "Viability (fraction)",
-    y_limits     = c(0, 1)
+  plot_avg_by_experiment(
+    df_list, exp_labels,
+    avg_col = "Viability_average",
+    sd_col = "Viability_stdev",
+    title = "Viability",
+    y_label = "Viability (fraction)",
+    y_limits = c(0, 1)
   )
 }
 
