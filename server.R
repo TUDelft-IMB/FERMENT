@@ -220,19 +220,21 @@ server <- function(input, output, session) {
       values = ~n,
       type = "pie",
       hole = 0.55,
-      textposition = "outside", # pulls labels outside the slice
-      textinfo = "label+value", # species name + count outside
+      rotation = -90,
+      textposition = "outside", 
+      textinfo = "label+value", 
       insidetextorientation = "radial",
       hovertemplate = "<i>%{label}</i><br>%{value} experiments<br>%{percent}<extra></extra>",
       marker = list(
-        # Map the named palette to the exact order of the pie chart slices
         colors = species_colors[species_counts$species],
         line = list(color = "white", width = 2)
-      )
+      ),
+      height = 350
     ) %>%
       layout(
-        showlegend = FALSE, # legend is redundant now — labels are outside
-        uniformtext = list(minsize = 10, mode = "hide"), # hide labels that don't fit
+        showlegend = FALSE, 
+        uniformtext = list(minsize = 10, mode = "show"), 
+        margin = list(l = 20, r = 20, t = 20, b = 20),
         annotations = list(list(
           text = paste0("<b>", sum(species_counts$n), "</b><br>total"),
           x = 0.5, y = 0.5,
