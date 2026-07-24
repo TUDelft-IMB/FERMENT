@@ -169,29 +169,29 @@ read_avg_sheet <- function(file_path) {
 # =============================================================================
 # 4. COLOUR PALETTES — single source of truth
 # =============================================================================
-# All colours and compound labels are defined here and referenced directly
-# by every plot function in sections 5 and 6. To change a colour, edit
-# this section only — no changes needed inside the plot functions.
+
+# Okabe-Ito palette was constructed to have reasonable perceptual properties, 
+# including accommodation for color vision deficiencies.
+# See: https://journal.r-project.org/articles/RJ-2023-071/
 #
-# Naming convention:
-#   *_labels  — compound/tube labels used as legend text AND as aesthetic keys
-#   *_colours — matching colour strings (same order as *_labels)
-#   Named vectors (e.g. tt_colours) — name = label, value = colour; used
-#                  directly in scale_colour_manual(values = ...) calls.
+# Okabe-Ito has 9 colours; for 10 GC esters we recycle and replace the 10th
+# with a wine red instead of the recycled black.
+okabe <- unname(palette.colors(9, palette = "Okabe-Ito"))
+okabe10    <- unname(palette.colors(10, palette = "Okabe-Ito", recycle = TRUE))
+okabe10[10] <- "#722F37"   # wine red
 
 # --- HPLC: 6 metabolites -----------------------------------------------------
-# hplc_labels: base column names as they appear in the Excel sheet (without
-#              the tube-number prefix). plot_hplc_tube() prepends tube_num.
-# hplc_avg_labels: plain names used in averages legends (no unit suffix).
 hplc_labels <- c(
   "Maltotriose", "Maltose", "Glucose",
   "Fructose", "Glycerol", "Ethanol"
 )
+
 hplc_avg_labels <- c(
   "Maltotriose", "Maltose", "Glucose",
   "Fructose", "Glycerol", "Ethanol"
 )
-hplc_colours <- c("skyblue", "maroon", "gold", "forestgreen", "grey", "sienna")
+
+hplc_colours <- okabe[c(2, 3, 4, 6, 8, 7)]
 
 # --- GC Esters: 10 compounds -------------------------------------------------
 gc_ester_labels <- c(
@@ -200,28 +200,26 @@ gc_ester_labels <- c(
   "Isoamyl alcohol", "Ethyl hexanoate",
   "Ethyl octanoate", "Ethyl decanoate"
 )
-gc_ester_colours <- c(
-  "skyblue", "maroon", "gold", "forestgreen", "grey",
-  "sienna", "darkred", "darkgreen", "lavender", "darkblue"
-)
+
+gc_ester_colours <- okabe10
 
 # --- GC Ketones: 2 compounds -------------------------------------------------
-gc_ketone_labels <- c("Diacetyl", "2,3-Pentanedione")
-gc_ketone_colours <- c("skyblue", "sienna")
+gc_ketone_labels   <- c("Diacetyl", "2,3-Pentanedione")
+gc_ketone_colours  <- okabe[c(3, 7)]
 
-# --- TT1 vs TT2: Attenuation, Cell Count, Viability -------------------------
-tt_colours <- c("TT1" = "skyblue", "TT2" = "sienna")
+# --- TT1 vs TT2: Attenuation, Cell Count, Viability --------------------------
+tt_colours <- setNames(okabe[c(3, 7)], c("TT1", "TT2"))
 
-# --- TT1 vs TT2: pH (uses different colours to distinguish from attenuation) -
-ph_colours <- c("TT1" = "gold", "TT2" = "sienna")
+# --- TT1 vs TT2: pH ----------------------------------------------------------
+ph_colours <- setNames(okabe[c(3, 7)], c("TT1", "TT2"))
 
 # --- Averages: single-series line plots --------------------------------------
 # One colour per metric; used by the averages wrappers that plot a single
 # compound over time (attenuation, pH, cell count, viability).
-att_colour <- "skyblue"
-avg_ph_colour <- "gold"
-cell_count_colour <- "skyblue"
-viability_colour <- "forestgreen"
+att_colour        <- okabe[7]
+avg_ph_colour     <- okabe[7]
+cell_count_colour <- okabe[7]
+viability_colour  <- okabe[7]
 
 # --- Averages: line linetypes (one per selected experiment) ------------------
 # Compounds are colour-coded; experiments are distinguished by linetype.
@@ -234,16 +232,25 @@ ethyl_ester_labels <- c(
   "Ethyl butyrate", "Ethyl hexanoate",
   "Ethyl octanoate", "Ethyl decanoate"
 )
-ethyl_ester_colours <- c("darkblue", "sienna", "darkgreen", "skyblue")
+
+ethyl_ester_colours <- okabe10[c(2, 3, 4, 10)]
 
 # --- Averages: Acetate esters stacked bar (3 compounds) ---------------------
 acetate_labels <- c("Ethyl acetate", "Isobutyl acetate", "Isoamyl acetate")
-acetate_colours <- c("skyblue", "orange", "forestgreen")
+acetate_colours <- okabe[c(6, 5, 7)]
 
 # --- Averages: Higher alcohols stacked bar (2 compounds) --------------------
 alcohol_labels <- c("Isobutanol", "Isoamyl alcohol")
-alcohol_colours <- c("darkblue", "orange")
+alcohol_colours <- okabe[c(3, 7)]
 
+# --- Compare tab: experiment colours ----------------------------------------
+# Start with the customized Okabe-Ito 10, then extend with Polychrome 36
+# for larger multi-experiment overlays.
+polychrome36 <- unname(palette.colors(36, palette = "Polychrome 36"))
+# Remove any colours already present in okabe10, just in case of overlap
+polychrome_extra <- polychrome36[!polychrome36 %in% okabe10]
+# Used by attenuation, pH, cell count, and viability compare plots.
+cmp_exp_colours <- c(okabe10, polychrome_extra)
 
 # =============================================================================
 # 5. PLOT FUNCTIONS — SINGLE EXPERIMENT
@@ -526,6 +533,53 @@ plot_averages <- function(df_list, exp_labels,
 }
 
 # -----------------------------------------------------------------------------
+# plot_avg_by_experiment()
+# Single-series averages plot, coloured by experiment (no compound/linetype
+# split needed, since each experiment only has one averaged reading).
+# Same colour encoding as the Compare tab (cmp_exp_colours).
+# -----------------------------------------------------------------------------
+plot_avg_by_experiment <- function(df_list, exp_labels,
+                                   avg_col, sd_col,
+                                   title = "", y_label = "", y_limits = NULL) {
+  if (length(df_list) == 0 || length(exp_labels) == 0) {
+    return(ggplot() + theme_minimal() + labs(title = title, x = "Time (h)", y = y_label))
+  }
+  
+  colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
+  
+  plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    data.frame(
+      time = as.numeric(df[["Time (h)"]]),
+      value = if (avg_col %in% names(df)) as.numeric(df[[avg_col]]) else NA_real_,
+      sd = if (!is.null(sd_col) && sd_col %in% names(df)) as.numeric(df[[sd_col]]) else NA_real_,
+      experiment = exp_labels[e],
+      stringsAsFactors = FALSE
+    )
+  }))
+  plot_data <- plot_data[!is.na(plot_data$value), ]
+  
+  if (nrow(plot_data) == 0) {
+    return(ggplot() + theme_minimal() + labs(title = title, x = "Time (h)", y = y_label))
+  }
+  
+  p <- ggplot(
+    plot_data,
+    aes(x = time, y = value, colour = experiment, group = experiment)
+  ) +
+    geom_line() +
+    geom_point() +
+    geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
+    scale_colour_manual(name = "Experiment", values = colour_map) +
+    labs(title = title, x = "Time (h)", y = y_label) +
+    theme_minimal() +
+    theme(legend.position = "right")
+  
+  if (!is.null(y_limits)) p <- p + scale_y_continuous(limits = y_limits)
+  p
+}
+
+# -----------------------------------------------------------------------------
 # plot_avg_stacked_bar() — generic stacked bar helper used by GC esters and
 #                          higher alcohols averages.
 #
@@ -608,51 +662,47 @@ plot_avg_diketones <- function(df_list, exp_labels) {
 
 # Attenuation over time
 plot_avg_attenuation <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = "Attenuation_average",
-    sd_cols      = "Attenuation_stdev",
-    comp_colours = att_colour,
-    comp_labels  = "Attenuation",
-    title        = "Attenuation",
-    y_label      = "Attenuation (degrees P)"
+  plot_avg_by_experiment(
+    df_list, exp_labels,
+    avg_col = "Attenuation_average",
+    sd_col = "Attenuation_stdev",
+    title = "Attenuation",
+    y_label = "Attenuation (degrees P)"
   )
 }
 
 # pH over time — y-axis fixed at 0-7
 plot_avg_ph <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = "pH_average",
-    sd_cols      = "pH_stdev",
-    comp_colours = avg_ph_colour,
-    comp_labels  = "pH",
-    title        = "pH",
-    y_label      = "pH",
-    y_limits     = c(0, 7)
+  plot_avg_by_experiment(
+    df_list, exp_labels,
+    avg_col = "pH_average",
+    sd_col = "pH_stdev",
+    title = "pH",
+    y_label = "pH",
+    y_limits = c(0, 7)
   )
 }
 
 # Cell Count over time
 plot_avg_cell_count <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = "CellCount_average",
-    sd_cols      = "CellCount_stdev",
-    comp_colours = cell_count_colour,
-    comp_labels  = "Cell Count",
-    title        = "Cell Count",
-    y_label      = "Cell count (cells/ml)"
+  plot_avg_by_experiment(
+    df_list, exp_labels,
+    avg_col = "CellCount_average",
+    sd_col = "CellCount_stdev",
+    title = "Cell Count",
+    y_label = "Cell count (cells/ml)"
   )
 }
 
 # Viability over time — y-axis fixed at 0-1 (fraction)
 plot_avg_viability <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = "Viability_average",
-    sd_cols      = "Viability_stdev",
-    comp_colours = viability_colour,
-    comp_labels  = "Viability",
-    title        = "Viability",
-    y_label      = "Viability (fraction)",
-    y_limits     = c(0, 1)
+  plot_avg_by_experiment(
+    df_list, exp_labels,
+    avg_col = "Viability_average",
+    sd_col = "Viability_stdev",
+    title = "Viability",
+    y_label = "Viability (fraction)",
+    y_limits = c(0, 1)
   )
 }
 
@@ -768,15 +818,6 @@ plot_avg_gc_ratio_bar <- function(df_list, exp_labels) {
 #   colour   = experiment (from cmp_exp_colours, colourblind-safe)
 #   linetype = tube       (solid = TT1, dashed = TT2)
 #   Legend key = "Experiment #N TT1" / "Experiment #N TT2"
-
-# --- Compare: experiment colour palette (one colour per experiment) ----------
-# Used by attenuation, pH, cell count, and viability compare plots.
-# Up to 8 experiments can be overlaid before colours repeat.
-# [TODO_LATER] decide on behaviour when > 8 experiments are selected
-cmp_exp_colours <- c(
-  "#0072B2", "#D55E00", "#009E73", "#CC79A7",
-  "#F0E442", "#56B4E9", "#E69F00", "#999999"
-)
 
 # -----------------------------------------------------------------------------
 # Helper plot_tube_overlay() — a helper function for plotting/overlaying
