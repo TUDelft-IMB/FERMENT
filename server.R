@@ -271,9 +271,12 @@ server <- function(input, output, session) {
     strain_counts <- strain_counts %>%
       mutate(
         strain = factor(strain, levels = strain_order),
-        species = factor(species, levels = sort(unique(meta$species))),
-        # Italicized label used only for hover/legend display
-        species_label = paste0("<i>", species, "</i>")
+        species = factor(as.character(species), levels = sort(unique(meta$species))),
+        species_label = sprintf(
+          "<i>%s</i><br>%d exp.", 
+          trimws(as.character(species)),
+          n
+          )
       )
 
     plot_ly(
@@ -286,9 +289,8 @@ server <- function(input, output, session) {
       orientation = "h",
       offset = 0,
       hovertext = ~species_label,
-      hovertemplate = paste0(
-        "%{y}<br>", "%{hovertext}", "<br>%{x} experiments<extra></extra>"
-      )
+      hoverinfo = "text",
+      textposition = "none"
     ) %>%
       layout(
         showlegend = FALSE,
