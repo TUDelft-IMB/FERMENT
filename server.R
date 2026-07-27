@@ -207,6 +207,12 @@ server <- function(input, output, session) {
       hcl.colors(length(unique_species), palette = "Dynamic"),
       unique_species
     )
+    unique_species <- sort(unique(meta$species))
+    base_palette <- c(rev(okabe10), polychrome_extra) # okabe10 + extended safe colours from global.R
+    n_sp <- length(unique_species)
+    # If there are more species than colours, repeat the palette (safe fallback)
+    cols <- if (n_sp <= length(base_palette)) base_palette[seq_len(n_sp)] else rep(base_palette, length.out = n_sp)
+    species_colors <- setNames(cols, unique_species)
 
     species_counts <- meta %>%
       group_by(species) %>%
@@ -255,6 +261,10 @@ server <- function(input, output, session) {
       hcl.colors(length(unique_species), palette = "Dynamic"),
       unique_species
     )
+    base_palette <- c(rev(okabe10), polychrome_extra)
+    n_sp <- length(unique_species)
+    cols <- if (n_sp <= length(base_palette)) base_palette[seq_len(n_sp)] else rep(base_palette, length.out = n_sp)
+    species_colors <- setNames(cols, unique_species)
 
     strain_counts <- meta %>%
       group_by(strain, species) %>%
@@ -328,9 +338,15 @@ server <- function(input, output, session) {
       summarise(n = n(), .groups = "drop") %>%
       arrange(gravity)
 
-    p <- ggplot(gravity_data, aes(x = as.factor(gravity), y = n, fill = gravity, text = n)) +
+    gravity_levels <- as.character(gravity_data$gravity)
+    base_palette <- c(okabe10, polychrome_extra)
+    n_lv <- length(gravity_levels)
+    cols <- if (n_lv <= length(base_palette)) base_palette[seq_len(n_lv)] else rep(base_palette, length.out = n_lv)
+    fill_map <- setNames(cols, gravity_levels)
+
+    p <- ggplot(gravity_data, aes(x = as.factor(gravity), y = n, fill = as.factor(gravity), text = n)) +
       geom_bar(stat = "identity") +
-      scale_fill_gradient(low = "lightyellow", high = "darkgoldenrod") +
+      scale_fill_manual(values = fill_map) +
       theme_minimal() +
       labs(x = "Starting Gravity (SG)", y = "Number of Experiments") +
       theme(
@@ -354,12 +370,18 @@ server <- function(input, output, session) {
       summarise(n = n(), .groups = "drop") %>%
       arrange(inoculum)
 
+    inoc_levels <- as.character(inoculum_data$inoculum)
+    base_palette <- c(okabe10, polychrome_extra)
+    n_lv <- length(inoc_levels)
+    cols <- if (n_lv <= length(base_palette)) base_palette[seq_len(n_lv)] else rep(base_palette, length.out = n_lv)
+    fill_map <- setNames(cols, inoc_levels)
+
     p <- ggplot(
       inoculum_data,
       aes(x = inoculum, y = n, fill = inoculum, text = n)
     ) +
       geom_bar(stat = "identity") +
-      scale_fill_brewer(palette = "Set2") +
+      scale_fill_manual(values = fill_map) +
       theme_minimal() +
       labs(x = "Inoculum", y = "Number of Experiments") +
       theme(
@@ -383,9 +405,15 @@ server <- function(input, output, session) {
       summarise(n = n(), .groups = "drop") %>%
       arrange(temperature)
 
-    p <- ggplot(temp_data, aes(x = as.factor(temperature), y = n, fill = temperature, text = n)) +
+    temp_levels <- as.character(temp_data$temperature)
+    base_palette <- c(rev(okabe10), polychrome_extra)
+    n_lv <- length(temp_levels)
+    cols <- if (n_lv <= length(base_palette)) base_palette[seq_len(n_lv)] else rep(base_palette, length.out = n_lv)
+    fill_map <- setNames(cols, temp_levels)
+
+    p <- ggplot(temp_data, aes(x = as.factor(temperature), y = n, fill = as.factor(temperature), text = n)) +
       geom_bar(stat = "identity") +
-      scale_fill_gradient(low = "lightblue", high = "darkred") +
+      scale_fill_manual(values = fill_map) +
       theme_minimal() +
       labs(x = "Temperature (°C)", y = "Number of Experiments") +
       theme(
