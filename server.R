@@ -332,19 +332,26 @@ server <- function(input, output, session) {
     }
 
     gravity_data <- meta %>%
-      mutate(gravity = as.numeric(gravity)) %>%
-      filter(!is.na(gravity)) %>%
-      group_by(gravity) %>%
+      mutate(gravity_num = suppressWarnings(as.numeric(as.character(gravity)))) %>%
+      filter(!is.na(gravity_num)) %>%
+      group_by(gravity_num) %>%
       summarise(n = n(), .groups = "drop") %>%
-      arrange(gravity)
-
-    gravity_levels <- as.character(gravity_data$gravity)
+      arrange(gravity_num)
+    
+    gravity_levels <- as.character(gravity_data$gravity_num)
     base_palette <- c(okabe10, polychrome_extra)
     n_lv <- length(gravity_levels)
-    cols <- if (n_lv <= length(base_palette)) base_palette[seq_len(n_lv)] else rep(base_palette, length.out = n_lv)
+    cols <- if (n_lv <= length(base_palette)) {
+      base_palette[seq_len(n_lv)]
+    } else {
+      rep(base_palette, length.out = n_lv)
+    }
     fill_map <- setNames(cols, gravity_levels)
-
-    p <- ggplot(gravity_data, aes(x = as.factor(gravity), y = n, fill = as.factor(gravity), text = n)) +
+    
+    p <- ggplot(
+      gravity_data,
+      aes(x = factor(gravity_num), y = n, fill = factor(gravity_num), text = n)
+    ) +
       geom_bar(stat = "identity") +
       scale_fill_manual(values = fill_map) +
       theme_minimal() +
@@ -353,7 +360,7 @@ server <- function(input, output, session) {
         legend.position = "none",
         panel.grid.major.y = element_line(colour = "gray90")
       )
-
+    
     ggplotly(p, tooltip = "text")
   })
 
