@@ -414,15 +414,14 @@ plot_viability <- function(viability) {
 # Uses tt_colours from section 4 via scale_colour_manual().
 # --------------------------------------------------------------------------
 plot_CO2 <- function(CO2) {
-#conversion from days to hours
-CO2['Time (days)'] <- CO2['Time (days)']*24
-ggplot(CO2) +
-  geom_line(aes(x = `Time (days)`, y = `TT1`, colour = "TT1")) +
-  geom_line(aes(x = `Time (days)`, y = `TT2`, colour = "TT2")) +
-  scale_colour_manual(name = "Tube", values = tt_colours) +
-  labs(title = "CO_2 production", x = "Time (h)", y = "CO2 (ml/min)") +
-  theme_minimal() +
-  theme(legend.position = "right")
+  CO2[["Time (h)"]] <- CO2[["Time (days)"]] * 24
+  ggplot(CO2) +
+    geom_line(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
+    geom_line(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
+    scale_colour_manual(name = "Tube", values = tt_colours) +
+    labs(title = "CO\u2082 production", x = "Time (h)", y = "CO2 (ml/min)") +
+    theme_minimal() +
+    theme(legend.position = "right")
 }
 
 # =============================================================================
@@ -1062,11 +1061,13 @@ plot_cmp_viability <- function(df_list, exp_labels) {
     theme_minimal() +
     theme(legend.position = "right")
 }
-# -----------------------------------------------------------------------------
-# plot_cmp_CO2()
 
 # -----------------------------------------------------------------------------
-
+# plot_cmp_CO2() — CO2 production over time, all experiments overlaid.
+# colour = experiment, linetype = tube (solid = TT1, dashed = TT2).
+# Experiments whose workbook has no CO2 sheet (or an empty one) are silently
+# skipped instead of breaking the whole plot.
+# -----------------------------------------------------------------------------
 plot_cmp_CO2 <- function(df_list, exp_labels) {
   tube_cols <- c("TT1", "TT2")
   tube_lty <- c("TT1" = "solid", "TT2" = "solid")
@@ -1074,10 +1075,20 @@ plot_cmp_CO2 <- function(df_list, exp_labels) {
   
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["CO2"]]
+    
+    # Guard: skip this experiment if the sheet is missing, empty, or
+    # missing the time column — returning NULL makes do.call(rbind, ...)
+    # drop it cleanly instead of erroring on mismatched row counts.
+    if (is.null(df) || nrow(df) == 0 || !("Time (days)" %in% names(df))) {
+      return(NULL)
+    }
+    
+    time_h <- as.numeric(df[["Time (days)"]]) * 24
+    
     do.call(rbind, lapply(tube_cols, function(tc) {
       data.frame(
-        time = as.numeric(df[["Time (days)"]])*24, # to convert days to hours
-        value = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
+        time = time_h,
+        value = if (tc %in% names(df)) as.numeric(df[[tc]]) else rep(NA_real_, length(time_h)),
         experiment = exp_labels[e],
         tube = tc,
         # trace_id used for the group aesthetic so lines don't cross tubes
@@ -1086,6 +1097,14 @@ plot_cmp_CO2 <- function(df_list, exp_labels) {
       )
     }))
   }))
+  
+  if (is.null(plot_data) || nrow(plot_data) == 0) {
+    return(
+      ggplot() + theme_minimal() +
+        labs(title = "CO\u2082 production", x = "Time (h)", y = "CO2 (ml/min)")
+    )
+  }
+  
   plot_data <- plot_data[!is.na(plot_data$value), ]
   
   ggplot(
@@ -1101,7 +1120,7 @@ plot_cmp_CO2 <- function(df_list, exp_labels) {
 #    geom_point() +
     scale_colour_manual(name = "Experiment", values = colour_map) +
     scale_linetype_manual(name = "TT", values = tube_lty) +
-    labs(title = "Attenuation", x = "Time (h)", y = "CO\u2082 production (ml/min") +
+    labs(title = "CO\u2082 production", x = "Time (h)", y = "CO\u2082 production (ml/min)") +
     theme_minimal() +
     theme(legend.position = "right")
 }
