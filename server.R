@@ -288,7 +288,6 @@ server <- function(input, output, session) {
       colors = species_colors,
       type = "bar",
       orientation = "h",
-      offset = 0,
       hovertext = ~species_label,
       hoverinfo = "text",
       textposition = "none"
