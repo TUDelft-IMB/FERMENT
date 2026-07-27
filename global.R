@@ -456,7 +456,7 @@ plot_CO2 <- function(CO2) {
     geom_line(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
     geom_line(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
     scale_colour_manual(name = "Tube", values = tt_colours) +
-    labs(title = "CO\u2082 production", x = "Time (h)", y = "CO2 (ml/min)") +
+    labs(title = "CO\u2082 production", x = "Time (h)", y = "CO\u2082 (ml/min)") +
     theme_minimal() +
     theme(legend.position = "right")
 }
@@ -1172,7 +1172,7 @@ plot_cmp_CO2 <- function(df_list, exp_labels) {
   if (is.null(plot_data) || nrow(plot_data) == 0) {
     return(
       ggplot() + theme_minimal() +
-        labs(title = "CO\u2082 production", x = "Time (h)", y = "CO2 (ml/min)")
+        labs(title = "CO\u2082 production", x = "Time (h)", y = "CO\u2082 (ml/min)")
     )
   }
   
@@ -1191,7 +1191,7 @@ plot_cmp_CO2 <- function(df_list, exp_labels) {
 #    geom_point() +
     scale_colour_manual(name = "Experiment", values = colour_map) +
     scale_linetype_manual(name = "TT", values = tube_lty) +
-    labs(title = "CO\u2082 production", x = "Time (h)", y = "CO\u2082 production (ml/min)") +
+    labs(title = "CO\u2082 production", x = "Time (h)", y = "CO\u2082 (ml/min)") +
     theme_minimal() +
     theme(legend.position = "right")
 }
