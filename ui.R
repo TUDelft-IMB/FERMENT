@@ -286,7 +286,13 @@ ui <- tagList(
                   column(6, spinner(plotlyOutput("cellCountPlot", height = "400px"))),
                   column(6, spinner(plotlyOutput("viabilityPlot", height = "400px")))
                 )
-              )
+              ),
+              tabPanel(
+                "CO\u2082",
+                fluidRow(
+                  column(6, spinner(plotlyOutput("CO2Plot", height = "400px"))),
+                )
+              )              
             ),
 
             # -------------------------------------------------------------------
@@ -444,6 +450,13 @@ ui <- tagList(
                 fluidRow(
                   column(6, spinner(plotlyOutput("cmpCellCountPlot", height = "450px"))),
                   column(6, spinner(plotlyOutput("cmpViabilityPlot", height = "450px")))
+                )
+              ),
+              tabPanel(
+                "CO\u2082",
+                # Same encoding: solid = TT1, dashed = TT2, colour = experiment.
+                fluidRow(
+                  column(12, spinner(plotlyOutput("cmpCO2Plot", height = "500px"))),
                 )
               )
             ),
