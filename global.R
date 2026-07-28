@@ -177,7 +177,8 @@ read_avg_sheet <- function(file_path) {
 # with a wine red instead of the recycled black.
 okabe <- unname(palette.colors(9, palette = "Okabe-Ito"))
 okabe10 <- unname(palette.colors(10, palette = "Okabe-Ito", recycle = TRUE))
-okabe10[10] <- "#722F37" # wine red
+okabe10[1] <- "#722F37"   # wine red now first, replaces black
+okabe10[10] <- "#000000"  # black moved to last position
 
 # --- HPLC: 6 metabolites -----------------------------------------------------
 hplc_labels <- c(
@@ -232,7 +233,7 @@ ethyl_ester_labels <- c(
   "Ethyl octanoate", "Ethyl decanoate"
 )
 
-ethyl_ester_colours <- okabe10[c(2, 3, 4, 10)]
+ethyl_ester_colours <- okabe10[c(2, 3, 4, 1)]
 
 # --- Averages: Acetate esters stacked bar (3 compounds) ---------------------
 acetate_labels <- c("Ethyl acetate", "Isobutyl acetate", "Isoamyl acetate")
