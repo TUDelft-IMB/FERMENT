@@ -37,7 +37,7 @@ server <- function(input, output, session) {
     }
     # Path to the cache file, stored alongside the Excel files
     cache_path <- metadata_cache_path
-    
+
     # Modification times for all current files — used to detect changes
     mtimes <- file.mtime(file.path(EXCEL_DIR, files))
 
@@ -207,6 +207,12 @@ server <- function(input, output, session) {
       hcl.colors(length(unique_species), palette = "Dynamic"),
       unique_species
     )
+    unique_species <- sort(unique(meta$species))
+    base_palette <- c(rev(okabe10), polychrome_extra) # okabe10 + extended safe colours from global.R
+    n_sp <- length(unique_species)
+    # If there are more species than colours, repeat the palette (safe fallback)
+    cols <- if (n_sp <= length(base_palette)) base_palette[seq_len(n_sp)] else rep(base_palette, length.out = n_sp)
+    species_colors <- setNames(cols, unique_species)
 
     species_counts <- meta %>%
       group_by(species) %>%
@@ -220,19 +226,21 @@ server <- function(input, output, session) {
       values = ~n,
       type = "pie",
       hole = 0.55,
-      textposition = "outside", # pulls labels outside the slice
-      textinfo = "label+value", # species name + count outside
+      rotation = -90,
+      textposition = "outside",
+      textinfo = "label+value",
       insidetextorientation = "radial",
       hovertemplate = "<i>%{label}</i><br>%{value} experiments<br>%{percent}<extra></extra>",
       marker = list(
-        # Map the named palette to the exact order of the pie chart slices
         colors = species_colors[species_counts$species],
         line = list(color = "white", width = 2)
-      )
+      ),
+      height = 350
     ) %>%
       layout(
-        showlegend = FALSE, # legend is redundant now — labels are outside
-        uniformtext = list(minsize = 10, mode = "hide"), # hide labels that don't fit
+        showlegend = FALSE,
+        uniformtext = list(minsize = 10, mode = "show"),
+        margin = list(l = 20, r = 20, t = 20, b = 20),
         annotations = list(list(
           text = paste0("<b>", sum(species_counts$n), "</b><br>total"),
           x = 0.5, y = 0.5,
@@ -248,12 +256,15 @@ server <- function(input, output, session) {
       return(NULL)
     }
 
-    # Generate consistent color palette (same as species plot)
     unique_species <- sort(unique(meta$species))
     species_colors <- setNames(
       hcl.colors(length(unique_species), palette = "Dynamic"),
       unique_species
     )
+    base_palette <- c(rev(okabe10), polychrome_extra)
+    n_sp <- length(unique_species)
+    cols <- if (n_sp <= length(base_palette)) base_palette[seq_len(n_sp)] else rep(base_palette, length.out = n_sp)
+    species_colors <- setNames(cols, unique_species)
 
     strain_counts <- meta %>%
       group_by(strain, species) %>%
@@ -266,12 +277,17 @@ server <- function(input, output, session) {
       slice_head(n = 50) %>%
       pull(strain)
 
+    # Filter to top 50 strains and set factor levels
     strain_counts <- strain_counts %>%
+      filter(strain %in% strain_order) %>%
       mutate(
         strain = factor(strain, levels = strain_order),
-        species = factor(species, levels = sort(unique(meta$species))),
-        # Italicized label used only for hover/legend display
-        species_label = paste0("<i>", species, "</i>")
+        species = factor(as.character(species), levels = unique_species),
+        species_label = sprintf(
+          "<i>%s</i><br>%d exp.",
+          trimws(as.character(species)),
+          n
+        )
       )
 
     plot_ly(
@@ -282,13 +298,12 @@ server <- function(input, output, session) {
       colors = species_colors,
       type = "bar",
       orientation = "h",
-      offset = 0,
       hovertext = ~species_label,
-      hovertemplate = paste0(
-        "%{y}<br>", "%{hovertext}", "<br>%{x} experiments<extra></extra>"
-      )
+      hoverinfo = "text",
+      textposition = "none"
     ) %>%
       layout(
+        barmode = "stack", # Explicitly set stacking mode for species mixes
         showlegend = FALSE,
         hoverlabel = list(namelength = -1),
         xaxis = list(
@@ -298,15 +313,9 @@ server <- function(input, output, session) {
           gridcolor = "gray90"
         ),
         yaxis = list(
-          title = "Strain",
           title = list(text = "Strains", standoff = 10),
-          tickmode = "array",
-          tickvals = levels(strain_counts$strain),
-          ticktext = levels(strain_counts$strain),
-          tickson = "labels",
-          ticks = "outside",
-          tickwidth = 2,
-          ticklen = 10,
+          type = "category",
+          categoryorder = "array",
           categoryarray = levels(strain_counts$strain),
           autorange = "reversed"
         ),
@@ -323,22 +332,35 @@ server <- function(input, output, session) {
     }
 
     gravity_data <- meta %>%
-      mutate(gravity = as.numeric(gravity)) %>%
-      filter(!is.na(gravity)) %>%
-      group_by(gravity) %>%
+      mutate(gravity_num = suppressWarnings(as.numeric(as.character(gravity)))) %>%
+      filter(!is.na(gravity_num)) %>%
+      group_by(gravity_num) %>%
       summarise(n = n(), .groups = "drop") %>%
-      arrange(gravity)
-
-    p <- ggplot(gravity_data, aes(x = as.factor(gravity), y = n, fill = gravity, text = n)) +
+      arrange(gravity_num)
+    
+    gravity_levels <- as.character(gravity_data$gravity_num)
+    base_palette <- c(okabe10, polychrome_extra)
+    n_lv <- length(gravity_levels)
+    cols <- if (n_lv <= length(base_palette)) {
+      base_palette[seq_len(n_lv)]
+    } else {
+      rep(base_palette, length.out = n_lv)
+    }
+    fill_map <- setNames(cols, gravity_levels)
+    
+    p <- ggplot(
+      gravity_data,
+      aes(x = factor(gravity_num), y = n, fill = factor(gravity_num), text = n)
+    ) +
       geom_bar(stat = "identity") +
-      scale_fill_gradient(low = "lightyellow", high = "darkgoldenrod") +
+      scale_fill_manual(values = fill_map) +
       theme_minimal() +
       labs(x = "Starting Gravity (SG)", y = "Number of Experiments") +
       theme(
         legend.position = "none",
         panel.grid.major.y = element_line(colour = "gray90")
       )
-
+    
     ggplotly(p, tooltip = "text")
   })
 
@@ -355,12 +377,18 @@ server <- function(input, output, session) {
       summarise(n = n(), .groups = "drop") %>%
       arrange(inoculum)
 
+    inoc_levels <- as.character(inoculum_data$inoculum)
+    base_palette <- c(okabe10, polychrome_extra)
+    n_lv <- length(inoc_levels)
+    cols <- if (n_lv <= length(base_palette)) base_palette[seq_len(n_lv)] else rep(base_palette, length.out = n_lv)
+    fill_map <- setNames(cols, inoc_levels)
+
     p <- ggplot(
       inoculum_data,
       aes(x = inoculum, y = n, fill = inoculum, text = n)
     ) +
       geom_bar(stat = "identity") +
-      scale_fill_brewer(palette = "Set2") +
+      scale_fill_manual(values = fill_map) +
       theme_minimal() +
       labs(x = "Inoculum", y = "Number of Experiments") +
       theme(
@@ -384,9 +412,15 @@ server <- function(input, output, session) {
       summarise(n = n(), .groups = "drop") %>%
       arrange(temperature)
 
-    p <- ggplot(temp_data, aes(x = as.factor(temperature), y = n, fill = temperature, text = n)) +
+    temp_levels <- as.character(temp_data$temperature)
+    base_palette <- c(rev(okabe10), polychrome_extra)
+    n_lv <- length(temp_levels)
+    cols <- if (n_lv <= length(base_palette)) base_palette[seq_len(n_lv)] else rep(base_palette, length.out = n_lv)
+    fill_map <- setNames(cols, temp_levels)
+
+    p <- ggplot(temp_data, aes(x = as.factor(temperature), y = n, fill = as.factor(temperature), text = n)) +
       geom_bar(stat = "identity") +
-      scale_fill_gradient(low = "lightblue", high = "darkred") +
+      scale_fill_manual(values = fill_map) +
       theme_minimal() +
       labs(x = "Temperature (°C)", y = "Number of Experiments") +
       theme(

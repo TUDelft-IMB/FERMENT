@@ -146,7 +146,7 @@ ui <- tagList(
           )
         ),
         br(),
-        
+
         # Charts and tables
         fluidRow(
           column(
@@ -165,7 +165,8 @@ ui <- tagList(
           ),
           column(
             6,
-            h3(span("Experiments per Strain",
+            h3(span(
+              "Experiments per Strain",
               tooltip(
                 trigger = tags$span(
                   style = "vertical-align: super; font-size: 0.65em;",
@@ -173,8 +174,7 @@ ui <- tagList(
                 ),
                 "Top 50 strains are displayed."
               )
-            )
-            ),
+            )),
             spinner(plotlyOutput("experiments_per_strain_plot", height = "1650px"))
           )
         ),
