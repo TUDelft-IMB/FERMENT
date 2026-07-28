@@ -762,32 +762,53 @@ plot_avg_higher_alcohols_bar <- function(df_list, exp_labels) {
 }
 
 # -----------------------------------------------------------------------------
-# plot_avg_cone_viability()
-# Single-value bar chart: one bar per experiment showing cone viability at
-# pitching, with error bars. Reads row 1 of the averages sheet only (the
-# cone viability value is a single measurement, not a time series).
-# Y-axis uses percent_format() from the scales package.
+# plot_avg_cone_viability() — one bar per experiment, with error bars.
+# Experiments missing Cone_viability_average are dropped from the bars
+# entirely (server.R already warns the user which ones via showNotification).
+# Experiments with a valid average but missing/blank Stdev are still shown
+# as a bar, just without a whisker.
 # -----------------------------------------------------------------------------
 plot_avg_cone_viability <- function(df_list, exp_labels) {
   bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
     data.frame(
       experiment = exp_labels[e],
-      value = as.numeric(df[["Cone_viability_average"]][1]),
-      sd = as.numeric(df[["Stdev_cone_viability"]][1]),
+      value = suppressWarnings(as.numeric(df$Cone_viability_average[1])),
+      sd = suppressWarnings(as.numeric(df$Stdev_cone_viability[1])),
       stringsAsFactors = FALSE
     )
   }))
+  
   bar_data <- bar_data[!is.na(bar_data$value), ]
+  
+  # No experiment has usable data — return an empty plot instead of letting
+  # ggplot/ggplotly error out on a zero-row factor column.
+  if (nrow(bar_data) == 0) {
+    return(
+      ggplot() + theme_minimal() +
+        labs(title = "Cone Viability", x = "Experiment", y = "Cone Viability")
+    )
+  }
+  
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
-
-  ggplot(bar_data, aes(x = experiment, y = value, fill = experiment)) +
+  errorbar_data <- bar_data[!is.na(bar_data$sd), ]
+  
+  p <- ggplot(bar_data, aes(x = experiment, y = value, fill = experiment)) +
     geom_col(width = 0.6) +
-    geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 0.15) +
     scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
     labs(title = "Cone Viability", x = "Experiment", y = "Cone Viability (%)") +
     theme_minimal() +
     theme(legend.position = "none")
+  
+  if (nrow(errorbar_data) > 0) {
+    p <- p + geom_errorbar(
+      data = errorbar_data,
+      aes(ymin = value - sd, ymax = value + sd),
+      width = 0.15
+    )
+  }
+  
+  p
 }
 
 # Ethyl Acetate / Isoamyl Acetate ratio — one bar per experiment (final value)
