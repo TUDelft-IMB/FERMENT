@@ -413,7 +413,7 @@ server <- function(input, output, session) {
       arrange(temperature)
 
     temp_levels <- as.character(temp_data$temperature)
-    base_palette <- c(rev(okabe10), polychrome_extra)
+    base_palette <- c(okabe10, polychrome_extra)
     n_lv <- length(temp_levels)
     cols <- if (n_lv <= length(base_palette)) base_palette[seq_len(n_lv)] else rep(base_palette, length.out = n_lv)
     fill_map <- setNames(cols, temp_levels)
@@ -511,11 +511,12 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
   observe({
     choices <- filtered_files()
-
+    display_choices <- setNames(choices, sub("\\.xlsx$", "", choices, ignore.case = TRUE))
+    
     updateSelectInput(
       session,
       "experiment",
-      choices = c("Select an experiment..." = "", choices),
+      choices = c("Select an experiment..." = "", display_choices),
       selected = ""
     )
   })
@@ -707,8 +708,12 @@ server <- function(input, output, session) {
 
   # Step 11a: Keep avg_experiments in sync with filters.
   observe({
+    choices <- avg_filtered_files()
+    display_choices <- setNames(choices, sub("\\.xlsx$", "", choices, ignore.case = TRUE))
+    
     updateSelectizeInput(session, "avg_experiments",
-      choices = avg_filtered_files(), server = TRUE
+                         choices = display_choices,
+                         server = TRUE
     )
   })
 
@@ -824,7 +829,23 @@ server <- function(input, output, session) {
   # Cone Viability: one bar per experiment with error bars
   output$avgConeViabilityPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_cone_viability(avg_data_list(), avg_exp_labels()))
+    dfs <- avg_data_list()
+    labels <- avg_exp_labels()
+    
+    missing_exps <- labels[sapply(dfs, function(d) {
+      val <- suppressWarnings(as.numeric(d$Cone_viability_average[1]))
+      is.null(d) || !("Cone_viability_average" %in% names(d)) || is.na(val)
+    })]
+    
+    if (length(missing_exps) > 0) {
+      showNotification(
+        paste("No Cone Viability data available for:", paste(missing_exps, collapse = ", ")),
+        type = "warning",
+        duration = 8
+      )
+    }
+    
+    ggplotly(plot_avg_cone_viability(dfs, labels))
   })
 
   # ---------------------------------------------------------------------------
@@ -858,9 +879,10 @@ server <- function(input, output, session) {
 
   # Step 15: Keep cmp_experiments in sync with filters.
   observe({
-    updateSelectizeInput(session, "cmp_experiments",
-      choices  = cmp_filtered_files(),
-      server   = TRUE
+    choices <- cmp_filtered_files()
+    display_choices <- setNames(choices, sub("\\.xlsx$", "", choices, ignore.case = TRUE))
+    
+    updateSelectizeInput(session, "cmp_experiments", choices = display_choices, server = TRUE
     )
   })
 
