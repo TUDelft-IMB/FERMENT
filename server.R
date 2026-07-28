@@ -829,7 +829,23 @@ server <- function(input, output, session) {
   # Cone Viability: one bar per experiment with error bars
   output$avgConeViabilityPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_cone_viability(avg_data_list(), avg_exp_labels()))
+    dfs <- avg_data_list()
+    labels <- avg_exp_labels()
+    
+    missing_exps <- labels[sapply(dfs, function(d) {
+      val <- suppressWarnings(as.numeric(d$Cone_viability_average[1]))
+      is.null(d) || !("Cone_viability_average" %in% names(d)) || is.na(val)
+    })]
+    
+    if (length(missing_exps) > 0) {
+      showNotification(
+        paste("No Cone Viability data available for:", paste(missing_exps, collapse = ", ")),
+        type = "warning",
+        duration = 8
+      )
+    }
+    
+    ggplotly(plot_avg_cone_viability(dfs, labels))
   })
 
   # ---------------------------------------------------------------------------
