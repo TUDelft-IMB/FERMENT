@@ -413,7 +413,7 @@ server <- function(input, output, session) {
       arrange(temperature)
 
     temp_levels <- as.character(temp_data$temperature)
-    base_palette <- c(rev(okabe10), polychrome_extra)
+    base_palette <- c(okabe10, polychrome_extra)
     n_lv <- length(temp_levels)
     cols <- if (n_lv <= length(base_palette)) base_palette[seq_len(n_lv)] else rep(base_palette, length.out = n_lv)
     fill_map <- setNames(cols, temp_levels)
