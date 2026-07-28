@@ -511,11 +511,12 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
   observe({
     choices <- filtered_files()
-
+    display_choices <- setNames(choices, sub("\\.xlsx$", "", choices, ignore.case = TRUE))
+    
     updateSelectInput(
       session,
       "experiment",
-      choices = c("Select an experiment..." = "", choices),
+      choices = c("Select an experiment..." = "", display_choices),
       selected = ""
     )
   })
@@ -707,8 +708,12 @@ server <- function(input, output, session) {
 
   # Step 11a: Keep avg_experiments in sync with filters.
   observe({
+    choices <- avg_filtered_files()
+    display_choices <- setNames(choices, sub("\\.xlsx$", "", choices, ignore.case = TRUE))
+    
     updateSelectizeInput(session, "avg_experiments",
-      choices = avg_filtered_files(), server = TRUE
+                         choices = display_choices,
+                         server = TRUE
     )
   })
 
@@ -858,9 +863,10 @@ server <- function(input, output, session) {
 
   # Step 15: Keep cmp_experiments in sync with filters.
   observe({
-    updateSelectizeInput(session, "cmp_experiments",
-      choices  = cmp_filtered_files(),
-      server   = TRUE
+    choices <- cmp_filtered_files()
+    display_choices <- setNames(choices, sub("\\.xlsx$", "", choices, ignore.case = TRUE))
+    
+    updateSelectizeInput(session, "cmp_experiments", choices = display_choices, server = TRUE
     )
   })
 
