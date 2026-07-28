@@ -146,7 +146,7 @@ ui <- tagList(
           )
         ),
         br(),
-        
+
         # Charts and tables
         fluidRow(
           column(
@@ -165,7 +165,8 @@ ui <- tagList(
           ),
           column(
             6,
-            h3(span("Experiments per Strain",
+            h3(span(
+              "Experiments per Strain",
               tooltip(
                 trigger = tags$span(
                   style = "vertical-align: super; font-size: 0.65em;",
@@ -173,8 +174,7 @@ ui <- tagList(
                 ),
                 "Top 50 strains are displayed."
               )
-            )
-            ),
+            )),
             spinner(plotlyOutput("experiments_per_strain_plot", height = "1650px"))
           )
         ),
@@ -286,7 +286,13 @@ ui <- tagList(
                   column(6, spinner(plotlyOutput("cellCountPlot", height = "400px"))),
                   column(6, spinner(plotlyOutput("viabilityPlot", height = "400px")))
                 )
-              )
+              ),
+              tabPanel(
+                "CO\u2082",
+                fluidRow(
+                  column(6, spinner(plotlyOutput("CO2Plot", height = "400px"))),
+                )
+              )              
             ),
 
             # -------------------------------------------------------------------
@@ -444,6 +450,13 @@ ui <- tagList(
                 fluidRow(
                   column(6, spinner(plotlyOutput("cmpCellCountPlot", height = "450px"))),
                   column(6, spinner(plotlyOutput("cmpViabilityPlot", height = "450px")))
+                )
+              ),
+              tabPanel(
+                "CO\u2082",
+                # Same encoding: solid = TT1, dashed = TT2, colour = experiment.
+                fluidRow(
+                  column(12, spinner(plotlyOutput("cmpCO2Plot", height = "500px"))),
                 )
               )
             ),

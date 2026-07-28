@@ -80,8 +80,7 @@ if (EXCEL_DIR == "PATH/PATH") { # Do not change this PATH/PATH
 
 # Caching paths
 
-os_tag <- switch(
-  Sys.info()[["sysname"]],
+os_tag <- switch(Sys.info()[["sysname"]],
   "Darwin"  = "macos",
   "Windows" = "windows",
   "Linux"   = "linux",
@@ -130,23 +129,23 @@ tt_sheet_cache <- new.env(parent = emptyenv())
 read_tt_sheet_cached <- function(file_path, sheet_name) {
   mtime <- as.character(file.mtime(file_path))
   key <- paste(file_path, sheet_name, mtime, sep = "||")
-  
+
   if (!is.null(tt_sheet_cache[[key]])) {
     return(tt_sheet_cache[[key]])
   }
-  
+
   df <- tryCatch(
     read_excel(file_path, sheet = sheet_name),
     error = function(e) NULL
   )
-  
+
   # Preserve the original header-row fix for these two sheets
   if (!is.null(df) && sheet_name %in% c("Attenuation", "pH")) {
     df <- df |>
       row_to_names(row_number = 1) |>
       type.convert(as.is = TRUE)
   }
-  
+
   tt_sheet_cache[[key]] <- df
   df
 }
@@ -169,29 +168,29 @@ read_avg_sheet <- function(file_path) {
 # =============================================================================
 # 4. COLOUR PALETTES — single source of truth
 # =============================================================================
-# All colours and compound labels are defined here and referenced directly
-# by every plot function in sections 5 and 6. To change a colour, edit
-# this section only — no changes needed inside the plot functions.
+
+# Okabe-Ito palette was constructed to have reasonable perceptual properties,
+# including accommodation for color vision deficiencies.
+# See: https://journal.r-project.org/articles/RJ-2023-071/
 #
-# Naming convention:
-#   *_labels  — compound/tube labels used as legend text AND as aesthetic keys
-#   *_colours — matching colour strings (same order as *_labels)
-#   Named vectors (e.g. tt_colours) — name = label, value = colour; used
-#                  directly in scale_colour_manual(values = ...) calls.
+# Okabe-Ito has 9 colours; for 10 GC esters we recycle and replace the 10th
+# with a wine red instead of the recycled black.
+okabe <- unname(palette.colors(9, palette = "Okabe-Ito"))
+okabe10 <- unname(palette.colors(10, palette = "Okabe-Ito", recycle = TRUE))
+okabe10[10] <- "#722F37" # wine red
 
 # --- HPLC: 6 metabolites -----------------------------------------------------
-# hplc_labels: base column names as they appear in the Excel sheet (without
-#              the tube-number prefix). plot_hplc_tube() prepends tube_num.
-# hplc_avg_labels: plain names used in averages legends (no unit suffix).
 hplc_labels <- c(
   "Maltotriose", "Maltose", "Glucose",
   "Fructose", "Glycerol", "Ethanol"
 )
+
 hplc_avg_labels <- c(
   "Maltotriose", "Maltose", "Glucose",
   "Fructose", "Glycerol", "Ethanol"
 )
-hplc_colours <- c("skyblue", "maroon", "gold", "forestgreen", "grey", "sienna")
+
+hplc_colours <- okabe[c(2, 3, 4, 6, 8, 7)]
 
 # --- GC Esters: 10 compounds -------------------------------------------------
 gc_ester_labels <- c(
@@ -200,28 +199,26 @@ gc_ester_labels <- c(
   "Isoamyl alcohol", "Ethyl hexanoate",
   "Ethyl octanoate", "Ethyl decanoate"
 )
-gc_ester_colours <- c(
-  "skyblue", "maroon", "gold", "forestgreen", "grey",
-  "sienna", "darkred", "darkgreen", "lavender", "darkblue"
-)
+
+gc_ester_colours <- okabe10
 
 # --- GC Ketones: 2 compounds -------------------------------------------------
 gc_ketone_labels <- c("Diacetyl", "2,3-Pentanedione")
-gc_ketone_colours <- c("skyblue", "sienna")
+gc_ketone_colours <- okabe[c(3, 7)]
 
-# --- TT1 vs TT2: Attenuation, Cell Count, Viability -------------------------
-tt_colours <- c("TT1" = "skyblue", "TT2" = "sienna")
+# --- TT1 vs TT2: Attenuation, Cell Count, Viability --------------------------
+tt_colours <- setNames(okabe[c(3, 7)], c("TT1", "TT2"))
 
-# --- TT1 vs TT2: pH (uses different colours to distinguish from attenuation) -
-ph_colours <- c("TT1" = "gold", "TT2" = "sienna")
+# --- TT1 vs TT2: pH ----------------------------------------------------------
+ph_colours <- setNames(okabe[c(3, 7)], c("TT1", "TT2"))
 
 # --- Averages: single-series line plots --------------------------------------
 # One colour per metric; used by the averages wrappers that plot a single
 # compound over time (attenuation, pH, cell count, viability).
-att_colour <- "skyblue"
-avg_ph_colour <- "gold"
-cell_count_colour <- "skyblue"
-viability_colour <- "forestgreen"
+att_colour <- okabe[7]
+avg_ph_colour <- okabe[7]
+cell_count_colour <- okabe[7]
+viability_colour <- okabe[7]
 
 # --- Averages: line linetypes (one per selected experiment) ------------------
 # Compounds are colour-coded; experiments are distinguished by linetype.
@@ -234,16 +231,25 @@ ethyl_ester_labels <- c(
   "Ethyl butyrate", "Ethyl hexanoate",
   "Ethyl octanoate", "Ethyl decanoate"
 )
-ethyl_ester_colours <- c("darkblue", "sienna", "darkgreen", "skyblue")
+
+ethyl_ester_colours <- okabe10[c(2, 3, 4, 10)]
 
 # --- Averages: Acetate esters stacked bar (3 compounds) ---------------------
 acetate_labels <- c("Ethyl acetate", "Isobutyl acetate", "Isoamyl acetate")
-acetate_colours <- c("skyblue", "orange", "forestgreen")
+acetate_colours <- okabe[c(6, 5, 7)]
 
 # --- Averages: Higher alcohols stacked bar (2 compounds) --------------------
 alcohol_labels <- c("Isobutanol", "Isoamyl alcohol")
-alcohol_colours <- c("darkblue", "orange")
+alcohol_colours <- okabe[c(3, 7)]
 
+# --- Compare tab: experiment colours ----------------------------------------
+# Start with the customized Okabe-Ito 10, then extend with Polychrome 36
+# for larger multi-experiment overlays.
+polychrome36 <- unname(palette.colors(36, palette = "Polychrome 36"))
+# Remove any colours already present in okabe10, just in case of overlap
+polychrome_extra <- polychrome36[!polychrome36 %in% okabe10]
+# Used by attenuation, pH, cell count, and viability compare plots.
+cmp_exp_colours <- c(okabe10, polychrome_extra)
 
 # =============================================================================
 # 5. PLOT FUNCTIONS — SINGLE EXPERIMENT
@@ -439,7 +445,20 @@ plot_viability <- function(viability) {
     theme_minimal() +
     theme(legend.position = "right")
 }
-
+# -----------------------------------------------------------------------------
+# plot_CO2() — CO2 production (ml/min over time, TT1 vs TT2
+# Uses tt_colours from section 4 via scale_colour_manual().
+# --------------------------------------------------------------------------
+plot_CO2 <- function(CO2) {
+  CO2[["Time (h)"]] <- CO2[["Time (days)"]] * 24
+  ggplot(CO2) +
+    geom_line(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
+    geom_line(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
+    scale_colour_manual(name = "Tube", values = tt_colours) +
+    labs(title = "CO\u2082 production", x = "Time (h)", y = "CO\u2082 (ml/min)") +
+    theme_minimal() +
+    theme(legend.position = "right")
+}
 
 # =============================================================================
 # 6. PLOT FUNCTIONS — AVERAGES
@@ -517,6 +536,57 @@ plot_averages <- function(df_list, exp_labels,
     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
     scale_colour_manual(name = "Compound", values = colour_map) +
     scale_linetype_manual(name = "Experiment", values = linetype_map) +
+    labs(title = title, x = "Time (h)", y = y_label) +
+    theme_minimal() +
+    theme(legend.position = "right")
+
+  if (!is.null(y_limits)) p <- p + scale_y_continuous(limits = y_limits)
+  p
+}
+
+# -----------------------------------------------------------------------------
+# plot_avg_by_experiment()
+# Single-series averages plot, coloured by experiment (no compound/linetype
+# split needed, since each experiment only has one averaged reading).
+# Same colour encoding as the Compare tab (cmp_exp_colours).
+# -----------------------------------------------------------------------------
+plot_avg_by_experiment <- function(df_list, exp_labels,
+                                   avg_col, sd_col,
+                                   title = "", y_label = "", y_limits = NULL) {
+  if (length(df_list) == 0 || length(exp_labels) == 0) {
+    return(ggplot() +
+      theme_minimal() +
+      labs(title = title, x = "Time (h)", y = y_label))
+  }
+
+  colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
+
+  plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    data.frame(
+      time = as.numeric(df[["Time (h)"]]),
+      value = if (avg_col %in% names(df)) as.numeric(df[[avg_col]]) else NA_real_,
+      sd = if (!is.null(sd_col) && sd_col %in% names(df)) as.numeric(df[[sd_col]]) else NA_real_,
+      experiment = exp_labels[e],
+      stringsAsFactors = FALSE
+    )
+  }))
+  plot_data <- plot_data[!is.na(plot_data$value), ]
+
+  if (nrow(plot_data) == 0) {
+    return(ggplot() +
+      theme_minimal() +
+      labs(title = title, x = "Time (h)", y = y_label))
+  }
+
+  p <- ggplot(
+    plot_data,
+    aes(x = time, y = value, colour = experiment, group = experiment)
+  ) +
+    geom_line() +
+    geom_point() +
+    geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
+    scale_colour_manual(name = "Experiment", values = colour_map) +
     labs(title = title, x = "Time (h)", y = y_label) +
     theme_minimal() +
     theme(legend.position = "right")
@@ -608,51 +678,47 @@ plot_avg_diketones <- function(df_list, exp_labels) {
 
 # Attenuation over time
 plot_avg_attenuation <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = "Attenuation_average",
-    sd_cols      = "Attenuation_stdev",
-    comp_colours = att_colour,
-    comp_labels  = "Attenuation",
-    title        = "Attenuation",
-    y_label      = "Attenuation (degrees P)"
+  plot_avg_by_experiment(
+    df_list, exp_labels,
+    avg_col = "Attenuation_average",
+    sd_col = "Attenuation_stdev",
+    title = "Attenuation",
+    y_label = "Attenuation (degrees P)"
   )
 }
 
 # pH over time — y-axis fixed at 0-7
 plot_avg_ph <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = "pH_average",
-    sd_cols      = "pH_stdev",
-    comp_colours = avg_ph_colour,
-    comp_labels  = "pH",
-    title        = "pH",
-    y_label      = "pH",
-    y_limits     = c(0, 7)
+  plot_avg_by_experiment(
+    df_list, exp_labels,
+    avg_col = "pH_average",
+    sd_col = "pH_stdev",
+    title = "pH",
+    y_label = "pH",
+    y_limits = c(0, 7)
   )
 }
 
 # Cell Count over time
 plot_avg_cell_count <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = "CellCount_average",
-    sd_cols      = "CellCount_stdev",
-    comp_colours = cell_count_colour,
-    comp_labels  = "Cell Count",
-    title        = "Cell Count",
-    y_label      = "Cell count (cells/ml)"
+  plot_avg_by_experiment(
+    df_list, exp_labels,
+    avg_col = "CellCount_average",
+    sd_col = "CellCount_stdev",
+    title = "Cell Count",
+    y_label = "Cell count (cells/ml)"
   )
 }
 
 # Viability over time — y-axis fixed at 0-1 (fraction)
 plot_avg_viability <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = "Viability_average",
-    sd_cols      = "Viability_stdev",
-    comp_colours = viability_colour,
-    comp_labels  = "Viability",
-    title        = "Viability",
-    y_label      = "Viability (fraction)",
-    y_limits     = c(0, 1)
+  plot_avg_by_experiment(
+    df_list, exp_labels,
+    avg_col = "Viability_average",
+    sd_col = "Viability_stdev",
+    title = "Viability",
+    y_label = "Viability (fraction)",
+    y_limits = c(0, 1)
   )
 }
 
@@ -768,15 +834,6 @@ plot_avg_gc_ratio_bar <- function(df_list, exp_labels) {
 #   colour   = experiment (from cmp_exp_colours, colourblind-safe)
 #   linetype = tube       (solid = TT1, dashed = TT2)
 #   Legend key = "Experiment #N TT1" / "Experiment #N TT2"
-
-# --- Compare: experiment colour palette (one colour per experiment) ----------
-# Used by attenuation, pH, cell count, and viability compare plots.
-# Up to 8 experiments can be overlaid before colours repeat.
-# [TODO_LATER] decide on behaviour when > 8 experiments are selected
-cmp_exp_colours <- c(
-  "#0072B2", "#D55E00", "#009E73", "#CC79A7",
-  "#F0E442", "#56B4E9", "#E69F00", "#999999"
-)
 
 # -----------------------------------------------------------------------------
 # Helper plot_tube_overlay() — a helper function for plotting/overlaying
@@ -1045,6 +1102,7 @@ plot_cmp_viability <- function(df_list, exp_labels) {
 
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["CellCount_Viability"]]
+    
     do.call(rbind, lapply(names(tube_cols), function(tube_label) {
       col <- tube_cols[[tube_label]]
       data.frame(
@@ -1074,6 +1132,69 @@ plot_cmp_viability <- function(df_list, exp_labels) {
     scale_linetype_manual(name = "TT", values = tube_lty) +
     scale_y_continuous(limits = c(0, 1)) +
     labs(title = "Viability", x = "Time (h)", y = "Viability (fraction)") +
+    theme_minimal() +
+    theme(legend.position = "right")
+}
+
+# -----------------------------------------------------------------------------
+# plot_cmp_CO2() — CO2 production over time, all experiments overlaid.
+# colour = experiment, linetype = tube (solid = TT1, dashed = TT2).
+# Experiments whose workbook has no CO2 sheet (or an empty one) are silently
+# skipped instead of breaking the whole plot.
+# -----------------------------------------------------------------------------
+plot_cmp_CO2 <- function(df_list, exp_labels) {
+  tube_cols <- c("TT1", "TT2")
+  tube_lty <- c("TT1" = "solid", "TT2" = "solid")
+  colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
+  
+  plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]][["CO2"]]
+    
+    # Guard: skip this experiment if the sheet is missing, empty, or
+    # missing the time column — returning NULL makes do.call(rbind, ...)
+    # drop it cleanly instead of erroring on mismatched row counts.
+    if (is.null(df) || nrow(df) == 0 || !("Time (days)" %in% names(df))) {
+      return(NULL)
+    }
+    
+    time_h <- as.numeric(df[["Time (days)"]]) * 24
+    
+    do.call(rbind, lapply(tube_cols, function(tc) {
+      data.frame(
+        time = time_h,
+        value = if (tc %in% names(df)) as.numeric(df[[tc]]) else rep(NA_real_, length(time_h)),
+        experiment = exp_labels[e],
+        tube = tc,
+        # trace_id used for the group aesthetic so lines don't cross tubes
+        trace_id = paste(exp_labels[e], tc),
+        stringsAsFactors = FALSE
+      )
+    }))
+  }))
+  
+  if (is.null(plot_data) || nrow(plot_data) == 0) {
+    return(
+      ggplot() + theme_minimal() +
+        labs(title = "CO\u2082 production", x = "Time (h)", y = "CO\u2082 (ml/min)")
+    )
+  }
+  
+  plot_data <- plot_data[!is.na(plot_data$value), ]
+  
+  ggplot(
+    plot_data,
+    aes(
+      x = time, y = value,
+      colour = experiment,
+      linetype = tube,
+      group = trace_id
+    )
+  ) +
+    geom_line() +
+#    geom_point() +
+    scale_colour_manual(name = "Experiment", values = colour_map) +
+    scale_linetype_manual(name = "TT", values = tube_lty) +
+    labs(title = "CO\u2082 production", x = "Time (h)", y = "CO\u2082 (ml/min)") +
     theme_minimal() +
     theme(legend.position = "right")
 }
