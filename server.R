@@ -706,6 +706,7 @@ server <- function(input, output, session) {
   })
 
   # Cell Count and Viability: one line per tube (TT1 and TT2)
+  export_plot_data("download_co2", CO2, "co2")
   output$CO2Plot <- renderPlotly({
     req(tt_data())
     if (is.null(CO2()) || nrow(CO2()) == 0) {
