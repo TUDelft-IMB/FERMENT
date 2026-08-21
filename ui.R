@@ -255,8 +255,24 @@ ui <- tagList(
                 "HPLC",
                 # Two Plotly charts side by side: TT1 on the left, TT2 on the right.
                 fluidRow(
-                  column(6, spinner(plotlyOutput("hplcTT1Plot", height = "400px"))),
-                  column(6, spinner(plotlyOutput("hplcTT2Plot", height = "400px")))
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("TT1"),
+                      downloadButton("download_hplc_tt1", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("hplcTT1Plot", height = "400px"))
+                  ),
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("TT2"),
+                      downloadButton("download_hplc_tt2", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("hplcTT2Plot", height = "400px"))
+                  )
                 )
               ),
               tabPanel(
