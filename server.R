@@ -682,20 +682,24 @@ server <- function(input, output, session) {
   })
 
   # Attenuation and pH: one line per tube (TT1 and TT2)
+  export_plot_data("download_att", att, "attenuation")
   output$attPlot <- renderPlotly({
     req(att())
     ggplotly(plot_att(att()))
   })
+  export_plot_data("download_ph", ph, "ph")
   output$phPlot <- renderPlotly({
     req(ph())
     ggplotly(plot_ph(ph()))
   })
 
   # Cell Count and Viability: one line per tube (TT1 and TT2)
+  export_plot_data("download_cell_count", viability, "cell_count")
   output$cellCountPlot <- renderPlotly({
     req(viability())
     ggplotly(plot_cell_count(viability()))
   })
+  export_plot_data("download_viability", viability, "viability")
   output$viabilityPlot <- renderPlotly({
     req(viability())
     ggplotly(plot_viability(viability()))
