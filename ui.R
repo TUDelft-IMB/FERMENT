@@ -324,21 +324,61 @@ ui <- tagList(
               tabPanel(
                 "Attenuation & pH",
                 fluidRow(
-                  column(6, spinner(plotlyOutput("attPlot", height = "400px"))),
-                  column(6, spinner(plotlyOutput("phPlot", height = "400px")))
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("Attenuation"),
+                      downloadButton("download_att", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("attPlot", height = "400px"))
+                  ),
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("pH"),
+                      downloadButton("download_ph", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("phPlot", height = "400px"))
+                  )
                 )
               ),
               tabPanel(
                 "Cell Count & Viability",
                 fluidRow(
-                  column(6, spinner(plotlyOutput("cellCountPlot", height = "400px"))),
-                  column(6, spinner(plotlyOutput("viabilityPlot", height = "400px")))
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("Cell Count"),
+                      downloadButton("download_cell_count", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("cellCountPlot", height = "400px"))
+                  ),
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("Viability"),
+                      downloadButton("download_viability", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("viabilityPlot", height = "400px"))
+                  )
                 )
               ),
               tabPanel(
                 "CO\u2082",
                 fluidRow(
-                  column(6, spinner(plotlyOutput("CO2Plot", height = "400px"))),
+                  column(
+                    12,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("CO₂"),
+                      downloadButton("download_co2", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("CO2Plot", height = "400px"))
+                  ),
                 )
               )              
             ),
