@@ -485,6 +485,23 @@ server <- function(input, output, session) {
   }
 
   # ---------------------------------------------------------------------------
+  # Helper: export plot data.
+  # To be used by all three tab output plots (only single, so far).
+  # Returns a csv file.
+  # ---------------------------------------------------------------------------
+  
+  export_plot_data <- function(output_id, data_reactive, filename_prefix) {
+    output[[output_id]] <- downloadHandler(
+      filename = function() {
+        paste0(filename_prefix, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
+      },
+      content = function(file) {
+        write.csv(data_reactive(), file, row.names = FALSE)
+      }
+    )
+  }
+  
+  # ---------------------------------------------------------------------------
   # Step 4: Single Experiment — filter dropdown logic.
   # ---------------------------------------------------------------------------
   filtered_files <- reactive({
