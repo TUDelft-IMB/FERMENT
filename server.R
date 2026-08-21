@@ -587,11 +587,15 @@ server <- function(input, output, session) {
   # Helper: export plot data.
   # To be used by all three tab output plots (only single, so far).
   # Returns a csv file.
-  
   export_plot_data <- function(output_id, data_reactive, filename_prefix) {
     output[[output_id]] <- downloadHandler(
       filename = function() {
-        paste0(filename_prefix, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
+        exp_name <- if (is.null(input$experiment) || input$experiment == "") {
+          "unknown_experiment"
+        } else {
+          tools::file_path_sans_ext(input$experiment)
+        }
+        paste0(filename_prefix, "_", exp_name, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
       },
       content = function(file) {
         write.csv(data_reactive(), file, row.names = FALSE)
@@ -654,6 +658,8 @@ server <- function(input, output, session) {
   })
 
   # GC Esters: volatile esters over time, TT1 and TT2 side by side
+  export_plot_data("download_gc_esters_tt1", gc_esters, "gc_esters_tt1")
+  export_plot_data("download_gc_esters_tt2", gc_esters, "gc_esters_tt2")
   output$gcEstersTT1Plot <- renderPlotly({
     req(gc_esters())
     ggplotly(plot_gc_esters_tube(gc_esters(), tube_num = 1))
@@ -664,6 +670,8 @@ server <- function(input, output, session) {
   })
 
   # GC Ketones: diacetyl and 2,3-pentanedione over time, TT1 and TT2
+  export_plot_data("download_gc_ketones_tt1", gc_ketones, "gc_ketones_tt1")
+  export_plot_data("download_gc_ketones_tt2", gc_ketones, "gc_ketones_tt2")
   output$gcKetonesTT1Plot <- renderPlotly({
     req(gc_ketones())
     ggplotly(plot_gc_ketones_tube(gc_ketones(), tube_num = 1))

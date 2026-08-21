@@ -278,15 +278,47 @@ ui <- tagList(
               tabPanel(
                 "GC Esters",
                 fluidRow(
-                  column(6, spinner(plotlyOutput("gcEstersTT1Plot", height = "400px"))),
-                  column(6, spinner(plotlyOutput("gcEstersTT2Plot", height = "400px")))
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("GC Esters - TT1"),
+                      downloadButton("download_gc_esters_tt1", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("gcEstersTT1Plot", height = "400px"))
+                  ),
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("GC Esters - TT2"),
+                      downloadButton("download_gc_esters_tt2", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("gcEstersTT2Plot", height = "400px"))
+                  )
                 )
               ),
               tabPanel(
                 "GC Ketones",
                 fluidRow(
-                  column(6, spinner(plotlyOutput("gcKetonesTT1Plot", height = "400px"))),
-                  column(6, spinner(plotlyOutput("gcKetonesTT2Plot", height = "400px")))
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("GC Ketones - TT1"),
+                      downloadButton("download_gc_ketones_tt1", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("gcKetonesTT1Plot", height = "400px"))
+                  ),
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("GC Ketones - TT2"),
+                      downloadButton("download_gc_ketones_tt2", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("gcKetonesTT2Plot", height = "400px"))
+                  )
                 )
               ),
               tabPanel(
