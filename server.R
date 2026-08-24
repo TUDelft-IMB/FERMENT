@@ -1039,6 +1039,13 @@ server <- function(input, output, session) {
   })
 
   # GC Ketones: one line per compound per experiment, TT1 and TT2 overlaid
+  cmp_gc_ketones_export <- cmp_sheet_data("GC_ketones")
+  export_plot_data(
+    "download_cmp_gc_ketones",
+    cmp_gc_ketones_export,
+    "compare_gc_ketones",
+    function() cmp_filename("compare_gc_ketones")
+  )
   output$cmpGcKetonesPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_gc_ketones(cmp_data_list(), cmp_exp_labels()))

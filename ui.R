@@ -536,7 +536,15 @@ ui <- tagList(
               tabPanel(
                 "GC Ketones",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("cmpGcKetonesPlot", height = "500px")))
+                  column(
+                    12,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("GC Ketones"),
+                      downloadButton("download_cmp_gc_ketones", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("cmpGcKetonesPlot", height = "500px"))
+                  )
                 )
               ),
               tabPanel(
