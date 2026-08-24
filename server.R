@@ -1077,13 +1077,27 @@ server <- function(input, output, session) {
     ggplotly(plot_cmp_ph(cmp_data_list(), cmp_exp_labels()))
   })
 
+  cmp_cell_count_export <- cmp_sheet_data("CellCount_Viability")
+  
   # Cell Count: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
+  export_plot_data(
+    "download_cmp_cell_count",
+    cmp_cell_count_export,
+    "compare_cell_count",
+    function() cmp_filename("compare_cell_count")
+  )
   output$cmpCellCountPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_cell_count(cmp_data_list(), cmp_exp_labels()))
   })
 
   # Viability: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
+  export_plot_data(
+    "download_cmp_viability",
+    cmp_cell_count_export,
+    "compare_viability",
+    function() cmp_filename("compare_viability")
+  )
   output$cmpViabilityPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_viability(cmp_data_list(), cmp_exp_labels()))

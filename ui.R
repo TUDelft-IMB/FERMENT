@@ -576,8 +576,24 @@ ui <- tagList(
                 "Cell Count & Viability",
                 # Same encoding: solid = TT1, dashed = TT2, colour = experiment.
                 fluidRow(
-                  column(6, spinner(plotlyOutput("cmpCellCountPlot", height = "450px"))),
-                  column(6, spinner(plotlyOutput("cmpViabilityPlot", height = "450px")))
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("Cell Count"),
+                      downloadButton("download_cmp_cell_count", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("cmpCellCountPlot", height = "450px"))
+                  ),
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("Viability"),
+                      downloadButton("download_cmp_viability", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("cmpViabilityPlot", height = "450px"))
+                  )
                 )
               ),
               tabPanel(
