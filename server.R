@@ -1104,6 +1104,13 @@ server <- function(input, output, session) {
   })
   
   # CO2: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
+  cmp_co2_export <- cmp_sheet_data("CO2")
+  export_plot_data(
+    "download_cmp_co2",
+    cmp_co2_export,
+    "compare_co2",
+    function() cmp_filename("compare_co2")
+  )
   output$cmpCO2Plot <- renderPlotly({
     req(cmp_data_list())
     dfs <- cmp_data_list()

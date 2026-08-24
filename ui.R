@@ -600,7 +600,15 @@ ui <- tagList(
                 "CO\u2082",
                 # Same encoding: solid = TT1, dashed = TT2, colour = experiment.
                 fluidRow(
-                  column(12, spinner(plotlyOutput("cmpCO2Plot", height = "500px"))),
+                  column(
+                    12,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("CO\u2082"),
+                      downloadButton("download_cmp_co2", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("cmpCO2Plot", height = "500px"))
+                  )
                 )
               )
             ),
