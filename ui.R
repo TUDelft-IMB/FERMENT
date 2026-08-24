@@ -552,8 +552,24 @@ ui <- tagList(
                 # One chart per metric; each contains both TT1 (solid) and
                 # TT2 (dashed) for all selected experiments.
                 fluidRow(
-                  column(6, spinner(plotlyOutput("cmpAttPlot", height = "450px"))),
-                  column(6, spinner(plotlyOutput("cmpPhPlot", height = "450px")))
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("Attenuation"),
+                      downloadButton("download_cmp_att", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("cmpAttPlot", height = "450px"))
+                  ),
+                  column(
+                    6,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("pH"),
+                      downloadButton("download_cmp_ph", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("cmpPhPlot", height = "450px"))
+                  )
                 )
               ),
               tabPanel(

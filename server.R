@@ -1052,12 +1052,26 @@ server <- function(input, output, session) {
   })
 
   # Attenuation: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
+  cmp_att_export <- cmp_sheet_data("Attenuation")
+  export_plot_data(
+    "download_cmp_att",
+    cmp_att_export,
+    "compare_attenuation",
+    function() cmp_filename("compare_attenuation")
+  )
   output$cmpAttPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_att(cmp_data_list(), cmp_exp_labels()))
   })
 
   # pH: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
+  cmp_ph_export <- cmp_sheet_data("pH")
+  export_plot_data(
+    "download_cmp_ph",
+    cmp_ph_export,
+    "compare_ph",
+    function() cmp_filename("compare_ph")
+  )
   output$cmpPhPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_ph(cmp_data_list(), cmp_exp_labels()))
