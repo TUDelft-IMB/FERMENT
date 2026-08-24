@@ -508,7 +508,15 @@ ui <- tagList(
               tabPanel(
                 "HPLC",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("cmpHplcPlot", height = "500px")))
+                  column(
+                    12,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("HPLC"),
+                      downloadButton("download_cmp_hplc", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("cmpHplcPlot", height = "500px"))
+                  )
                 )
               ),
               tabPanel(

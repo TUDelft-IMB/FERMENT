@@ -940,6 +940,45 @@ server <- function(input, output, session) {
     paste0("#", matched$exp_number[match(filenames, matched$filename)])
   })
 
+  # function to export data from multiple experiments tab
+  cmp_sheet_data <- function(sheet_name) {
+    reactive({
+      dfs <- cmp_data_list()
+      labels <- cmp_exp_labels()
+      names(labels) <- names(dfs)
+      
+      exported <- lapply(names(dfs), function(filename) {
+        sheet_data <- dfs[[filename]][[sheet_name]]
+        
+        if (is.null(sheet_data) || nrow(sheet_data) == 0) {
+          return(NULL)
+        }
+        
+        sheet_data <- as.data.frame(sheet_data)
+        sheet_data$Experiment <- labels[[filename]]
+        sheet_data$Source_file <- filename
+        sheet_data
+      })
+      
+      exported <- Filter(Negate(is.null), exported)
+      
+      if (length(exported) == 0) {
+        data.frame()
+      } else {
+        dplyr::bind_rows(exported)
+      }
+    })
+  }
+  
+  # function to generate filename
+  cmp_filename <- function(prefix) {
+    paste0(
+      prefix, "_",
+      format(Sys.time(), "%Y%m%d_%H%M%S"),
+      ".csv"
+    )
+  }
+  
   output$cmp_status <- renderText({
     n <- length(cmp_data_list())
     if (n == 0) {
@@ -974,6 +1013,13 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
 
   # HPLC: one line per compound per experiment, TT1 and TT2 overlaid
+  cmp_hplc_export <- cmp_sheet_data("HPLC")
+  export_plot_data(
+    "download_cmp_hplc",
+    cmp_hplc_export,
+    "compare_hplc",
+    function() cmp_filename("compare_hplc")
+  )
   output$cmpHplcPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_hplc(cmp_data_list(), cmp_exp_labels()))
