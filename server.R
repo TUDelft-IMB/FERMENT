@@ -585,17 +585,30 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
 
   # Helper: export plot data.
-  # To be used by all three tab output plots (only single, so far).
+  # To be used by all three tab output plots (single and multiple, so far).
   # Returns a csv file.
-  export_plot_data <- function(output_id, data_reactive, filename_prefix) {
+  export_plot_data <- function(
+    output_id,
+    data_reactive,
+    filename_prefix,
+    filename_function = NULL
+  ) {
     output[[output_id]] <- downloadHandler(
       filename = function() {
-        exp_name <- if (is.null(input$experiment) || input$experiment == "") {
-          "unknown_experiment"
+        if (is.null(filename_function)) {
+          exp_name <- if (is.null(input$experiment) || input$experiment == "") {
+            "unknown_experiment"
+          } else {
+            tools::file_path_sans_ext(input$experiment)
+          }
+          
+          paste0(
+            filename_prefix, "_", exp_name, "_",
+            format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv"
+          )
         } else {
-          tools::file_path_sans_ext(input$experiment)
+          filename_function()
         }
-        paste0(filename_prefix, "_", exp_name, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
       },
       content = function(file) {
         write.csv(data_reactive(), file, row.names = FALSE)
