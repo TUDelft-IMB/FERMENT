@@ -1026,6 +1026,13 @@ server <- function(input, output, session) {
   })
 
   # GC Esters: one line per compound per experiment, TT1 and TT2 overlaid
+  cmp_gc_esters_export <- cmp_sheet_data("GC_esters")
+  export_plot_data(
+    "download_cmp_gc_esters",
+    cmp_gc_esters_export,
+    "compare_gc_esters",
+    function() cmp_filename("compare_gc_esters")
+  )
   output$cmpGcEstersPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_gc_esters(cmp_data_list(), cmp_exp_labels()))

@@ -522,7 +522,15 @@ ui <- tagList(
               tabPanel(
                 "GC Esters",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("cmpGcEstersPlot", height = "500px")))
+                  column(
+                    12,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("GC Esters"),
+                      downloadButton("download_cmp_gc_esters", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("cmpGcEstersPlot", height = "500px"))
+                  )
                 )
               ),
               tabPanel(
