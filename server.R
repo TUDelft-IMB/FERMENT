@@ -337,7 +337,7 @@ server <- function(input, output, session) {
       group_by(gravity_num) %>%
       summarise(n = n(), .groups = "drop") %>%
       arrange(gravity_num)
-    
+
     gravity_levels <- as.character(gravity_data$gravity_num)
     base_palette <- c(okabe10, polychrome_extra)
     n_lv <- length(gravity_levels)
@@ -347,7 +347,7 @@ server <- function(input, output, session) {
       rep(base_palette, length.out = n_lv)
     }
     fill_map <- setNames(cols, gravity_levels)
-    
+
     p <- ggplot(
       gravity_data,
       aes(x = factor(gravity_num), y = n, fill = factor(gravity_num), text = n)
@@ -360,7 +360,7 @@ server <- function(input, output, session) {
         legend.position = "none",
         panel.grid.major.y = element_line(colour = "gray90")
       )
-    
+
     ggplotly(p, tooltip = "text")
   })
 
@@ -601,7 +601,7 @@ server <- function(input, output, session) {
           } else {
             tools::file_path_sans_ext(input$experiment)
           }
-          
+
           paste0(
             filename_prefix, "_", exp_name, "_",
             format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv"
@@ -615,7 +615,7 @@ server <- function(input, output, session) {
       }
     )
   }
-  
+
   hplc <- reactive({
     req(tt_data())
     tt_data()[["HPLC"]]
@@ -641,10 +641,10 @@ server <- function(input, output, session) {
     tt_data()[["CellCount_Viability"]]
   })
   CO2 <- reactive({
-  req(tt_data())
-  tt_data()[["CO2"]]
+    req(tt_data())
+    tt_data()[["CO2"]]
   })
-  
+
   # ---------------------------------------------------------------------------
   # Step 10: Render single-experiment plots.
   #
@@ -794,21 +794,21 @@ server <- function(input, output, session) {
     dfs <- avg_data_list()
     labels <- avg_exp_labels()
     filenames <- names(dfs)
-    
+
     exported <- lapply(seq_along(dfs), function(i) {
       df <- as.data.frame(dfs[[i]])
       df$Experiment <- labels[i]
       df$Source_file <- filenames[i]
       df
     })
-    
+
     if (length(exported) == 0) {
       data.frame()
     } else {
       dplyr::bind_rows(exported)
     }
   })
-  
+
   avg_filename <- function(prefix) {
     paste0(
       prefix, "_",
@@ -816,7 +816,7 @@ server <- function(input, output, session) {
       ".csv"
     )
   }
-  
+
   # Step 12a: Averages summary table — one row per selected experiment.
   output$avg_summary_table <- renderDT(
     {
@@ -1040,22 +1040,22 @@ server <- function(input, output, session) {
       dfs <- cmp_data_list()
       labels <- cmp_exp_labels()
       names(labels) <- names(dfs)
-      
+
       exported <- lapply(names(dfs), function(filename) {
         sheet_data <- dfs[[filename]][[sheet_name]]
-        
+
         if (is.null(sheet_data) || nrow(sheet_data) == 0) {
           return(NULL)
         }
-        
+
         sheet_data <- as.data.frame(sheet_data)
         sheet_data$Experiment <- labels[[filename]]
         sheet_data$Source_file <- filename
         sheet_data
       })
-      
+
       exported <- Filter(Negate(is.null), exported)
-      
+
       if (length(exported) == 0) {
         data.frame()
       } else {
@@ -1063,7 +1063,7 @@ server <- function(input, output, session) {
       }
     })
   }
-  
+
   # function to generate filename
   cmp_filename <- function(prefix) {
     paste0(
@@ -1072,7 +1072,7 @@ server <- function(input, output, session) {
       ".csv"
     )
   }
-  
+
   output$cmp_status <- renderText({
     n <- length(cmp_data_list())
     if (n == 0) {
@@ -1172,7 +1172,7 @@ server <- function(input, output, session) {
   })
 
   cmp_cell_count_export <- cmp_sheet_data("CellCount_Viability")
-  
+
   # Cell Count: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
   export_plot_data(
     "download_cmp_cell_count",
@@ -1196,7 +1196,7 @@ server <- function(input, output, session) {
     req(cmp_data_list())
     ggplotly(plot_cmp_viability(cmp_data_list(), cmp_exp_labels()))
   })
-  
+
   # CO2: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
   cmp_co2_export <- cmp_sheet_data("CO2")
   export_plot_data(
@@ -1209,12 +1209,12 @@ server <- function(input, output, session) {
     req(cmp_data_list())
     dfs <- cmp_data_list()
     labels <- cmp_exp_labels()
-    
+
     missing_exps <- labels[sapply(dfs, function(d) {
       co2 <- d[["CO2"]]
       is.null(co2) || nrow(co2) == 0
     })]
-    
+
     if (length(missing_exps) > 0) {
       showNotification(
         paste("No CO\u2082 data available for experiment:", paste(missing_exps, collapse = ", ")),
@@ -1222,8 +1222,7 @@ server <- function(input, output, session) {
         duration = 8
       )
     }
-    
+
     ggplotly(plot_cmp_CO2(dfs, labels))
   })
-
 } # end server

@@ -380,7 +380,7 @@ ui <- tagList(
                     spinner(plotlyOutput("CO2Plot", height = "400px"))
                   )
                 )
-              )              
+              )
             ),
 
             # -------------------------------------------------------------------
@@ -850,7 +850,7 @@ ui <- tagList(
                   )
                 )
               )
-            ),  # closes tabsetPanel()
+            ), # closes tabsetPanel()
 
             # -------------------------------------------------------------------
             # Selection summary table — below the graphs.
