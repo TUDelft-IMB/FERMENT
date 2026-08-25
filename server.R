@@ -815,7 +815,7 @@ server <- function(input, output, session) {
       format(Sys.time(), "%Y%m%d_%H%M%S"),
       ".csv"
     )
-  })
+  }
   
   # Step 12a: Averages summary table — one row per selected experiment.
   output$avg_summary_table <- renderDT(
@@ -853,52 +853,112 @@ server <- function(input, output, session) {
   })
 
   # GC Esters: stacked bar charts — ethyl esters and acetate esters
+  export_plot_data(
+    "download_avg_ethyl_esters",
+    avg_sheet_data,
+    "averages_ethyl_esters",
+    function() avg_filename("averages_ethyl_esters")
+  )
   output$avgEthylEstersBarPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_ethyl_esters_bar(avg_data_list(), avg_exp_labels()))
   })
+  export_plot_data(
+    "download_avg_acetate_esters",
+    avg_sheet_data,
+    "averages_acetate_esters",
+    function() avg_filename("averages_acetate_esters")
+  )
   output$avgAcetateEstersBarPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_acetate_esters_bar(avg_data_list(), avg_exp_labels()))
   })
 
   # Higher Alcohols: stacked bar chart
+  export_plot_data(
+    "download_avg_higher_alcohols",
+    avg_sheet_data,
+    "averages_higher_alcohols",
+    function() avg_filename("averages_higher_alcohols")
+  )
   output$avgHigherAlcoholsBarPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_higher_alcohols_bar(avg_data_list(), avg_exp_labels()))
   })
 
   # Vicinal Diketones: diacetyl and 2,3-pentanedione over time
+  export_plot_data(
+    "download_avg_diketones",
+    avg_sheet_data,
+    "averages_diketones",
+    function() avg_filename("averages_diketones")
+  )
   output$avgDiketonesPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_diketones(avg_data_list(), avg_exp_labels()))
   })
 
   # GC Ratio plot
+  export_plot_data(
+    "download_avg_gc_ratio",
+    avg_sheet_data,
+    "averages_gc_ratio",
+    function() avg_filename("averages_gc_ratio")
+  )
   output$avg_gc_ratio_plot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_gc_ratio_bar(avg_data_list(), avg_exp_labels()))
   })
 
   # Attenuation, pH, Cell Count, Viability: one line per experiment
+  export_plot_data(
+    "download_avg_attenuation",
+    avg_sheet_data,
+    "averages_attenuation",
+    function() avg_filename("averages_attenuation")
+  )
   output$avgAttenuationPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_attenuation(avg_data_list(), avg_exp_labels()))
   })
+  export_plot_data(
+    "download_avg_ph",
+    avg_sheet_data,
+    "averages_ph",
+    function() avg_filename("averages_ph")
+  )
   output$avgPhPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_ph(avg_data_list(), avg_exp_labels()))
   })
+  export_plot_data(
+    "download_avg_cell_count",
+    avg_sheet_data,
+    "averages_cell_count",
+    function() avg_filename("averages_cell_count")
+  )
   output$avgCellCountPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_cell_count(avg_data_list(), avg_exp_labels()))
   })
+  export_plot_data(
+    "download_avg_viability",
+    avg_sheet_data,
+    "averages_viability",
+    function() avg_filename("averages_viability")
+  )
   output$avgViabilityPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_viability(avg_data_list(), avg_exp_labels()))
   })
 
   # Cone Viability: one bar per experiment with error bars
+  export_plot_data(
+    "download_avg_cone_viability",
+    avg_sheet_data,
+    "averages_cone_viability",
+    function() avg_filename("averages_cone_viability")
+  )
   output$avgConeViabilityPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_cone_viability(avg_data_list(), avg_exp_labels()))
