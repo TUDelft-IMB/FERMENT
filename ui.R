@@ -704,7 +704,15 @@ ui <- tagList(
               tabPanel(
                 "Sugars & Ethanol",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("avgHplcPlot", height = "450px")))
+                  column(
+                    12,
+                    div(
+                      style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;",
+                      span("Sugars & Ethanol"),
+                      downloadButton("download_avg_hplc", "Export CSV")
+                    ),
+                    spinner(plotlyOutput("avgHplcPlot", height = "450px"))
+                  )
                 )
               ),
               tabPanel(

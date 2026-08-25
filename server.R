@@ -789,6 +789,34 @@ server <- function(input, output, session) {
     paste0("#", matched$exp_number[match(filenames, matched$filename)])
   })
 
+  # Averaged data export helper
+  avg_sheet_data <- reactive({
+    dfs <- avg_data_list()
+    labels <- avg_exp_labels()
+    filenames <- names(dfs)
+    
+    exported <- lapply(seq_along(dfs), function(i) {
+      df <- as.data.frame(dfs[[i]])
+      df$Experiment <- labels[i]
+      df$Source_file <- filenames[i]
+      df
+    })
+    
+    if (length(exported) == 0) {
+      data.frame()
+    } else {
+      dplyr::bind_rows(exported)
+    }
+  })
+  
+  avg_filename <- function(prefix) {
+    paste0(
+      prefix, "_",
+      format(Sys.time(), "%Y%m%d_%H%M%S"),
+      ".csv"
+    )
+  })
+  
   # Step 12a: Averages summary table — one row per selected experiment.
   output$avg_summary_table <- renderDT(
     {
@@ -813,6 +841,12 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
 
   # Sugars & Ethanol: one line per compound per experiment
+  export_plot_data(
+    "download_avg_hplc",
+    avg_sheet_data,
+    "averages_hplc",
+    function() avg_filename("averages_hplc")
+  )
   output$avgHplcPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_hplc(avg_data_list(), avg_exp_labels()))
