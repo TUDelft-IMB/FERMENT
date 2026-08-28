@@ -611,7 +611,9 @@ server <- function(input, output, session) {
         }
       },
       content = function(file) {
-        write.csv(data_reactive(), file, row.names = FALSE)
+        data <- data_reactive()
+        validate(need(!is.null(data) && nrow(data) > 0, "No data available for export"))
+        write.csv(data, file, row.names = FALSE)
       }
     )
   }
