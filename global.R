@@ -463,6 +463,41 @@ plot_CO2 <- function(CO2) {
 # =============================================================================
 # 6. PLOT FUNCTIONS — AVERAGES
 # =============================================================================
+
+# prep helpers
+
+prepare_avg_line_data <- function(df_list, exp_labels,
+                                  avg_cols, sd_cols,
+                                  comp_labels) {
+  plot_data <- dplyr::bind_rows(lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    
+    dplyr::bind_rows(lapply(seq_along(avg_cols), function(i) {
+      avg_col <- avg_cols[i]
+      sd_col <- sd_cols[i]
+      
+      data.frame(
+        time = df[["Time (h)"]],
+        value = if (avg_col %in% names(df)) {
+          as.numeric(df[[avg_col]])
+        } else {
+          NA_real_
+        },
+        sd = if (sd_col %in% names(df)) {
+          as.numeric(df[[sd_col]])
+        } else {
+          NA_real_
+        },
+        compound = comp_labels[i],
+        experiment = exp_labels[e],
+        stringsAsFactors = FALSE
+      )
+    }))
+  }))
+  
+  plot_data[!is.na(plot_data$value), , drop = FALSE]
+}
+
 # Each function accepts:
 #   df_list    : named list of data frames, one per selected experiment
 #   exp_labels : character vector of "Experiment #N" labels, same length
@@ -491,36 +526,14 @@ plot_CO2 <- function(CO2) {
 # y_label     : y-axis label
 # y_limits    : optional c(min, max) to fix the y-axis range
 # -----------------------------------------------------------------------------
-plot_averages <- function(df_list, exp_labels,
-                          avg_cols, sd_cols,
+plot_averages <- function(plot_data, exp_labels,
                           comp_colours, comp_labels,
                           title = "", y_label = "", y_limits = NULL) {
-  # Named vectors for the two scales — names are display labels, values are
-  # the visual encoding. Built from section 4 vectors passed as arguments.
-  linetypes <- exp_linetypes_palette[seq_along(df_list)]
+  linetypes <- exp_linetypes_palette[seq_along(exp_labels)]
+  
   colour_map <- setNames(comp_colours, comp_labels)
   linetype_map <- setNames(linetypes, exp_labels)
-
-  # Stack all experiments and compounds into one long data frame.
-  # 'compound' and 'experiment' columns hold display labels so they map
-  # directly into aes(colour = compound, linetype = experiment).
-  plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
-    df <- df_list[[e]]
-    do.call(rbind, lapply(seq_along(avg_cols), function(i) {
-      avg_col <- avg_cols[i]
-      sd_col <- if (!is.null(sd_cols)) sd_cols[i] else NA_character_
-      data.frame(
-        time = df[["Time (h)"]],
-        value = if (avg_col %in% names(df)) as.numeric(df[[avg_col]]) else NA_real_,
-        sd = if (!is.na(sd_col) && sd_col %in% names(df)) as.numeric(df[[sd_col]]) else NA_real_,
-        compound = comp_labels[i], # colour aesthetic key
-        experiment = exp_labels[e], # linetype aesthetic key
-        stringsAsFactors = FALSE
-      )
-    }))
-  }))
-  plot_data <- plot_data[!is.na(plot_data$value), ]
-
+  
   p <- ggplot(
     plot_data,
     aes(
@@ -533,14 +546,21 @@ plot_averages <- function(df_list, exp_labels,
   ) +
     geom_line() +
     geom_point() +
-    geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
+    geom_errorbar(
+      aes(ymin = value - sd, ymax = value + sd),
+      width = 3,
+      na.rm = TRUE
+    ) +
     scale_colour_manual(name = "Compound", values = colour_map) +
     scale_linetype_manual(name = "Experiment", values = linetype_map) +
     labs(title = title, x = "Time (h)", y = y_label) +
     theme_minimal() +
     theme(legend.position = "right")
-
-  if (!is.null(y_limits)) p <- p + scale_y_continuous(limits = y_limits)
+  
+  if (!is.null(y_limits)) {
+    p <- p + scale_y_continuous(limits = y_limits)
+  }
+  
   p
 }
 
