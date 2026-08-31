@@ -798,121 +798,121 @@ server <- function(input, output, session) {
       ".csv"
     )
   }
-  
+
   avg_hplc_export <- reactive({
     dfs <- avg_data_list()
     req(length(dfs) > 0)
-    
+
     prepare_avg_hplc(
       df_list = dfs,
       exp_labels = avg_exp_labels(),
       experiment_names = names(dfs)
     )
   })
-  
+
   avg_attenuation_export <- reactive({
     dfs <- avg_data_list()
     req(length(dfs) > 0)
-    
+
     prepare_avg_attenuation(
       df_list = dfs,
       exp_labels = avg_exp_labels(),
       experiment_names = names(dfs)
     )
   })
-  
+
   avg_ph_export <- reactive({
     dfs <- avg_data_list()
     req(length(dfs) > 0)
-    
+
     prepare_avg_ph(
       df_list = dfs,
       exp_labels = avg_exp_labels(),
       experiment_names = names(dfs)
     )
   })
-  
+
   avg_cell_count_export <- reactive({
     dfs <- avg_data_list()
     req(length(dfs) > 0)
-    
+
     prepare_avg_cell_count(
       df_list = dfs,
       exp_labels = avg_exp_labels(),
       experiment_names = names(dfs)
     )
   })
-  
+
   avg_viability_export <- reactive({
     dfs <- avg_data_list()
     req(length(dfs) > 0)
-    
+
     prepare_avg_viability(
       df_list = dfs,
       exp_labels = avg_exp_labels(),
       experiment_names = names(dfs)
     )
   })
-  
+
   avg_ethyl_esters_export <- reactive({
     dfs <- avg_data_list()
     req(length(dfs) > 0)
-    
+
     prepare_avg_ethyl_esters(
       df_list = dfs,
       exp_labels = avg_exp_labels(),
       experiment_names = names(dfs)
     )
   })
-  
+
   avg_acetate_esters_export <- reactive({
     dfs <- avg_data_list()
     req(length(dfs) > 0)
-    
+
     prepare_avg_acetate_esters(
       df_list = dfs,
       exp_labels = avg_exp_labels(),
       experiment_names = names(dfs)
     )
   })
-  
+
   avg_higher_alcohols_export <- reactive({
     dfs <- avg_data_list()
     req(length(dfs) > 0)
-    
+
     prepare_avg_higher_alcohols(
       df_list = dfs,
       exp_labels = avg_exp_labels(),
       experiment_names = names(dfs)
     )
   })
-  
+
   avg_diketones_export <- reactive({
     dfs <- avg_data_list()
     req(length(dfs) > 0)
-    
+
     prepare_avg_diketones(
       df_list = dfs,
       exp_labels = avg_exp_labels(),
       experiment_names = names(dfs)
     )
   })
-  
+
   avg_gc_ratio_export <- reactive({
     dfs <- avg_data_list()
     req(length(dfs) > 0)
-    
+
     prepare_avg_gc_ratio(
       df_list = dfs,
       exp_labels = avg_exp_labels(),
       experiment_names = names(dfs)
     )
   })
-  
+
   avg_cone_viability_export <- reactive({
     dfs <- avg_data_list()
     req(length(dfs) > 0)
-    
+
     prepare_avg_cone_viability(
       df_list = dfs,
       exp_labels = avg_exp_labels(),
@@ -966,7 +966,7 @@ server <- function(input, output, session) {
     req(avg_data_list())
     ggplotly(plot_avg_ethyl_esters_bar(avg_data_list(), avg_exp_labels()))
   })
-  
+
   export_plot_data(
     "download_avg_acetate_esters",
     avg_acetate_esters_export,
@@ -1025,7 +1025,7 @@ server <- function(input, output, session) {
     req(avg_data_list())
     ggplotly(plot_avg_attenuation(avg_data_list(), avg_exp_labels()))
   })
-  
+
   export_plot_data(
     "download_avg_ph",
     avg_ph_export,
@@ -1036,7 +1036,7 @@ server <- function(input, output, session) {
     req(avg_data_list())
     ggplotly(plot_avg_ph(avg_data_list(), avg_exp_labels()))
   })
-  
+
   export_plot_data(
     "download_avg_cell_count",
     avg_cell_count_export,
@@ -1047,7 +1047,7 @@ server <- function(input, output, session) {
     req(avg_data_list())
     ggplotly(plot_avg_cell_count(avg_data_list(), avg_exp_labels()))
   })
-  
+
   export_plot_data(
     "download_avg_viability",
     avg_viability_export,

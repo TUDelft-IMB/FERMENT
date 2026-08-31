@@ -471,11 +471,11 @@ prepare_avg_line_data <- function(df_list, exp_labels,
                                   comp_labels) {
   plot_data <- dplyr::bind_rows(lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
-    
+
     dplyr::bind_rows(lapply(seq_along(avg_cols), function(i) {
       avg_col <- avg_cols[i]
       sd_col <- sd_cols[i]
-      
+
       data.frame(
         time = df[["Time (h)"]],
         value = if (avg_col %in% names(df)) {
@@ -494,7 +494,7 @@ prepare_avg_line_data <- function(df_list, exp_labels,
       )
     }))
   }))
-  
+
   plot_data[!is.na(plot_data$value), , drop = FALSE]
 }
 
@@ -528,7 +528,7 @@ prepare_avg_single_series <- function(df_list, exp_labels, experiment_names,
                                       avg_col, sd_col) {
   plot_data <- dplyr::bind_rows(lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
-    
+
     data.frame(
       time = df[["Time (h)"]],
       value = if (avg_col %in% names(df)) {
@@ -545,7 +545,7 @@ prepare_avg_single_series <- function(df_list, exp_labels, experiment_names,
       stringsAsFactors = FALSE
     )
   }))
-  
+
   plot_data[!is.na(plot_data$value), , drop = FALSE]
 }
 
@@ -593,11 +593,11 @@ prepare_avg_stacked_bar <- function(df_list, exp_labels, experiment_names,
                                     avg_cols, comp_labels) {
   bar_data <- dplyr::bind_rows(lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
-    
+
     dplyr::bind_rows(lapply(seq_along(avg_cols), function(i) {
       vals <- as.numeric(df[[avg_cols[i]]])
       last_val <- if (any(!is.na(vals))) tail(vals[!is.na(vals)], 1) else NA_real_
-      
+
       data.frame(
         experiment = experiment_names[e],
         compound = comp_labels[i],
@@ -606,7 +606,7 @@ prepare_avg_stacked_bar <- function(df_list, exp_labels, experiment_names,
       )
     }))
   }))
-  
+
   bar_data[!is.na(bar_data$value), , drop = FALSE]
 }
 
@@ -653,21 +653,21 @@ prepare_avg_gc_ratio <- function(df_list, exp_labels, experiment_names = exp_lab
     df <- df_list[[e]]
     vals <- as.numeric(df[["Ratio_Ethylacetate_isoamyl_acetate"]])
     last_val <- if (any(!is.na(vals))) tail(vals[!is.na(vals)], 1) else NA_real_
-    
+
     data.frame(
       experiment = experiment_names[e],
       value = last_val,
       stringsAsFactors = FALSE
     )
   }))
-  
+
   bar_data[!is.na(bar_data$value), , drop = FALSE]
 }
 
 prepare_avg_cone_viability <- function(df_list, exp_labels, experiment_names = exp_labels) {
   bar_data <- dplyr::bind_rows(lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
-    
+
     data.frame(
       experiment = experiment_names[e],
       value = as.numeric(df[["Cone_viability_average"]][1]),
@@ -675,7 +675,7 @@ prepare_avg_cone_viability <- function(df_list, exp_labels, experiment_names = e
       stringsAsFactors = FALSE
     )
   }))
-  
+
   bar_data[!is.na(bar_data$value), , drop = FALSE]
 }
 
@@ -711,10 +711,10 @@ plot_averages <- function(plot_data, exp_labels,
                           comp_colours, comp_labels,
                           title = "", y_label = "", y_limits = NULL) {
   linetypes <- exp_linetypes_palette[seq_along(exp_labels)]
-  
+
   colour_map <- setNames(comp_colours, comp_labels)
   linetype_map <- setNames(linetypes, exp_labels)
-  
+
   p <- ggplot(
     plot_data,
     aes(
@@ -737,11 +737,11 @@ plot_averages <- function(plot_data, exp_labels,
     labs(title = title, x = "Time (h)", y = y_label) +
     theme_minimal() +
     theme(legend.position = "right")
-  
+
   if (!is.null(y_limits)) {
     p <- p + scale_y_continuous(limits = y_limits)
   }
-  
+
   p
 }
 
@@ -850,7 +850,7 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
 # Sugars & Ethanol: uses hplc_avg_labels (plain names) and hplc_colours
 plot_avg_hplc <- function(df_list, exp_labels) {
   plot_data <- prepare_avg_hplc(df_list, exp_labels)
-  
+
   plot_averages(
     plot_data = plot_data,
     exp_labels = exp_labels,
@@ -864,7 +864,7 @@ plot_avg_hplc <- function(df_list, exp_labels) {
 # Vicinal Diketones: uses gc_ketone_labels and gc_ketone_colours
 plot_avg_diketones <- function(df_list, exp_labels) {
   plot_data <- prepare_avg_diketones(df_list, exp_labels)
-  
+
   plot_averages(
     plot_data = plot_data,
     exp_labels = exp_labels,
@@ -1301,7 +1301,7 @@ plot_cmp_viability <- function(df_list, exp_labels) {
 
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["CellCount_Viability"]]
-    
+
     do.call(rbind, lapply(names(tube_cols), function(tube_label) {
       col <- tube_cols[[tube_label]]
       data.frame(
@@ -1345,19 +1345,19 @@ plot_cmp_CO2 <- function(df_list, exp_labels) {
   tube_cols <- c("TT1", "TT2")
   tube_lty <- c("TT1" = "solid", "TT2" = "solid")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
-  
+
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["CO2"]]
-    
+
     # Guard: skip this experiment if the sheet is missing, empty, or
     # missing the time column — returning NULL makes do.call(rbind, ...)
     # drop it cleanly instead of erroring on mismatched row counts.
     if (is.null(df) || nrow(df) == 0 || !("Time (days)" %in% names(df))) {
       return(NULL)
     }
-    
+
     time_h <- as.numeric(df[["Time (days)"]]) * 24
-    
+
     do.call(rbind, lapply(tube_cols, function(tc) {
       data.frame(
         time = time_h,
@@ -1370,16 +1370,17 @@ plot_cmp_CO2 <- function(df_list, exp_labels) {
       )
     }))
   }))
-  
+
   if (is.null(plot_data) || nrow(plot_data) == 0) {
     return(
-      ggplot() + theme_minimal() +
+      ggplot() +
+        theme_minimal() +
         labs(title = "CO\u2082 production", x = "Time (h)", y = "CO\u2082 (ml/min)")
     )
   }
-  
+
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
+
   ggplot(
     plot_data,
     aes(
@@ -1390,7 +1391,7 @@ plot_cmp_CO2 <- function(df_list, exp_labels) {
     )
   ) +
     geom_line() +
-#    geom_point() +
+    #    geom_point() +
     scale_colour_manual(name = "Experiment", values = colour_map) +
     scale_linetype_manual(name = "TT", values = tube_lty) +
     labs(title = "CO\u2082 production", x = "Time (h)", y = "CO\u2082 (ml/min)") +
