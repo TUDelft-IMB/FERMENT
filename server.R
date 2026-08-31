@@ -840,6 +840,39 @@ server <- function(input, output, session) {
       experiment_names = names(dfs)
     )
   })
+  
+  avg_ph_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+    
+    prepare_avg_ph(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+  
+  avg_cell_count_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+    
+    prepare_avg_cell_count(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+  
+  avg_viability_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+    
+    prepare_avg_viability(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
 
   # Step 12a: Averages summary table — one row per selected experiment.
   output$avg_summary_table <- renderDT(
@@ -948,7 +981,7 @@ server <- function(input, output, session) {
   
   export_plot_data(
     "download_avg_ph",
-    avg_sheet_data,
+    avg_ph_export,
     "averages_ph",
     function() avg_filename("averages_ph")
   )
@@ -956,9 +989,10 @@ server <- function(input, output, session) {
     req(avg_data_list())
     ggplotly(plot_avg_ph(avg_data_list(), avg_exp_labels()))
   })
+  
   export_plot_data(
     "download_avg_cell_count",
-    avg_sheet_data,
+    avg_cell_count_export,
     "averages_cell_count",
     function() avg_filename("averages_cell_count")
   )
@@ -966,9 +1000,10 @@ server <- function(input, output, session) {
     req(avg_data_list())
     ggplotly(plot_avg_cell_count(avg_data_list(), avg_exp_labels()))
   })
+  
   export_plot_data(
     "download_avg_viability",
-    avg_sheet_data,
+    avg_viability_export,
     "averages_viability",
     function() avg_filename("averages_viability")
   )

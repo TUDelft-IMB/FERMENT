@@ -559,6 +559,36 @@ prepare_avg_attenuation <- function(df_list, exp_labels, experiment_names = exp_
   )
 }
 
+prepare_avg_ph <- function(df_list, exp_labels, experiment_names = exp_labels) {
+  prepare_avg_single_series(
+    df_list = df_list,
+    exp_labels = exp_labels,
+    experiment_names = experiment_names,
+    avg_col = "pH_average",
+    sd_col = "pH_stdev"
+  )
+}
+
+prepare_avg_cell_count <- function(df_list, exp_labels, experiment_names = exp_labels) {
+  prepare_avg_single_series(
+    df_list = df_list,
+    exp_labels = exp_labels,
+    experiment_names = experiment_names,
+    avg_col = "CellCount_average",
+    sd_col = "CellCount_stdev"
+  )
+}
+
+prepare_avg_viability <- function(df_list, exp_labels, experiment_names = exp_labels) {
+  prepare_avg_single_series(
+    df_list = df_list,
+    exp_labels = exp_labels,
+    experiment_names = experiment_names,
+    avg_col = "Viability_average",
+    sd_col = "Viability_stdev"
+  )
+}
+
 # Each function accepts:
 #   df_list    : named list of data frames, one per selected experiment
 #   exp_labels : character vector of "Experiment #N" labels, same length
