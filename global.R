@@ -498,6 +498,67 @@ prepare_avg_line_data <- function(df_list, exp_labels,
   plot_data[!is.na(plot_data$value), , drop = FALSE]
 }
 
+prepare_avg_hplc <- function(df_list, exp_labels, experiment_names = exp_labels) {
+  prepare_avg_line_data(
+    df_list = df_list,
+    exp_labels = experiment_names,
+    avg_cols = c(
+      "Maltotriose_avg", "Maltose_avg", "Glucose_avg",
+      "Fructose_avg", "Glycerol_avg", "Ethanol_avg"
+    ),
+    sd_cols = c(
+      "Maltotriose_stdev", "Maltose_stdev", "Glucose_stdev",
+      "Fructose_stdev", "Glycerol_stdev", "Ethanol_stdev"
+    ),
+    comp_labels = hplc_avg_labels
+  )
+}
+
+prepare_avg_attenuation <- function(df_list, exp_labels, experiment_names = exp_labels) {
+  prepare_avg_line_data(
+    df_list = df_list,
+    exp_labels = experiment_names,
+    avg_cols = c("Attenuation_average"),
+    sd_cols = c("Attenuation_stdev"),
+    comp_labels = c("Attenuation")
+  )
+}
+
+prepare_avg_single_series <- function(df_list, exp_labels, experiment_names,
+                                      avg_col, sd_col) {
+  plot_data <- dplyr::bind_rows(lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    
+    data.frame(
+      time = df[["Time (h)"]],
+      value = if (avg_col %in% names(df)) {
+        as.numeric(df[[avg_col]])
+      } else {
+        NA_real_
+      },
+      sd = if (sd_col %in% names(df)) {
+        as.numeric(df[[sd_col]])
+      } else {
+        NA_real_
+      },
+      experiment = experiment_names[e],
+      stringsAsFactors = FALSE
+    )
+  }))
+  
+  plot_data[!is.na(plot_data$value), , drop = FALSE]
+}
+
+prepare_avg_attenuation <- function(df_list, exp_labels, experiment_names = exp_labels) {
+  prepare_avg_single_series(
+    df_list = df_list,
+    exp_labels = exp_labels,
+    experiment_names = experiment_names,
+    avg_col = "Attenuation_average",
+    sd_col = "Attenuation_stdev"
+  )
+}
+
 # Each function accepts:
 #   df_list    : named list of data frames, one per selected experiment
 #   exp_labels : character vector of "Experiment #N" labels, same length
@@ -668,17 +729,13 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
 
 # Sugars & Ethanol: uses hplc_avg_labels (plain names) and hplc_colours
 plot_avg_hplc <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols = c(
-      "Maltotriose_avg", "Maltose_avg", "Glucose_avg",
-      "Fructose_avg", "Glycerol_avg", "Ethanol_avg"
-    ),
-    sd_cols = c(
-      "Maltotriose_stdev", "Maltose_stdev", "Glucose_stdev",
-      "Fructose_stdev", "Glycerol_stdev", "Ethanol_stdev"
-    ),
+  plot_data <- prepare_avg_hplc(df_list, exp_labels)
+  
+  plot_averages(
+    plot_data = plot_data,
+    exp_labels = exp_labels,
     comp_colours = hplc_colours,
-    comp_labels = hplc_avg_labels, # plain names (no unit suffix)
+    comp_labels = hplc_avg_labels,
     title = "Sugars & Ethanol",
     y_label = "Concentration (g/L)"
   )

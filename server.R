@@ -818,6 +818,28 @@ server <- function(input, output, session) {
       ".csv"
     )
   }
+  
+  avg_hplc_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+    
+    prepare_avg_hplc(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+  
+  avg_attenuation_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+    
+    prepare_avg_attenuation(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
 
   # Step 12a: Averages summary table — one row per selected experiment.
   output$avg_summary_table <- renderDT(
@@ -845,7 +867,7 @@ server <- function(input, output, session) {
   # Sugars & Ethanol: one line per compound per experiment
   export_plot_data(
     "download_avg_hplc",
-    avg_sheet_data,
+    avg_hplc_export,
     "averages_hplc",
     function() avg_filename("averages_hplc")
   )
@@ -915,7 +937,7 @@ server <- function(input, output, session) {
   # Attenuation, pH, Cell Count, Viability: one line per experiment
   export_plot_data(
     "download_avg_attenuation",
-    avg_sheet_data,
+    avg_attenuation_export,
     "averages_attenuation",
     function() avg_filename("averages_attenuation")
   )
@@ -923,6 +945,7 @@ server <- function(input, output, session) {
     req(avg_data_list())
     ggplotly(plot_avg_attenuation(avg_data_list(), avg_exp_labels()))
   })
+  
   export_plot_data(
     "download_avg_ph",
     avg_sheet_data,
