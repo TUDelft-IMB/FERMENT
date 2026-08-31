@@ -589,6 +589,40 @@ prepare_avg_viability <- function(df_list, exp_labels, experiment_names = exp_la
   )
 }
 
+prepare_avg_stacked_bar <- function(df_list, exp_labels, experiment_names,
+                                    avg_cols, comp_labels) {
+  bar_data <- dplyr::bind_rows(lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    
+    dplyr::bind_rows(lapply(seq_along(avg_cols), function(i) {
+      vals <- as.numeric(df[[avg_cols[i]]])
+      last_val <- if (any(!is.na(vals))) tail(vals[!is.na(vals)], 1) else NA_real_
+      
+      data.frame(
+        experiment = experiment_names[e],
+        compound = comp_labels[i],
+        value = last_val,
+        stringsAsFactors = FALSE
+      )
+    }))
+  }))
+  
+  bar_data[!is.na(bar_data$value), , drop = FALSE]
+}
+
+prepare_avg_ethyl_esters <- function(df_list, exp_labels, experiment_names = exp_labels) {
+  prepare_avg_stacked_bar(
+    df_list = df_list,
+    exp_labels = exp_labels,
+    experiment_names = experiment_names,
+    avg_cols = c(
+      "Ethyl_butyrate_avg_normalized", "Ethyl_hexanoate_avg_normalized",
+      "Ethyl_octanoate_avg_normalized", "Ethyl_decanoate_avg_normalized"
+    ),
+    comp_labels = ethyl_ester_labels
+  )
+}
+
 # Each function accepts:
 #   df_list    : named list of data frames, one per selected experiment
 #   exp_labels : character vector of "Experiment #N" labels, same length

@@ -873,6 +873,17 @@ server <- function(input, output, session) {
       experiment_names = names(dfs)
     )
   })
+  
+  avg_ethyl_esters_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+    
+    prepare_avg_ethyl_esters(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
 
   # Step 12a: Averages summary table — one row per selected experiment.
   output$avg_summary_table <- renderDT(
@@ -912,7 +923,7 @@ server <- function(input, output, session) {
   # GC Esters: stacked bar charts — ethyl esters and acetate esters
   export_plot_data(
     "download_avg_ethyl_esters",
-    avg_sheet_data,
+    avg_ethyl_esters_export,
     "averages_ethyl_esters",
     function() avg_filename("averages_ethyl_esters")
   )
@@ -920,6 +931,7 @@ server <- function(input, output, session) {
     req(avg_data_list())
     ggplotly(plot_avg_ethyl_esters_bar(avg_data_list(), avg_exp_labels()))
   })
+  
   export_plot_data(
     "download_avg_acetate_esters",
     avg_sheet_data,
