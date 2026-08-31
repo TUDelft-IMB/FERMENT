@@ -791,26 +791,6 @@ server <- function(input, output, session) {
     paste0("#", matched$exp_number[match(filenames, matched$filename)])
   })
 
-  # Averaged data export helper
-  avg_sheet_data <- reactive({
-    dfs <- avg_data_list()
-    labels <- avg_exp_labels()
-    filenames <- names(dfs)
-
-    exported <- lapply(seq_along(dfs), function(i) {
-      df <- as.data.frame(dfs[[i]])
-      df$Experiment <- labels[i]
-      df$Source_file <- filenames[i]
-      df
-    })
-
-    if (length(exported) == 0) {
-      data.frame()
-    } else {
-      dplyr::bind_rows(exported)
-    }
-  })
-
   avg_filename <- function(prefix) {
     paste0(
       prefix, "_",
