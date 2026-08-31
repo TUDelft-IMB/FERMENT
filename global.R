@@ -514,13 +514,13 @@ prepare_avg_hplc <- function(df_list, exp_labels, experiment_names = exp_labels)
   )
 }
 
-prepare_avg_attenuation <- function(df_list, exp_labels, experiment_names = exp_labels) {
+prepare_avg_diketones <- function(df_list, exp_labels, experiment_names = exp_labels) {
   prepare_avg_line_data(
     df_list = df_list,
     exp_labels = experiment_names,
-    avg_cols = c("Attenuation_average"),
-    sd_cols = c("Attenuation_stdev"),
-    comp_labels = c("Attenuation")
+    avg_cols = c("Diacetyl_avg", "2,3-pentanedione_avg"),
+    sd_cols = c("Diacetyl_stdev", "2,3-pentanedione_stdev"),
+    comp_labels = gc_ketone_labels
   )
 }
 
@@ -863,13 +863,15 @@ plot_avg_hplc <- function(df_list, exp_labels) {
 
 # Vicinal Diketones: uses gc_ketone_labels and gc_ketone_colours
 plot_avg_diketones <- function(df_list, exp_labels) {
-  plot_averages(df_list, exp_labels,
-    avg_cols     = c("Diacetyl_avg", "2,3-pentanedione_avg"),
-    sd_cols      = c("Diacetyl_stdev", "2,3-pentanedione_stdev"),
+  plot_data <- prepare_avg_diketones(df_list, exp_labels)
+  
+  plot_averages(
+    plot_data = plot_data,
+    exp_labels = exp_labels,
     comp_colours = gc_ketone_colours,
-    comp_labels  = gc_ketone_labels,
-    title        = "Vicinal Diketones",
-    y_label      = "Concentration (mg/L)"
+    comp_labels = gc_ketone_labels,
+    title = "Vicinal Diketones",
+    y_label = "Concentration (mg/L)"
   )
 }
 

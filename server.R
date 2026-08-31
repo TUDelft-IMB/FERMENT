@@ -907,6 +907,17 @@ server <- function(input, output, session) {
     )
   })
   
+  avg_diketones_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+    
+    prepare_avg_diketones(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+  
   avg_gc_ratio_export <- reactive({
     dfs <- avg_data_list()
     req(length(dfs) > 0)
@@ -1002,7 +1013,7 @@ server <- function(input, output, session) {
   # Vicinal Diketones: diacetyl and 2,3-pentanedione over time
   export_plot_data(
     "download_avg_diketones",
-    avg_sheet_data,
+    avg_diketones_export,
     "averages_diketones",
     function() avg_filename("averages_diketones")
   )
