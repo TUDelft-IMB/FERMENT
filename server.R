@@ -884,6 +884,50 @@ server <- function(input, output, session) {
       experiment_names = names(dfs)
     )
   })
+  
+  avg_acetate_esters_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+    
+    prepare_avg_acetate_esters(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+  
+  avg_higher_alcohols_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+    
+    prepare_avg_higher_alcohols(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+  
+  avg_gc_ratio_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+    
+    prepare_avg_gc_ratio(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+  
+  avg_cone_viability_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+    
+    prepare_avg_cone_viability(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
 
   # Step 12a: Averages summary table — one row per selected experiment.
   output$avg_summary_table <- renderDT(
@@ -934,7 +978,7 @@ server <- function(input, output, session) {
   
   export_plot_data(
     "download_avg_acetate_esters",
-    avg_sheet_data,
+    avg_acetate_esters_export,
     "averages_acetate_esters",
     function() avg_filename("averages_acetate_esters")
   )
@@ -946,7 +990,7 @@ server <- function(input, output, session) {
   # Higher Alcohols: stacked bar chart
   export_plot_data(
     "download_avg_higher_alcohols",
-    avg_sheet_data,
+    avg_higher_alcohols_export,
     "averages_higher_alcohols",
     function() avg_filename("averages_higher_alcohols")
   )
@@ -970,7 +1014,7 @@ server <- function(input, output, session) {
   # GC Ratio plot
   export_plot_data(
     "download_avg_gc_ratio",
-    avg_sheet_data,
+    avg_gc_ratio_export,
     "averages_gc_ratio",
     function() avg_filename("averages_gc_ratio")
   )
@@ -1027,7 +1071,7 @@ server <- function(input, output, session) {
   # Cone Viability: one bar per experiment with error bars
   export_plot_data(
     "download_avg_cone_viability",
-    avg_sheet_data,
+    avg_cone_viability_export,
     "averages_cone_viability",
     function() avg_filename("averages_cone_viability")
   )

@@ -623,6 +623,62 @@ prepare_avg_ethyl_esters <- function(df_list, exp_labels, experiment_names = exp
   )
 }
 
+prepare_avg_acetate_esters <- function(df_list, exp_labels, experiment_names = exp_labels) {
+  prepare_avg_stacked_bar(
+    df_list = df_list,
+    exp_labels = exp_labels,
+    experiment_names = experiment_names,
+    avg_cols = c(
+      "Ethyl_acetate_avg_normalized", "Isobutyl_acetate_avg_normalized",
+      "Isoamyl_acetate_avg_normalized"
+    ),
+    comp_labels = acetate_labels
+  )
+}
+
+prepare_avg_higher_alcohols <- function(df_list, exp_labels, experiment_names = exp_labels) {
+  prepare_avg_stacked_bar(
+    df_list = df_list,
+    exp_labels = exp_labels,
+    experiment_names = experiment_names,
+    avg_cols = c(
+      "Isobutanol_avg_normalized", "Isoamyl_alcohol_avg_normalized"
+    ),
+    comp_labels = alcohol_labels
+  )
+}
+
+prepare_avg_gc_ratio <- function(df_list, exp_labels, experiment_names = exp_labels) {
+  bar_data <- dplyr::bind_rows(lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    vals <- as.numeric(df[["Ratio_Ethylacetate_isoamyl_acetate"]])
+    last_val <- if (any(!is.na(vals))) tail(vals[!is.na(vals)], 1) else NA_real_
+    
+    data.frame(
+      experiment = experiment_names[e],
+      value = last_val,
+      stringsAsFactors = FALSE
+    )
+  }))
+  
+  bar_data[!is.na(bar_data$value), , drop = FALSE]
+}
+
+prepare_avg_cone_viability <- function(df_list, exp_labels, experiment_names = exp_labels) {
+  bar_data <- dplyr::bind_rows(lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    
+    data.frame(
+      experiment = experiment_names[e],
+      value = as.numeric(df[["Cone_viability_average"]][1]),
+      sd = as.numeric(df[["Stdev_cone_viability"]][1]),
+      stringsAsFactors = FALSE
+    )
+  }))
+  
+  bar_data[!is.na(bar_data$value), , drop = FALSE]
+}
+
 # Each function accepts:
 #   df_list    : named list of data frames, one per selected experiment
 #   exp_labels : character vector of "Experiment #N" labels, same length
