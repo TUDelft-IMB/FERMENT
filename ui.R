@@ -93,7 +93,27 @@ ui <- tagList(
   div(
     id = "app-zoom-wrapper",
     navbarPage(
-      title = "FERMENT",
+      title = tagList(
+      tags$img(
+        src = "https://avatars.githubusercontent.com/u/260685340?s=200&v=4",
+        height = "28px", width = "28px",
+        #style = "border-radius: 50%; vertical-align: middle; margin-right: 8px;",
+        alt = "FERMENT logo"
+      ),
+      "FERMENT",
+      tags$a(
+        href = "https://github.com/TUDelft-IMB/FERMENT",
+        target = "_blank",
+        rel = "noopener noreferrer",
+        title = "View on GitHub",
+        style = "margin-left: 8px; display: inline-flex; vertical-align: middle;",
+        tags$img(
+          src = "https://cdn.simpleicons.org/github/333333",
+          height = "18px", width = "18px",
+          alt = "GitHub repository"
+        )
+      )
+    ),
       theme = bs_theme(
         bootswatch = "minty",
         primary = "#0072B2",
