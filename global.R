@@ -851,7 +851,8 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
     geom_col(position = "stack", width = 0.6) +
     geom_errorbar(
       aes(x = "", ymin = err_ymin, ymax = err_ymax),
-      width = 0.2,
+      width = 0.15,
+      linewidth = 0.5,
       inherit.aes = FALSE # Detaches from global 'y = value' mapping
     ) +
     facet_wrap(~experiment, nrow = 1) +

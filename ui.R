@@ -695,14 +695,17 @@ ui <- tagList(
                 "Sugars & Ethanol",
                 fluidRow(
                   column(
-                    12,
+                    7,
                     spinner(plotlyOutput("avgHplcPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
                       downloadButton("download_avg_hplc", "Export CSV")
                     )
-                  )
-                )
+                  ),
+                  column(
+                    5, spinner(plotlyOutput("endHplcPlot", height = "450px"))
+                 )
+               )
               ),
               tabPanel(
                 "GC Esters",
@@ -742,12 +745,16 @@ ui <- tagList(
                 "Vicinal Diketones",
                 fluidRow(
                   column(
-                    12,
+                    7,
                     spinner(plotlyOutput("avgDiketonesPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
                       downloadButton("download_avg_diketones", "Export CSV")
                     )
+                  ),
+                  column(
+                    5,
+                    spinner(plotlyOutput("endDiketonesPlot", height = "450px")),
                   )
                 )
               ),
