@@ -661,8 +661,7 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
 
   # HPLC: sugars and ethanol over time, TT1 and TT2 side by side
-  export_plot_data("download_hplc_tt1", hplc, "hplc_tt1")
-  export_plot_data("download_hplc_tt2", hplc, "hplc_tt2")
+  export_plot_data("download_hplc", hplc, "hplc")
   output$hplcTT1Plot <- renderPlotly({
     req(hplc())
     ggplotly(plot_hplc_tube(hplc(), tube_num = 1))
@@ -673,8 +672,7 @@ server <- function(input, output, session) {
   })
 
   # GC Esters: volatile esters over time, TT1 and TT2 side by side
-  export_plot_data("download_gc_esters_tt1", gc_esters, "gc_esters_tt1")
-  export_plot_data("download_gc_esters_tt2", gc_esters, "gc_esters_tt2")
+  export_plot_data("download_gc_esters", gc_esters, "gc_esters")
   output$gcEstersTT1Plot <- renderPlotly({
     req(gc_esters())
     ggplotly(plot_gc_esters_tube(gc_esters(), tube_num = 1))
@@ -685,8 +683,7 @@ server <- function(input, output, session) {
   })
 
   # GC Ketones: diacetyl and 2,3-pentanedione over time, TT1 and TT2
-  export_plot_data("download_gc_ketones_tt1", gc_ketones, "gc_ketones_tt1")
-  export_plot_data("download_gc_ketones_tt2", gc_ketones, "gc_ketones_tt2")
+  export_plot_data("download_gc_ketones", gc_ketones, "gc_ketones")
   output$gcKetonesTT1Plot <- renderPlotly({
     req(gc_ketones())
     ggplotly(plot_gc_ketones_tube(gc_ketones(), tube_num = 1))

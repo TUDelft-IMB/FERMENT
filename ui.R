@@ -258,17 +258,13 @@ ui <- tagList(
                   column(
                     6,
                     spinner(plotlyOutput("hplcTT1Plot", height = "400px")),
-                    div(
-                      style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_hplc_tt1", "Export CSV")
-                    )
                   ),
                   column(
                     6,
                     spinner(plotlyOutput("hplcTT2Plot", height = "400px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_hplc_tt2", "Export CSV")
+                      downloadButton("download_hplc", "Export CSV")
                     )
                   )
                 )
@@ -279,17 +275,13 @@ ui <- tagList(
                   column(
                     6,
                     spinner(plotlyOutput("gcEstersTT1Plot", height = "400px")),
-                    div(
-                      style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_gc_esters_tt1", "Export CSV")
-                    )
                   ),
                   column(
                     6,
                     spinner(plotlyOutput("gcEstersTT2Plot", height = "400px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_gc_esters_tt2", "Export CSV")
+                      downloadButton("download_gc_esters", "Export CSV")
                     )
                   )
                 )
@@ -300,17 +292,14 @@ ui <- tagList(
                   column(
                     6,
                     spinner(plotlyOutput("gcKetonesTT1Plot", height = "400px")),
-                    div(
-                      style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_gc_ketones_tt1", "Export CSV")
-                    )
                   ),
                   column(
                     6,
                     spinner(plotlyOutput("gcKetonesTT2Plot", height = "400px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_gc_ketones_tt2", "Export CSV")
+                      #downloadButton("download_gc_ketones_tt2", "Export CSV")
+                      downloadButton("download_gc_ketones", "Export CSV")
                     )
                   )
                 )
