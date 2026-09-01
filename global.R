@@ -848,10 +848,10 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
   bar_data$err_ymax <- ifelse(bar_data$value > threshold, bar_data$cum_y + bar_data$sd, NA_real_)
   
   ggplot(bar_data, aes(x = "", y = value, fill = compound)) +
-    geom_col(position = "stack", width = 0.6) +
+    geom_col(position = "stack") +
     geom_errorbar(
       aes(x = "", ymin = err_ymin, ymax = err_ymax),
-      width = 0.15,
+      width = 0.1,
       linewidth = 0.5,
       inherit.aes = FALSE # Detaches from global 'y = value' mapping
     ) +
@@ -928,7 +928,7 @@ plot_end_diketones <- function(df_list, exp_labels) {
                        ),
                        comp_colours = gc_ketone_end_colours,
                        comp_labels = gc_ketone_end_labels,
-                       title = "Final diketone concentration",
+                       title = "Final normalized diketone concentration",
                        y_label = "Final concentration (mg/L)"
   )
 }
