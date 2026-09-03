@@ -93,7 +93,27 @@ ui <- tagList(
   div(
     id = "app-zoom-wrapper",
     navbarPage(
-      title = "FERMENT",
+      title = tagList(
+      tags$img(
+        src = "https://avatars.githubusercontent.com/u/260685340?s=200&v=4",
+        height = "28px", width = "28px",
+        #style = "border-radius: 50%; vertical-align: middle; margin-right: 8px;",
+        alt = "FERMENT logo"
+      ),
+      "FERMENT",
+      tags$a(
+        href = "https://github.com/TUDelft-IMB/FERMENT",
+        target = "_blank",
+        rel = "noopener noreferrer",
+        title = "View on GitHub",
+        style = "margin-left: 8px; display: inline-flex; vertical-align: middle;",
+        tags$img(
+          src = "https://cdn.simpleicons.org/github/333333",
+          height = "18px", width = "18px",
+          alt = "GitHub repository"
+        )
+      )
+    ),
       theme = bs_theme(
         bootswatch = "minty",
         primary = "#0072B2",
@@ -255,44 +275,110 @@ ui <- tagList(
                 "HPLC",
                 # Two Plotly charts side by side: TT1 on the left, TT2 on the right.
                 fluidRow(
-                  column(6, spinner(plotlyOutput("hplcTT1Plot", height = "400px"))),
-                  column(6, spinner(plotlyOutput("hplcTT2Plot", height = "400px")))
+                  column(
+                    6,
+                    spinner(plotlyOutput("hplcTT1Plot", height = "400px")),
+                  ),
+                  column(
+                    6,
+                    spinner(plotlyOutput("hplcTT2Plot", height = "400px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_hplc", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "GC Esters",
                 fluidRow(
-                  column(6, spinner(plotlyOutput("gcEstersTT1Plot", height = "400px"))),
-                  column(6, spinner(plotlyOutput("gcEstersTT2Plot", height = "400px")))
+                  column(
+                    6,
+                    spinner(plotlyOutput("gcEstersTT1Plot", height = "400px")),
+                  ),
+                  column(
+                    6,
+                    spinner(plotlyOutput("gcEstersTT2Plot", height = "400px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_gc_esters", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "GC Ketones",
                 fluidRow(
-                  column(6, spinner(plotlyOutput("gcKetonesTT1Plot", height = "400px"))),
-                  column(6, spinner(plotlyOutput("gcKetonesTT2Plot", height = "400px")))
+                  column(
+                    6,
+                    spinner(plotlyOutput("gcKetonesTT1Plot", height = "400px")),
+                  ),
+                  column(
+                    6,
+                    spinner(plotlyOutput("gcKetonesTT2Plot", height = "400px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      #downloadButton("download_gc_ketones_tt2", "Export CSV")
+                      downloadButton("download_gc_ketones", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "Attenuation & pH",
                 fluidRow(
-                  column(6, spinner(plotlyOutput("attPlot", height = "400px"))),
-                  column(6, spinner(plotlyOutput("phPlot", height = "400px")))
+                  column(
+                    6,
+                    spinner(plotlyOutput("attPlot", height = "400px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_att", "Export CSV")
+                    )
+                  ),
+                  column(
+                    6,
+                    spinner(plotlyOutput("phPlot", height = "400px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_ph", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "Cell Count & Viability",
                 fluidRow(
-                  column(6, spinner(plotlyOutput("cellCountPlot", height = "400px"))),
-                  column(6, spinner(plotlyOutput("viabilityPlot", height = "400px")))
+                  column(
+                    6,
+                    spinner(plotlyOutput("cellCountPlot", height = "400px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_cell_count", "Export CSV")
+                    )
+                  ),
+                  column(
+                    6,
+                    spinner(plotlyOutput("viabilityPlot", height = "400px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_viability", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "CO\u2082",
                 fluidRow(
-                  column(6, spinner(plotlyOutput("CO2Plot", height = "400px"))),
+                  column(
+                    12,
+                    spinner(plotlyOutput("CO2Plot", height = "400px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_co2", "Export CSV")
+                    )
+                  )
                 )
-              )              
+              )
             ),
 
             # -------------------------------------------------------------------
@@ -420,19 +506,40 @@ ui <- tagList(
               tabPanel(
                 "HPLC",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("cmpHplcPlot", height = "500px")))
+                  column(
+                    12,
+                    spinner(plotlyOutput("cmpHplcPlot", height = "500px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_cmp_hplc", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "GC Esters",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("cmpGcEstersPlot", height = "500px")))
+                  column(
+                    12,
+                    spinner(plotlyOutput("cmpGcEstersPlot", height = "500px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_cmp_gc_esters", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "GC Ketones",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("cmpGcKetonesPlot", height = "500px")))
+                  column(
+                    12,
+                    spinner(plotlyOutput("cmpGcKetonesPlot", height = "500px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_cmp_gc_ketones", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
@@ -440,23 +547,58 @@ ui <- tagList(
                 # One chart per metric; each contains both TT1 (solid) and
                 # TT2 (dashed) for all selected experiments.
                 fluidRow(
-                  column(6, spinner(plotlyOutput("cmpAttPlot", height = "450px"))),
-                  column(6, spinner(plotlyOutput("cmpPhPlot", height = "450px")))
+                  column(
+                    6,
+                    spinner(plotlyOutput("cmpAttPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_cmp_att", "Export CSV")
+                    )
+                  ),
+                  column(
+                    6,
+                    spinner(plotlyOutput("cmpPhPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_cmp_ph", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "Cell Count & Viability",
                 # Same encoding: solid = TT1, dashed = TT2, colour = experiment.
                 fluidRow(
-                  column(6, spinner(plotlyOutput("cmpCellCountPlot", height = "450px"))),
-                  column(6, spinner(plotlyOutput("cmpViabilityPlot", height = "450px")))
+                  column(
+                    6,
+                    spinner(plotlyOutput("cmpCellCountPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_cmp_cell_count", "Export CSV")
+                    )
+                  ),
+                  column(
+                    6,
+                    spinner(plotlyOutput("cmpViabilityPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_cmp_viability", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "CO\u2082",
                 # Same encoding: solid = TT1, dashed = TT2, colour = experiment.
                 fluidRow(
-                  column(12, spinner(plotlyOutput("cmpCO2Plot", height = "500px"))),
+                  column(
+                    12,
+                    spinner(plotlyOutput("cmpCO2Plot", height = "500px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_cmp_co2", "Export CSV")
+                    )
+                  )
                 )
               )
             ),
@@ -552,65 +694,149 @@ ui <- tagList(
               tabPanel(
                 "Sugars & Ethanol",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("avgHplcPlot", height = "450px")))
-                )
+                  column(
+                    7,
+                    spinner(plotlyOutput("avgHplcPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_avg_hplc", "Export CSV")
+                    )
+                  ),
+                  column(
+                    5, spinner(plotlyOutput("endHplcPlot", height = "450px"))
+                 )
+               )
               ),
               tabPanel(
                 "GC Esters",
                 fluidRow(
-                  column(6, spinner(plotlyOutput("avgEthylEstersBarPlot", height = "450px"))),
-                  column(6, spinner(plotlyOutput("avgAcetateEstersBarPlot", height = "450px")))
+                  column(
+                    6,
+                    spinner(plotlyOutput("avgEthylEstersBarPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_avg_ethyl_esters", "Export CSV")
+                    )
+                  ),
+                  column(
+                    6,
+                    spinner(plotlyOutput("avgAcetateEstersBarPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_avg_acetate_esters", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "Higher Alcohols",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("avgHigherAlcoholsBarPlot", height = "450px")))
+                  column(
+                    12,
+                    spinner(plotlyOutput("avgHigherAlcoholsBarPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_avg_higher_alcohols", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "Vicinal Diketones",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("avgDiketonesPlot", height = "450px")))
+                  column(
+                    7,
+                    spinner(plotlyOutput("avgDiketonesPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_avg_diketones", "Export CSV")
+                    )
+                  ),
+                  column(
+                    5,
+                    spinner(plotlyOutput("endDiketonesPlot", height = "450px")),
+                  )
                 )
               ),
               tabPanel(
                 "GC Ratio",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("avg_gc_ratio_plot", height = "450px")))
+                  column(
+                    12,
+                    spinner(plotlyOutput("avg_gc_ratio_plot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_avg_gc_ratio", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "Attenuation",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("avgAttenuationPlot", height = "450px")))
+                  column(
+                    12,
+                    spinner(plotlyOutput("avgAttenuationPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_avg_attenuation", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "pH",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("avgPhPlot", height = "450px")))
+                  column(
+                    12,
+                    spinner(plotlyOutput("avgPhPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_avg_ph", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "Cell Count",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("avgCellCountPlot", height = "450px")))
+                  column(
+                    12,
+                    spinner(plotlyOutput("avgCellCountPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_avg_cell_count", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "Viability",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("avgViabilityPlot", height = "450px")))
+                  column(
+                    12,
+                    spinner(plotlyOutput("avgViabilityPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_avg_viability", "Export CSV")
+                    )
+                  )
                 )
               ),
               tabPanel(
                 "Cone Viability",
                 fluidRow(
-                  column(12, spinner(plotlyOutput("avgConeViabilityPlot", height = "450px")))
+                  column(
+                    12,
+                    spinner(plotlyOutput("avgConeViabilityPlot", height = "450px")),
+                    div(
+                      style = "text-align:right; margin-bottom:6px;",
+                      downloadButton("download_avg_cone_viability", "Export CSV")
+                    )
+                  )
                 )
               )
-            ),
+            ), # closes tabsetPanel()
 
             # -------------------------------------------------------------------
             # Selection summary table — below the graphs.

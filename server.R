@@ -337,7 +337,7 @@ server <- function(input, output, session) {
       group_by(gravity_num) %>%
       summarise(n = n(), .groups = "drop") %>%
       arrange(gravity_num)
-    
+
     gravity_levels <- as.character(gravity_data$gravity_num)
     base_palette <- c(okabe10, polychrome_extra)
     n_lv <- length(gravity_levels)
@@ -347,7 +347,7 @@ server <- function(input, output, session) {
       rep(base_palette, length.out = n_lv)
     }
     fill_map <- setNames(cols, gravity_levels)
-    
+
     p <- ggplot(
       gravity_data,
       aes(x = factor(gravity_num), y = n, fill = factor(gravity_num), text = n)
@@ -360,7 +360,7 @@ server <- function(input, output, session) {
         legend.position = "none",
         panel.grid.major.y = element_line(colour = "gray90")
       )
-    
+
     ggplotly(p, tooltip = "text")
   })
 
@@ -585,6 +585,40 @@ server <- function(input, output, session) {
   # Sheet names must exactly match those in the Excel files.
   # ---------------------------------------------------------------------------
 
+  # Helper: export plot data.
+  # To be used by all three tab output plots (single and multiple, so far).
+  # Returns a csv file.
+  export_plot_data <- function(
+    output_id,
+    data_reactive,
+    filename_prefix,
+    filename_function = NULL
+  ) {
+    output[[output_id]] <- downloadHandler(
+      filename = function() {
+        if (is.null(filename_function)) {
+          exp_name <- if (is.null(input$experiment) || input$experiment == "") {
+            "unknown_experiment"
+          } else {
+            tools::file_path_sans_ext(input$experiment)
+          }
+
+          paste0(
+            filename_prefix, "_", exp_name, "_",
+            format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv"
+          )
+        } else {
+          filename_function()
+        }
+      },
+      content = function(file) {
+        data <- data_reactive()
+        validate(need(!is.null(data) && nrow(data) > 0, "No data available for export"))
+        write.csv(data, file, row.names = FALSE)
+      }
+    )
+  }
+
   hplc <- reactive({
     req(tt_data())
     tt_data()[["HPLC"]]
@@ -610,10 +644,10 @@ server <- function(input, output, session) {
     tt_data()[["CellCount_Viability"]]
   })
   CO2 <- reactive({
-  req(tt_data())
-  tt_data()[["CO2"]]
+    req(tt_data())
+    tt_data()[["CO2"]]
   })
-  
+
   # ---------------------------------------------------------------------------
   # Step 10: Render single-experiment plots.
   #
@@ -628,6 +662,7 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
 
   # HPLC: sugars and ethanol over time, TT1 and TT2 side by side
+  export_plot_data("download_hplc", hplc, "hplc")
   output$hplcTT1Plot <- renderPlotly({
     req(hplc())
     ggplotly(plot_hplc_tube(hplc(), tube_num = 1))
@@ -638,6 +673,7 @@ server <- function(input, output, session) {
   })
 
   # GC Esters: volatile esters over time, TT1 and TT2 side by side
+  export_plot_data("download_gc_esters", gc_esters, "gc_esters")
   output$gcEstersTT1Plot <- renderPlotly({
     req(gc_esters())
     ggplotly(plot_gc_esters_tube(gc_esters(), tube_num = 1))
@@ -648,6 +684,7 @@ server <- function(input, output, session) {
   })
 
   # GC Ketones: diacetyl and 2,3-pentanedione over time, TT1 and TT2
+  export_plot_data("download_gc_ketones", gc_ketones, "gc_ketones")
   output$gcKetonesTT1Plot <- renderPlotly({
     req(gc_ketones())
     ggplotly(plot_gc_ketones_tube(gc_ketones(), tube_num = 1))
@@ -658,26 +695,31 @@ server <- function(input, output, session) {
   })
 
   # Attenuation and pH: one line per tube (TT1 and TT2)
+  export_plot_data("download_att", att, "attenuation")
   output$attPlot <- renderPlotly({
     req(att())
     ggplotly(plot_att(att()))
   })
+  export_plot_data("download_ph", ph, "ph")
   output$phPlot <- renderPlotly({
     req(ph())
     ggplotly(plot_ph(ph()))
   })
 
   # Cell Count and Viability: one line per tube (TT1 and TT2)
+  export_plot_data("download_cell_count", viability, "cell_count")
   output$cellCountPlot <- renderPlotly({
     req(viability())
     ggplotly(plot_cell_count(viability()))
   })
+  export_plot_data("download_viability", viability, "viability")
   output$viabilityPlot <- renderPlotly({
     req(viability())
     ggplotly(plot_viability(viability()))
   })
 
   # Cell Count and Viability: one line per tube (TT1 and TT2)
+  export_plot_data("download_co2", CO2, "co2")
   output$CO2Plot <- renderPlotly({
     req(tt_data())
     if (is.null(CO2()) || nrow(CO2()) == 0) {
@@ -751,6 +793,135 @@ server <- function(input, output, session) {
     paste0("#", matched$exp_number[match(filenames, matched$filename)])
   })
 
+  avg_filename <- function(prefix) {
+    paste0(
+      prefix, "_",
+      format(Sys.time(), "%Y%m%d_%H%M%S"),
+      ".csv"
+    )
+  }
+
+  avg_hplc_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+
+    prepare_avg_hplc(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+
+  avg_attenuation_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+
+    prepare_avg_attenuation(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+
+  avg_ph_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+
+    prepare_avg_ph(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+
+  avg_cell_count_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+
+    prepare_avg_cell_count(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+
+  avg_viability_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+
+    prepare_avg_viability(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+
+  avg_ethyl_esters_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+
+    prepare_avg_ethyl_esters(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+
+  avg_acetate_esters_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+
+    prepare_avg_acetate_esters(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+
+  avg_higher_alcohols_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+
+    prepare_avg_higher_alcohols(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+
+  avg_diketones_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+
+    prepare_avg_diketones(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+
+  avg_gc_ratio_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+
+    prepare_avg_gc_ratio(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+
+  avg_cone_viability_export <- reactive({
+    dfs <- avg_data_list()
+    req(length(dfs) > 0)
+
+    prepare_avg_cone_viability(
+      df_list = dfs,
+      exp_labels = avg_exp_labels(),
+      experiment_names = names(dfs)
+    )
+  })
+
   # Step 12a: Averages summary table — one row per selected experiment.
   output$avg_summary_table <- renderDT(
     {
@@ -775,58 +946,139 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
 
   # Sugars & Ethanol: one line per compound per experiment
+  export_plot_data(
+    "download_avg_hplc",
+    avg_hplc_export,
+    "averages_hplc",
+    function() avg_filename("averages_hplc")
+  )
   output$avgHplcPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_hplc(avg_data_list(), avg_exp_labels()))
   })
 
+  output$endHplcPlot <- renderPlotly({
+    req(avg_data_list())
+    ggplotly(plot_end_hplc(avg_data_list(), avg_exp_labels()))
+  })
+  
   # GC Esters: stacked bar charts — ethyl esters and acetate esters
+  export_plot_data(
+    "download_avg_ethyl_esters",
+    avg_ethyl_esters_export,
+    "averages_ethyl_esters",
+    function() avg_filename("averages_ethyl_esters")
+  )
   output$avgEthylEstersBarPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_ethyl_esters_bar(avg_data_list(), avg_exp_labels()))
   })
+
+  export_plot_data(
+    "download_avg_acetate_esters",
+    avg_acetate_esters_export,
+    "averages_acetate_esters",
+    function() avg_filename("averages_acetate_esters")
+  )
   output$avgAcetateEstersBarPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_acetate_esters_bar(avg_data_list(), avg_exp_labels()))
   })
 
   # Higher Alcohols: stacked bar chart
+  export_plot_data(
+    "download_avg_higher_alcohols",
+    avg_higher_alcohols_export,
+    "averages_higher_alcohols",
+    function() avg_filename("averages_higher_alcohols")
+  )
   output$avgHigherAlcoholsBarPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_higher_alcohols_bar(avg_data_list(), avg_exp_labels()))
   })
 
   # Vicinal Diketones: diacetyl and 2,3-pentanedione over time
+  export_plot_data(
+    "download_avg_diketones",
+    avg_diketones_export,
+    "averages_diketones",
+    function() avg_filename("averages_diketones")
+  )
   output$avgDiketonesPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_diketones(avg_data_list(), avg_exp_labels()))
   })
-
+  
+  # Final diacetyl and pentanedione
+  output$endDiketonesPlot <- renderPlotly({
+    req(avg_data_list())
+    ggplotly(plot_end_diketones(avg_data_list(), avg_exp_labels()))
+  })
+  
   # GC Ratio plot
+  export_plot_data(
+    "download_avg_gc_ratio",
+    avg_gc_ratio_export,
+    "averages_gc_ratio",
+    function() avg_filename("averages_gc_ratio")
+  )
   output$avg_gc_ratio_plot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_gc_ratio_bar(avg_data_list(), avg_exp_labels()))
   })
 
   # Attenuation, pH, Cell Count, Viability: one line per experiment
+  export_plot_data(
+    "download_avg_attenuation",
+    avg_attenuation_export,
+    "averages_attenuation",
+    function() avg_filename("averages_attenuation")
+  )
   output$avgAttenuationPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_attenuation(avg_data_list(), avg_exp_labels()))
   })
+
+  export_plot_data(
+    "download_avg_ph",
+    avg_ph_export,
+    "averages_ph",
+    function() avg_filename("averages_ph")
+  )
   output$avgPhPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_ph(avg_data_list(), avg_exp_labels()))
   })
+
+  export_plot_data(
+    "download_avg_cell_count",
+    avg_cell_count_export,
+    "averages_cell_count",
+    function() avg_filename("averages_cell_count")
+  )
   output$avgCellCountPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_cell_count(avg_data_list(), avg_exp_labels()))
   })
+
+  export_plot_data(
+    "download_avg_viability",
+    avg_viability_export,
+    "averages_viability",
+    function() avg_filename("averages_viability")
+  )
   output$avgViabilityPlot <- renderPlotly({
     req(avg_data_list())
     ggplotly(plot_avg_viability(avg_data_list(), avg_exp_labels()))
   })
 
   # Cone Viability: one bar per experiment with error bars
+  export_plot_data(
+    "download_avg_cone_viability",
+    avg_cone_viability_export,
+    "averages_cone_viability",
+    function() avg_filename("averages_cone_viability")
+  )
   output$avgConeViabilityPlot <- renderPlotly({
     req(avg_data_list())
     dfs <- avg_data_list()
@@ -919,6 +1171,45 @@ server <- function(input, output, session) {
     paste0("#", matched$exp_number[match(filenames, matched$filename)])
   })
 
+  # function to export data from multiple experiments tab
+  cmp_sheet_data <- function(sheet_name) {
+    reactive({
+      dfs <- cmp_data_list()
+      labels <- cmp_exp_labels()
+      names(labels) <- names(dfs)
+
+      exported <- lapply(names(dfs), function(filename) {
+        sheet_data <- dfs[[filename]][[sheet_name]]
+
+        if (is.null(sheet_data) || nrow(sheet_data) == 0) {
+          return(NULL)
+        }
+
+        sheet_data <- as.data.frame(sheet_data)
+        sheet_data$Experiment <- labels[[filename]]
+        sheet_data$Source_file <- filename
+        sheet_data
+      })
+
+      exported <- Filter(Negate(is.null), exported)
+
+      if (length(exported) == 0) {
+        data.frame()
+      } else {
+        dplyr::bind_rows(exported)
+      }
+    })
+  }
+
+  # function to generate filename
+  cmp_filename <- function(prefix) {
+    paste0(
+      prefix, "_",
+      format(Sys.time(), "%Y%m%d_%H%M%S"),
+      ".csv"
+    )
+  }
+
   output$cmp_status <- renderText({
     n <- length(cmp_data_list())
     if (n == 0) {
@@ -953,58 +1244,114 @@ server <- function(input, output, session) {
   # ---------------------------------------------------------------------------
 
   # HPLC: one line per compound per experiment, TT1 and TT2 overlaid
+  cmp_hplc_export <- cmp_sheet_data("HPLC")
+  export_plot_data(
+    "download_cmp_hplc",
+    cmp_hplc_export,
+    "compare_hplc",
+    function() cmp_filename("compare_hplc")
+  )
   output$cmpHplcPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_hplc(cmp_data_list(), cmp_exp_labels()))
   })
 
   # GC Esters: one line per compound per experiment, TT1 and TT2 overlaid
+  cmp_gc_esters_export <- cmp_sheet_data("GC_esters")
+  export_plot_data(
+    "download_cmp_gc_esters",
+    cmp_gc_esters_export,
+    "compare_gc_esters",
+    function() cmp_filename("compare_gc_esters")
+  )
   output$cmpGcEstersPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_gc_esters(cmp_data_list(), cmp_exp_labels()))
   })
 
   # GC Ketones: one line per compound per experiment, TT1 and TT2 overlaid
+  cmp_gc_ketones_export <- cmp_sheet_data("GC_ketones")
+  export_plot_data(
+    "download_cmp_gc_ketones",
+    cmp_gc_ketones_export,
+    "compare_gc_ketones",
+    function() cmp_filename("compare_gc_ketones")
+  )
   output$cmpGcKetonesPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_gc_ketones(cmp_data_list(), cmp_exp_labels()))
   })
 
   # Attenuation: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
+  cmp_att_export <- cmp_sheet_data("Attenuation")
+  export_plot_data(
+    "download_cmp_att",
+    cmp_att_export,
+    "compare_attenuation",
+    function() cmp_filename("compare_attenuation")
+  )
   output$cmpAttPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_att(cmp_data_list(), cmp_exp_labels()))
   })
 
   # pH: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
+  cmp_ph_export <- cmp_sheet_data("pH")
+  export_plot_data(
+    "download_cmp_ph",
+    cmp_ph_export,
+    "compare_ph",
+    function() cmp_filename("compare_ph")
+  )
   output$cmpPhPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_ph(cmp_data_list(), cmp_exp_labels()))
   })
 
+  cmp_cell_count_export <- cmp_sheet_data("CellCount_Viability")
+
   # Cell Count: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
+  export_plot_data(
+    "download_cmp_cell_count",
+    cmp_cell_count_export,
+    "compare_cell_count",
+    function() cmp_filename("compare_cell_count")
+  )
   output$cmpCellCountPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_cell_count(cmp_data_list(), cmp_exp_labels()))
   })
 
   # Viability: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
+  export_plot_data(
+    "download_cmp_viability",
+    cmp_cell_count_export,
+    "compare_viability",
+    function() cmp_filename("compare_viability")
+  )
   output$cmpViabilityPlot <- renderPlotly({
     req(cmp_data_list())
     ggplotly(plot_cmp_viability(cmp_data_list(), cmp_exp_labels()))
   })
-  
+
   # CO2: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
+  cmp_co2_export <- cmp_sheet_data("CO2")
+  export_plot_data(
+    "download_cmp_co2",
+    cmp_co2_export,
+    "compare_co2",
+    function() cmp_filename("compare_co2")
+  )
   output$cmpCO2Plot <- renderPlotly({
     req(cmp_data_list())
     dfs <- cmp_data_list()
     labels <- cmp_exp_labels()
-    
+
     missing_exps <- labels[sapply(dfs, function(d) {
       co2 <- d[["CO2"]]
       is.null(co2) || nrow(co2) == 0
     })]
-    
+
     if (length(missing_exps) > 0) {
       showNotification(
         paste("No CO\u2082 data available for experiment:", paste(missing_exps, collapse = ", ")),
@@ -1012,8 +1359,7 @@ server <- function(input, output, session) {
         duration = 8
       )
     }
-    
+
     ggplotly(plot_cmp_CO2(dfs, labels))
   })
-
 } # end server
