@@ -861,7 +861,7 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
     scale_fill_manual(name = "Compound", values = setNames(comp_colours, comp_labels)) +
     labs(title = title, x = "Experiment", y = y_label) +
     theme_minimal() +
-    theme(legend.position = "bottom")
+    theme(legend.position = "right")
 }
 
 # -----------------------------------------------------------------------------
