@@ -847,27 +847,21 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
   bar_data$err_ymin <- ifelse(bar_data$value > threshold, pmax(0, bar_data$cum_y - bar_data$sd), NA_real_)
   bar_data$err_ymax <- ifelse(bar_data$value > threshold, bar_data$cum_y + bar_data$sd, NA_real_)
   
-  ggplot(bar_data, aes(x = "", y = value, fill = compound)) +
-    geom_col(position = "stack") +
+  bar_width <- 0.6
+  
+  ggplot(bar_data, aes(x = experiment, y = value, fill = compound)) +
+    geom_col(position = "stack", width = bar_width) +
     geom_errorbar(
-      aes(x = "", ymin = err_ymin, ymax = err_ymax),
-      width = 0.1,
-      linewidth = 0.5,
-      inherit.aes = FALSE # Detaches from global 'y = value' mapping
+      aes(x = experiment, ymin = err_ymin, ymax = err_ymax),
+      width = bar_width * 0.9,
+      linewidth = 0.1,
+      colour = alpha("black", 0.3),
+      inherit.aes = FALSE
     ) +
-    facet_wrap(~experiment, nrow = 1) +
-    scale_fill_manual(
-      name   = "Compound",
-      values = setNames(comp_colours, comp_labels)
-    ) +
-    labs(title = title, x = NULL, y = y_label) +
+    scale_fill_manual(name = "Compound", values = setNames(comp_colours, comp_labels)) +
+    labs(title = title, x = "Experiment", y = y_label) +
     theme_minimal() +
-    theme(
-      legend.position = "bottom",
-      axis.text.x     = element_blank(),
-      axis.ticks.x    = element_blank(),
-      strip.text      = element_text(size = 10)
-    )
+    theme(legend.position = "bottom")
 }
 
 # -----------------------------------------------------------------------------
@@ -1068,7 +1062,9 @@ plot_avg_cone_viability <- function(df_list, exp_labels) {
     p <- p + geom_errorbar(
       data = errorbar_data,
       aes(ymin = value - sd, ymax = value + sd),
-      width = 0.15
+      width = 0.6 * 0.9,
+      linewidth = 0.5,
+      colour = alpha("black", 0.3)
     )
   }
   
