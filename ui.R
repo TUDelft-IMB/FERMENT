@@ -22,6 +22,22 @@
 # Convenience alias so the rest of the file stays readable.
 spinner <- function(...) shinycssloaders::withSpinner(..., color = "#009E73", type = 7, caption = "Loading...")
 
+# Export tooltip function (import description from a markdown file)
+export_tooltip <- function(id) {
+  description <- if (id %in% names(export_descriptions)) {
+    export_descriptions[[id]]
+  } else {
+    "No description available."
+  }
+  tooltip(
+    trigger = tags$span(
+      style = "cursor: help; margin-left: 6px; color: #6c757d; position: relative; top: -6px;",
+      bs_icon("info-circle")
+    ),
+    description
+  )
+}
+
 # Zoom controls
 zoom_controls <- tags$head(
   tags$style(HTML("
@@ -284,7 +300,8 @@ ui <- tagList(
                     spinner(plotlyOutput("hplcTT2Plot", height = "400px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_hplc", "Export CSV")
+                      downloadButton("download_hplc", "Export CSV"),
+                      export_tooltip("download_hplc")
                     )
                   )
                 )
@@ -301,7 +318,8 @@ ui <- tagList(
                     spinner(plotlyOutput("gcEstersTT2Plot", height = "400px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_gc_esters", "Export CSV")
+                      downloadButton("download_gc_esters", "Export CSV"),
+                      export_tooltip("download_gc_esters")
                     )
                   )
                 )
@@ -319,7 +337,8 @@ ui <- tagList(
                     div(
                       style = "text-align:right; margin-bottom:6px;",
                       #downloadButton("download_gc_ketones_tt2", "Export CSV")
-                      downloadButton("download_gc_ketones", "Export CSV")
+                      downloadButton("download_gc_ketones", "Export CSV"),
+                      export_tooltip("download_gc_ketones")
                     )
                   )
                 )
@@ -332,7 +351,8 @@ ui <- tagList(
                     spinner(plotlyOutput("attPlot", height = "400px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_att", "Export CSV")
+                      downloadButton("download_att", "Export CSV"),
+                      export_tooltip("download_att")
                     )
                   ),
                   column(
@@ -340,7 +360,8 @@ ui <- tagList(
                     spinner(plotlyOutput("phPlot", height = "400px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_ph", "Export CSV")
+                      downloadButton("download_ph", "Export CSV"),
+                      export_tooltip("download_ph")
                     )
                   )
                 )
@@ -353,7 +374,8 @@ ui <- tagList(
                     spinner(plotlyOutput("cellCountPlot", height = "400px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_cell_count", "Export CSV")
+                      downloadButton("download_cell_count", "Export CSV"),
+                      export_tooltip("download_cell_count")
                     )
                   ),
                   column(
@@ -361,7 +383,8 @@ ui <- tagList(
                     spinner(plotlyOutput("viabilityPlot", height = "400px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_viability", "Export CSV")
+                      downloadButton("download_viability", "Export CSV"),
+                      export_tooltip("download_viability")
                     )
                   )
                 )
@@ -374,7 +397,8 @@ ui <- tagList(
                     spinner(plotlyOutput("CO2Plot", height = "400px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_co2", "Export CSV")
+                      downloadButton("download_co2", "Export CSV"),
+                      export_tooltip("download_co2")
                     )
                   )
                 )
@@ -511,7 +535,8 @@ ui <- tagList(
                     spinner(plotlyOutput("cmpHplcPlot", height = "500px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_cmp_hplc", "Export CSV")
+                      downloadButton("download_cmp_hplc", "Export CSV"),
+                      export_tooltip("download_cmp_hplc")
                     )
                   )
                 )
@@ -524,7 +549,8 @@ ui <- tagList(
                     spinner(plotlyOutput("cmpGcEstersPlot", height = "500px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_cmp_gc_esters", "Export CSV")
+                      downloadButton("download_cmp_gc_esters", "Export CSV"),
+                      export_tooltip("download_cmp_gc_esters")
                     )
                   )
                 )
@@ -537,7 +563,8 @@ ui <- tagList(
                     spinner(plotlyOutput("cmpGcKetonesPlot", height = "500px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_cmp_gc_ketones", "Export CSV")
+                      downloadButton("download_cmp_gc_ketones", "Export CSV"),
+                      export_tooltip("download_cmp_gc_ketones")
                     )
                   )
                 )
@@ -552,7 +579,8 @@ ui <- tagList(
                     spinner(plotlyOutput("cmpAttPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_cmp_att", "Export CSV")
+                      downloadButton("download_cmp_att", "Export CSV"),
+                      export_tooltip("download_cmp_att")
                     )
                   ),
                   column(
@@ -560,7 +588,8 @@ ui <- tagList(
                     spinner(plotlyOutput("cmpPhPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_cmp_ph", "Export CSV")
+                      downloadButton("download_cmp_ph", "Export CSV"),
+                      export_tooltip("download_cmp_ph")
                     )
                   )
                 )
@@ -574,7 +603,8 @@ ui <- tagList(
                     spinner(plotlyOutput("cmpCellCountPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_cmp_cell_count", "Export CSV")
+                      downloadButton("download_cmp_cell_count", "Export CSV"),
+                      export_tooltip("download_cmp_cell_count")
                     )
                   ),
                   column(
@@ -582,7 +612,8 @@ ui <- tagList(
                     spinner(plotlyOutput("cmpViabilityPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_cmp_viability", "Export CSV")
+                      downloadButton("download_cmp_viability", "Export CSV"),
+                      export_tooltip("download_cmp_viability")
                     )
                   )
                 )
@@ -596,7 +627,8 @@ ui <- tagList(
                     spinner(plotlyOutput("cmpCO2Plot", height = "500px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_cmp_co2", "Export CSV")
+                      downloadButton("download_cmp_co2", "Export CSV"),
+                      export_tooltip("download_cmp_co2")
                     )
                   )
                 )
@@ -699,7 +731,8 @@ ui <- tagList(
                     spinner(plotlyOutput("avgHplcPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_avg_hplc", "Export CSV")
+                      downloadButton("download_avg_hplc", "Export CSV"),
+                      export_tooltip("download_avg_hplc")
                     )
                   ),
                   column(
@@ -715,7 +748,8 @@ ui <- tagList(
                     spinner(plotlyOutput("avgEthylEstersBarPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_avg_ethyl_esters", "Export CSV")
+                      downloadButton("download_avg_ethyl_esters", "Export CSV"),
+                      export_tooltip("download_avg_ethyl_esters")
                     )
                   ),
                   column(
@@ -723,7 +757,8 @@ ui <- tagList(
                     spinner(plotlyOutput("avgAcetateEstersBarPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_avg_acetate_esters", "Export CSV")
+                      downloadButton("download_avg_acetate_esters", "Export CSV"),
+                      export_tooltip("download_avg_acetate_esters")
                     )
                   )
                 )
@@ -736,7 +771,8 @@ ui <- tagList(
                     spinner(plotlyOutput("avgHigherAlcoholsBarPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_avg_higher_alcohols", "Export CSV")
+                      downloadButton("download_avg_higher_alcohols", "Export CSV"),
+                      export_tooltip("download_avg_higher_alcohols")
                     )
                   )
                 )
@@ -749,7 +785,8 @@ ui <- tagList(
                     spinner(plotlyOutput("avgDiketonesPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_avg_diketones", "Export CSV")
+                      downloadButton("download_avg_diketones", "Export CSV"),
+                      export_tooltip("download_avg_diketones")
                     )
                   ),
                   column(
@@ -766,7 +803,8 @@ ui <- tagList(
                     spinner(plotlyOutput("avg_gc_ratio_plot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_avg_gc_ratio", "Export CSV")
+                      downloadButton("download_avg_gc_ratio", "Export CSV"),
+                      export_tooltip("download_avg_gc_ratio")
                     )
                   )
                 )
@@ -779,7 +817,8 @@ ui <- tagList(
                     spinner(plotlyOutput("avgAttenuationPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_avg_attenuation", "Export CSV")
+                      downloadButton("download_avg_attenuation", "Export CSV"),
+                      export_tooltip("download_avg_attenuation")
                     )
                   )
                 )
@@ -792,7 +831,8 @@ ui <- tagList(
                     spinner(plotlyOutput("avgPhPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_avg_ph", "Export CSV")
+                      downloadButton("download_avg_ph", "Export CSV"),
+                      export_tooltip("download_avg_ph")
                     )
                   )
                 )
@@ -805,7 +845,8 @@ ui <- tagList(
                     spinner(plotlyOutput("avgCellCountPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_avg_cell_count", "Export CSV")
+                      downloadButton("download_avg_cell_count", "Export CSV"),
+                      export_tooltip("download_avg_cell_count")
                     )
                   )
                 )
@@ -818,7 +859,8 @@ ui <- tagList(
                     spinner(plotlyOutput("avgViabilityPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_avg_viability", "Export CSV")
+                      downloadButton("download_avg_viability", "Export CSV"),
+                      export_tooltip("download_avg_viability")
                     )
                   )
                 )
@@ -831,7 +873,8 @@ ui <- tagList(
                     spinner(plotlyOutput("avgConeViabilityPlot", height = "450px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_avg_cone_viability", "Export CSV")
+                      downloadButton("download_avg_cone_viability", "Export CSV"),
+                      export_tooltip("download_avg_cone_viability")
                     )
                   )
                 )
