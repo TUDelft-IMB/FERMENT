@@ -1129,7 +1129,7 @@ plot_avg_gc_ratio_bar <- function(df_list, exp_labels) {
 # Helper plot_tube_overlay() — a helper function for plotting/overlaying
 # multiple TT1/TT2 experiments for HPLC, GC esters and GC ketones
 # -----------------------------------------------------------------------------
-plot_cmp_tube_overlay <- function(df_list, exp_labels,
+plot_cmp_tube_overlay <- function(df_list, exp_labels, filename_labels = exp_labels,
                                   sheet_name,
                                   compound_labels,
                                   compound_colours,
@@ -1151,6 +1151,7 @@ plot_cmp_tube_overlay <- function(df_list, exp_labels,
           sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
           compound = base_metab,
           experiment = exp_labels[e],
+          tooltip = hover_label(filename_labels[e], value),
           tube = paste0("TT", tube_num),
           exp_tube = paste0(exp_labels[e], " ", paste0("TT", tube_num)),
           trace_id = paste(exp_labels[e], paste0("TT", tube_num), base_metab),
@@ -1173,6 +1174,7 @@ plot_cmp_tube_overlay <- function(df_list, exp_labels,
     aes(
       x = time,
       y = value,
+      text = tooltip,
       colour = compound,
       linetype = exp_tube,
       group = trace_id
@@ -1206,10 +1208,11 @@ plot_cmp_tube_overlay <- function(df_list, exp_labels,
 # -----------------------------------------------------------------------------
 # plot_cmp_hplc() — HPLC, TT1 and TT2 overlaid in one chart
 # -----------------------------------------------------------------------------
-plot_cmp_hplc <- function(df_list, exp_labels) {
+plot_cmp_hplc <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_cmp_tube_overlay(
     df_list = df_list,
     exp_labels = exp_labels,
+    filename_labels = filename_labels,
     sheet_name = "HPLC",
     compound_labels = hplc_labels,
     compound_colours = hplc_colours,
@@ -1221,10 +1224,11 @@ plot_cmp_hplc <- function(df_list, exp_labels) {
 # -----------------------------------------------------------------------------
 # plot_cmp_gc_esters() — GC Esters, TT1 and TT2 overlaid in one chart
 # -----------------------------------------------------------------------------
-plot_cmp_gc_esters <- function(df_list, exp_labels) {
+plot_cmp_gc_esters <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_cmp_tube_overlay(
     df_list = df_list,
     exp_labels = exp_labels,
+    filename_labels = filename_labels,
     sheet_name = "GC_esters",
     compound_labels = gc_ester_labels,
     compound_colours = gc_ester_colours,
@@ -1236,10 +1240,11 @@ plot_cmp_gc_esters <- function(df_list, exp_labels) {
 # -----------------------------------------------------------------------------
 # plot_cmp_gc_ketones() — GC Ketones, TT1 and TT2 overlaid in one chart
 # -----------------------------------------------------------------------------
-plot_cmp_gc_ketones <- function(df_list, exp_labels) {
+plot_cmp_gc_ketones <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_cmp_tube_overlay(
     df_list = df_list,
     exp_labels = exp_labels,
+    filename_labels = filename_labels,
     sheet_name = "GC_ketones",
     compound_labels = gc_ketone_labels,
     compound_colours = gc_ketone_colours,
