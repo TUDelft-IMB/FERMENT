@@ -890,7 +890,7 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
 # -----------------------------------------------------------------------------
 
 # Sugars & Ethanol: uses hplc_avg_labels (plain names) and hplc_colours
-plot_avg_hplc <- function(df_list, exp_labels) {
+plot_avg_hplc <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_data <- prepare_avg_hplc(df_list, exp_labels)
 
   plot_averages(
@@ -899,12 +899,13 @@ plot_avg_hplc <- function(df_list, exp_labels) {
     comp_colours = hplc_colours,
     comp_labels = hplc_avg_labels,
     title = "Sugars & Ethanol",
-    y_label = "Concentration (g/L)"
+    y_label = "Concentration (g/L)",
+    filename_labels = filename_labels
   )
 }
 
 # Final sample HPLC stacked bar
-plot_end_hplc <- function(df_list, exp_labels) {
+plot_end_hplc <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_avg_stacked_bar(df_list, exp_labels,
                        avg_cols = c(
                          "Fructose_avg","Glucose_avg", "Maltose_avg","Maltotriose_avg"
@@ -914,12 +915,13 @@ plot_end_hplc <- function(df_list, exp_labels) {
                        comp_colours = hplc_end_colours,
                        comp_labels = hplc_end_labels,
                        title = "Final sugar concentration",
-                       y_label = "Final concentration (g/L)"
+                       y_label = "Final concentration (g/L)",
+                       filename_labels = filename_labels
   )
 }
 
 # Vicinal Diketones: uses gc_ketone_labels and gc_ketone_colours
-plot_avg_diketones <- function(df_list, exp_labels) {
+plot_avg_diketones <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_data <- prepare_avg_diketones(df_list, exp_labels)
 
   plot_averages(
@@ -928,12 +930,13 @@ plot_avg_diketones <- function(df_list, exp_labels) {
     comp_colours = gc_ketone_colours,
     comp_labels = gc_ketone_labels,
     title = "Vicinal Diketones",
-    y_label = "Concentration (mg/L)"
+    y_label = "Concentration (mg/L)",
+    filename_labels = filename_labels
   )
 }
 
 #Final Diacetyl and pentanedione concentrations
-plot_end_diketones <- function(df_list, exp_labels) {
+plot_end_diketones <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_avg_stacked_bar(df_list, exp_labels,
                        avg_cols = c(
                          "2,3-pentanedione_avg_normalized","Diacetyl_avg_normalized"
@@ -943,58 +946,63 @@ plot_end_diketones <- function(df_list, exp_labels) {
                        comp_colours = gc_ketone_end_colours,
                        comp_labels = gc_ketone_end_labels,
                        title = "Final normalized diketone concentration",
-                       y_label = "Final concentration (mg/L)"
+                       y_label = "Final concentration (mg/L)",
+                       filename_labels = filename_labels
   )
 }
 
 # Attenuation over time
-plot_avg_attenuation <- function(df_list, exp_labels) {
+plot_avg_attenuation <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_avg_by_experiment(
     df_list, exp_labels,
     avg_col = "Attenuation_average",
     sd_col = "Attenuation_stdev",
     title = "Attenuation",
-    y_label = "Attenuation (degrees P)"
+    y_label = "Attenuation (degrees P)",
+    filename_labels = filename_labels
   )
 }
 
 # pH over time — y-axis fixed at 0-7
-plot_avg_ph <- function(df_list, exp_labels) {
+plot_avg_ph <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_avg_by_experiment(
     df_list, exp_labels,
     avg_col = "pH_average",
     sd_col = "pH_stdev",
     title = "pH",
     y_label = "pH",
-    y_limits = c(0, 7)
+    y_limits = c(0, 7),
+    filename_labels = filename_labels
   )
 }
 
 # Cell Count over time
-plot_avg_cell_count <- function(df_list, exp_labels) {
+plot_avg_cell_count <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_avg_by_experiment(
     df_list, exp_labels,
     avg_col = "CellCount_average",
     sd_col = "CellCount_stdev",
     title = "Cell Count",
-    y_label = "Cell count (cells/ml)"
+    y_label = "Cell count (cells/ml)",
+    filename_labels = filename_labels
   )
 }
 
 # Viability over time — y-axis fixed at 0-1 (fraction)
-plot_avg_viability <- function(df_list, exp_labels) {
+plot_avg_viability <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_avg_by_experiment(
     df_list, exp_labels,
     avg_col = "Viability_average",
     sd_col = "Viability_stdev",
     title = "Viability",
     y_label = "Viability (fraction)",
-    y_limits = c(0, 1)
+    y_limits = c(0, 1),
+    filename_labels = filename_labels
   )
 }
 
 # Ethyl esters stacked bar — uses ethyl_ester_labels and ethyl_ester_colours
-plot_avg_ethyl_esters_bar <- function(df_list, exp_labels) {
+plot_avg_ethyl_esters_bar <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_avg_stacked_bar(df_list, exp_labels,
     avg_cols = c(
       "Ethyl_butyrate_avg_normalized", "Ethyl_hexanoate_avg_normalized",
@@ -1006,12 +1014,13 @@ plot_avg_ethyl_esters_bar <- function(df_list, exp_labels) {
     comp_colours = ethyl_ester_colours,
     comp_labels = ethyl_ester_labels,
     title = "Ethyl Esters",
-    y_label = "Concentration (mg/L, normalised)"
+    y_label = "Concentration (mg/L, normalised)",
+    filename_labels = filename_labels
   )
 }
 
 # Acetate esters stacked bar — uses acetate_labels and acetate_colours
-plot_avg_acetate_esters_bar <- function(df_list, exp_labels) {
+plot_avg_acetate_esters_bar <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_avg_stacked_bar(df_list, exp_labels,
     avg_cols = c(
       "Ethyl_acetate_avg_normalized", "Isobutyl_acetate_avg_normalized",
@@ -1023,19 +1032,21 @@ plot_avg_acetate_esters_bar <- function(df_list, exp_labels) {
     comp_colours = acetate_colours,
     comp_labels = acetate_labels,
     title = "Acetates",
-    y_label = "Concentration (mg/L, normalised)"
+    y_label = "Concentration (mg/L, normalised)",
+    filename_labels = filename_labels
   )
 }
 
 # Higher alcohols stacked bar — uses alcohol_labels and alcohol_colours
-plot_avg_higher_alcohols_bar <- function(df_list, exp_labels) {
+plot_avg_higher_alcohols_bar <- function(df_list, exp_labels, filename_labels = exp_labels) {
   plot_avg_stacked_bar(df_list, exp_labels,
     avg_cols     = c("Isobutanol_avg_normalized", "Isoamyl_alcohol_avg_normalized"),
     sd_cols     = c("Isobutanol_stdev_normalized", "Isoamyl_alcohol_stdev_normalized"),
     comp_colours = alcohol_colours,
     comp_labels  = alcohol_labels,
     title        = "Higher Alcohols",
-    y_label      = "Concentration (mg/L, normalised)"
+    y_label      = "Concentration (mg/L, normalised)",
+    filename_labels = filename_labels
   )
 }
 
