@@ -728,8 +728,12 @@ prepare_avg_cone_viability <- function(df_list, exp_labels, experiment_names = e
 # -----------------------------------------------------------------------------
 plot_averages <- function(plot_data, exp_labels,
                           comp_colours, comp_labels,
-                          title = "", y_label = "", y_limits = NULL) {
+                          title = "", y_label = "", y_limits = NULL,
+                          filename_labels = exp_labels) {
   linetypes <- exp_linetypes_palette[seq_along(exp_labels)]
+
+  plot_data$filename <- filename_labels[match(plot_data$experiment, exp_labels)]
+  plot_data$tooltip <- hover_label(plot_data$filename, plot_data$value)
 
   colour_map <- setNames(comp_colours, comp_labels)
   linetype_map <- setNames(linetypes, exp_labels)
@@ -739,6 +743,7 @@ plot_averages <- function(plot_data, exp_labels,
     aes(
       x = time,
       y = value,
+      text = tooltip,
       colour = compound,
       linetype = experiment,
       group = interaction(compound, experiment)
@@ -772,7 +777,8 @@ plot_averages <- function(plot_data, exp_labels,
 # -----------------------------------------------------------------------------
 plot_avg_by_experiment <- function(df_list, exp_labels,
                                    avg_col, sd_col,
-                                   title = "", y_label = "", y_limits = NULL) {
+                                   title = "", y_label = "", y_limits = NULL,
+                                   filename_labels = exp_labels) {
   if (length(df_list) == 0 || length(exp_labels) == 0) {
     return(ggplot() +
       theme_minimal() +
@@ -788,10 +794,12 @@ plot_avg_by_experiment <- function(df_list, exp_labels,
       value = if (avg_col %in% names(df)) as.numeric(df[[avg_col]]) else NA_real_,
       sd = if (!is.null(sd_col) && sd_col %in% names(df)) as.numeric(df[[sd_col]]) else NA_real_,
       experiment = exp_labels[e],
+      filename = filename_labels[e],
       stringsAsFactors = FALSE
     )
   }))
   plot_data <- plot_data[!is.na(plot_data$value), ]
+  plot_data$tooltip <- hover_label(plot_data$filename, plot_data$value)
 
   if (nrow(plot_data) == 0) {
     return(ggplot() +
@@ -801,7 +809,7 @@ plot_avg_by_experiment <- function(df_list, exp_labels,
 
   p <- ggplot(
     plot_data,
-    aes(x = time, y = value, colour = experiment, group = experiment)
+    aes(x = time, y = value, text = tooltip, colour = experiment, group = experiment)
   ) +
     geom_line() +
     geom_point() +
@@ -826,7 +834,8 @@ plot_avg_by_experiment <- function(df_list, exp_labels,
 # -----------------------------------------------------------------------------
 plot_avg_stacked_bar <- function(df_list, exp_labels,
                                  avg_cols, sd_cols, comp_colours, comp_labels,
-                                 title = "", y_label = "") {
+                                 title = "", y_label = "",
+                                 filename_labels = exp_labels) {
   bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
     do.call(rbind, lapply(seq_along(avg_cols), function(i) {
@@ -837,6 +846,7 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
       last_idx  <- if (length(valid_idx) > 0) tail(valid_idx, 1) else NA
       data.frame(
         experiment = exp_labels[e],
+        filename = filename_labels[e],
         compound = comp_labels[i],
         value = if (!is.na(last_idx)) vals[last_idx] else NA_real_,
         sd = if (!is.na(last_idx)) sds[last_idx] else NA_real_,
@@ -847,6 +857,7 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
   bar_data <- bar_data[!is.na(bar_data$value), ]
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
   bar_data$compound <- factor(bar_data$compound, levels = comp_labels)
+  bar_data$tooltip <- hover_label(bar_data$filename, bar_data$value)
   
   bar_data <- bar_data[order(bar_data$experiment, -as.integer(bar_data$compound)), ]
   cum_y_list <- lapply(split(bar_data$value, bar_data$experiment), cumsum)
@@ -858,7 +869,7 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
   
   bar_width <- 0.6
   
-  ggplot(bar_data, aes(x = experiment, y = value, fill = compound)) +
+  ggplot(bar_data, aes(x = experiment, y = value, text = tooltip, fill = compound)) +
     geom_col(position = "stack", width = bar_width) +
     geom_errorbar(
       aes(x = experiment, ymin = err_ymin, ymax = err_ymax),
@@ -1035,11 +1046,12 @@ plot_avg_higher_alcohols_bar <- function(df_list, exp_labels) {
 # Experiments with a valid average but missing/blank Stdev are still shown
 # as a bar, just without a whisker.
 # -----------------------------------------------------------------------------
-plot_avg_cone_viability <- function(df_list, exp_labels) {
+plot_avg_cone_viability <- function(df_list, exp_labels, filename_labels = exp_labels) {
   bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
     data.frame(
       experiment = exp_labels[e],
+      filename = filename_labels[e],
       value = suppressWarnings(as.numeric(df$Cone_viability_average[1])),
       sd = suppressWarnings(as.numeric(df$Stdev_cone_viability[1])),
       stringsAsFactors = FALSE
@@ -1047,6 +1059,7 @@ plot_avg_cone_viability <- function(df_list, exp_labels) {
   }))
   
   bar_data <- bar_data[!is.na(bar_data$value), ]
+  bar_data$tooltip <- hover_label(bar_data$filename, bar_data$value)
   
   # No experiment has usable data — return an empty plot instead of letting
   # ggplot/ggplotly error out on a zero-row factor column.
@@ -1060,7 +1073,7 @@ plot_avg_cone_viability <- function(df_list, exp_labels) {
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
   errorbar_data <- bar_data[!is.na(bar_data$sd), ]
   
-  p <- ggplot(bar_data, aes(x = experiment, y = value, fill = experiment)) +
+  p <- ggplot(bar_data, aes(x = experiment, y = value, text = tooltip, fill = experiment)) +
     geom_col(width = 0.6) +
     scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
     labs(title = "Cone Viability", x = "Experiment", y = "Cone Viability (%)") +
@@ -1081,21 +1094,23 @@ plot_avg_cone_viability <- function(df_list, exp_labels) {
 }
 
 # Ethyl Acetate / Isoamyl Acetate ratio — one bar per experiment (final value)
-plot_avg_gc_ratio_bar <- function(df_list, exp_labels) {
+plot_avg_gc_ratio_bar <- function(df_list, exp_labels, filename_labels = exp_labels) {
   bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
     vals <- as.numeric(df[["Ratio_Ethylacetate_isoamyl_acetate"]])
     last_val <- if (any(!is.na(vals))) tail(vals[!is.na(vals)], 1) else NA_real_
     data.frame(
       experiment = exp_labels[e],
+      filename = filename_labels[e],
       value = last_val,
       stringsAsFactors = FALSE
     )
   }))
   bar_data <- bar_data[!is.na(bar_data$value), ]
+  bar_data$tooltip <- hover_label(bar_data$filename, bar_data$value)
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
 
-  ggplot(bar_data, aes(x = experiment, y = value, fill = experiment)) +
+  ggplot(bar_data, aes(x = experiment, y = value, text = tooltip, fill = experiment)) +
     geom_col(width = 0.6) +
     scale_fill_manual(values = setNames(cmp_exp_colours[seq_along(exp_labels)], exp_labels)) +
     labs(title = "GC Ratio (Ethyl Acetate / Isoamyl Acetate)", x = "Experiment", y = "Ratio") +
