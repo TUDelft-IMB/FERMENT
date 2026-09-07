@@ -264,6 +264,15 @@ cmp_exp_colours <- c(okabe10, polychrome_extra)
 # =============================================================================
 # 5. PLOT FUNCTIONS — SINGLE EXPERIMENT
 # =============================================================================
+
+filename_label <- function(filename) {
+  tools::file_path_sans_ext(basename(filename))
+}
+
+hover_label <- function(filename, value) {
+  paste0("Filename: ", filename, "<br>value: ", value)
+}
+
 # Each function accepts one data frame (one sheet from a loaded workbook)
 # and returns a ggplot object. server.R wraps the return value in ggplotly().
 #
