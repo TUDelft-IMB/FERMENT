@@ -295,7 +295,7 @@ hover_label <- function(filename, value) {
 # df       : the HPLC sheet data frame
 # tube_num : 1 or 2 (selects the TT1 or TT2 columns)
 # -----------------------------------------------------------------------------
-plot_hplc_tube <- function(df, tube_num) {
+plot_hplc_tube <- function(df, tube_num, filename_label = "") {
   # Build named colour map from section 4 vectors.
   # Names = compound labels (used as colour aesthetic keys and legend text).
   # Values = colour strings (used by scale_color_manual).
@@ -309,11 +309,12 @@ plot_hplc_tube <- function(df, tube_num) {
     stdev_col <- paste("StDev", val_col)
 
     p <- p +
-      geom_line(aes(y = .data[[val_col]], colour = !!base_metab)) +
-      geom_point(aes(y = .data[[val_col]], colour = !!base_metab)) +
+      geom_line(aes(y = .data[[val_col]], text = hover_label(filename_label, .data[[val_col]]), colour = !!base_metab)) +
+      geom_point(aes(y = .data[[val_col]], text = hover_label(filename_label, .data[[val_col]]), colour = !!base_metab)) +
       geom_errorbar(aes(
         ymin   = .data[[val_col]] - .data[[stdev_col]],
         ymax   = .data[[val_col]] + .data[[stdev_col]],
+        text   = hover_label(filename_label, .data[[val_col]]),
         colour = !!base_metab
       ), width = 3)
   }
@@ -334,7 +335,7 @@ plot_hplc_tube <- function(df, tube_num) {
 # df       : the GC_esters sheet data frame
 # tube_num : 1 or 2
 # -----------------------------------------------------------------------------
-plot_gc_esters_tube <- function(df, tube_num) {
+plot_gc_esters_tube <- function(df, tube_num, filename_label = "") {
   metabolites_map <- setNames(gc_ester_colours, gc_ester_labels)
 
   p <- ggplot(df, aes(x = `Time (h)`))
@@ -344,11 +345,12 @@ plot_gc_esters_tube <- function(df, tube_num) {
     stdev_col <- paste("StDev", val_col)
 
     p <- p +
-      geom_line(aes(y = .data[[val_col]], colour = !!base_metab)) +
-      geom_point(aes(y = .data[[val_col]], colour = !!base_metab)) +
+      geom_line(aes(y = .data[[val_col]], text = hover_label(filename_label, .data[[val_col]]), colour = !!base_metab)) +
+      geom_point(aes(y = .data[[val_col]], text = hover_label(filename_label, .data[[val_col]]), colour = !!base_metab)) +
       geom_errorbar(aes(
         ymin   = .data[[val_col]] - .data[[stdev_col]],
         ymax   = .data[[val_col]] + .data[[stdev_col]],
+        text   = hover_label(filename_label, .data[[val_col]]),
         colour = !!base_metab
       ), width = 3)
   }
@@ -369,7 +371,7 @@ plot_gc_esters_tube <- function(df, tube_num) {
 # df       : the GC_ketones sheet data frame
 # tube_num : 1 or 2
 # -----------------------------------------------------------------------------
-plot_gc_ketones_tube <- function(df, tube_num) {
+plot_gc_ketones_tube <- function(df, tube_num, filename_label = "") {
   metabolites_map <- setNames(gc_ketone_colours, gc_ketone_labels)
 
   p <- ggplot(df, aes(x = `Time (h)`))
@@ -379,11 +381,12 @@ plot_gc_ketones_tube <- function(df, tube_num) {
     stdev_col <- paste("StDev", val_col)
 
     p <- p +
-      geom_line(aes(y = .data[[val_col]], colour = !!base_metab)) +
-      geom_point(aes(y = .data[[val_col]], colour = !!base_metab)) +
+      geom_line(aes(y = .data[[val_col]], text = hover_label(filename_label, .data[[val_col]]), colour = !!base_metab)) +
+      geom_point(aes(y = .data[[val_col]], text = hover_label(filename_label, .data[[val_col]]), colour = !!base_metab)) +
       geom_errorbar(aes(
         ymin   = .data[[val_col]] - .data[[stdev_col]],
         ymax   = .data[[val_col]] + .data[[stdev_col]],
+        text   = hover_label(filename_label, .data[[val_col]]),
         colour = !!base_metab
       ), width = 3)
   }
@@ -403,12 +406,12 @@ plot_gc_ketones_tube <- function(df, tube_num) {
 # plot_att() — attenuation (degrees P) over time, TT1 vs TT2
 # Uses tt_colours from section 4 via scale_colour_manual().
 # -----------------------------------------------------------------------------
-plot_att <- function(att) {
+plot_att <- function(att, filename_label = "") {
   ggplot(att) +
-    geom_line(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
-    geom_point(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
-    geom_line(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
-    geom_point(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
+    geom_line(aes(x = `Time (h)`, y = `TT1`, text = hover_label(filename_label, TT1), colour = "TT1")) +
+    geom_point(aes(x = `Time (h)`, y = `TT1`, text = hover_label(filename_label, TT1), colour = "TT1")) +
+    geom_line(aes(x = `Time (h)`, y = `TT2`, text = hover_label(filename_label, TT2), colour = "TT2")) +
+    geom_point(aes(x = `Time (h)`, y = `TT2`, text = hover_label(filename_label, TT2), colour = "TT2")) +
     scale_colour_manual(name = "Tube", values = tt_colours) +
     labs(title = "Attenuation", x = "Time (h)", y = "Attenuation (degrees P)") +
     theme_minimal() +
@@ -419,12 +422,12 @@ plot_att <- function(att) {
 # plot_ph() — pH over time, TT1 vs TT2
 # Y-axis fixed at 0-7. Uses ph_colours (gold/sienna) from section 4.
 # -----------------------------------------------------------------------------
-plot_ph <- function(ph) {
+plot_ph <- function(ph, filename_label = "") {
   ggplot(ph) +
-    geom_line(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
-    geom_point(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
-    geom_line(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
-    geom_point(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
+    geom_line(aes(x = `Time (h)`, y = `TT1`, text = hover_label(filename_label, TT1), colour = "TT1")) +
+    geom_point(aes(x = `Time (h)`, y = `TT1`, text = hover_label(filename_label, TT1), colour = "TT1")) +
+    geom_line(aes(x = `Time (h)`, y = `TT2`, text = hover_label(filename_label, TT2), colour = "TT2")) +
+    geom_point(aes(x = `Time (h)`, y = `TT2`, text = hover_label(filename_label, TT2), colour = "TT2")) +
     scale_colour_manual(name = "Tube", values = ph_colours) +
     scale_y_continuous(limits = c(0, 7)) +
     labs(title = "pH", x = "Time (h)", y = "pH") +
@@ -436,12 +439,12 @@ plot_ph <- function(ph) {
 # plot_cell_count() — total cell count (cells/ml) over time, TT1 vs TT2
 # Uses tt_colours from section 4 via scale_colour_manual().
 # -----------------------------------------------------------------------------
-plot_cell_count <- function(viability) {
+plot_cell_count <- function(viability, filename_label = "") {
   ggplot(viability) +
-    geom_line(aes(x = `Time (h)`, y = `1 Total cells`, colour = "TT1")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Total cells`, colour = "TT1")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Total cells`, colour = "TT2")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Total cells`, colour = "TT2")) +
+    geom_line(aes(x = `Time (h)`, y = `1 Total cells`, text = hover_label(filename_label, `1 Total cells`), colour = "TT1")) +
+    geom_point(aes(x = `Time (h)`, y = `1 Total cells`, text = hover_label(filename_label, `1 Total cells`), colour = "TT1")) +
+    geom_line(aes(x = `Time (h)`, y = `2 Total cells`, text = hover_label(filename_label, `2 Total cells`), colour = "TT2")) +
+    geom_point(aes(x = `Time (h)`, y = `2 Total cells`, text = hover_label(filename_label, `2 Total cells`), colour = "TT2")) +
     scale_colour_manual(name = "Tube", values = tt_colours) +
     labs(title = "Cell Count", x = "Time (h)", y = "Cell count (cells/ml)") +
     theme_minimal() +
@@ -452,12 +455,12 @@ plot_cell_count <- function(viability) {
 # plot_viability() — cell viability (fraction 0-1) over time, TT1 vs TT2
 # Y-axis fixed at 0-1. Uses tt_colours from section 4 via scale_colour_manual().
 # -----------------------------------------------------------------------------
-plot_viability <- function(viability) {
+plot_viability <- function(viability, filename_label = "") {
   ggplot(viability) +
-    geom_line(aes(x = `Time (h)`, y = `1 Viability (%)`, colour = "TT1")) +
-    geom_point(aes(x = `Time (h)`, y = `1 Viability (%)`, colour = "TT1")) +
-    geom_line(aes(x = `Time (h)`, y = `2 Viability (%)`, colour = "TT2")) +
-    geom_point(aes(x = `Time (h)`, y = `2 Viability (%)`, colour = "TT2")) +
+    geom_line(aes(x = `Time (h)`, y = `1 Viability (%)`, text = hover_label(filename_label, `1 Viability (%)`), colour = "TT1")) +
+    geom_point(aes(x = `Time (h)`, y = `1 Viability (%)`, text = hover_label(filename_label, `1 Viability (%)`), colour = "TT1")) +
+    geom_line(aes(x = `Time (h)`, y = `2 Viability (%)`, text = hover_label(filename_label, `2 Viability (%)`), colour = "TT2")) +
+    geom_point(aes(x = `Time (h)`, y = `2 Viability (%)`, text = hover_label(filename_label, `2 Viability (%)`), colour = "TT2")) +
     scale_colour_manual(name = "Tube", values = tt_colours) +
     scale_y_continuous(limits = c(0, 1)) +
     labs(title = "Viability", x = "Time (h)", y = "Viability (fraction)") +
@@ -468,11 +471,11 @@ plot_viability <- function(viability) {
 # plot_CO2() — CO2 production (ml/min over time, TT1 vs TT2
 # Uses tt_colours from section 4 via scale_colour_manual().
 # --------------------------------------------------------------------------
-plot_CO2 <- function(CO2) {
+plot_CO2 <- function(CO2, filename_label = "") {
   CO2[["Time (h)"]] <- CO2[["Time (days)"]] * 24
   ggplot(CO2) +
-    geom_line(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
-    geom_line(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
+    geom_line(aes(x = `Time (h)`, y = `TT1`, text = hover_label(filename_label, TT1), colour = "TT1")) +
+    geom_line(aes(x = `Time (h)`, y = `TT2`, text = hover_label(filename_label, TT2), colour = "TT2")) +
     scale_colour_manual(name = "Tube", values = tt_colours) +
     labs(title = "CO\u2082 production", x = "Time (h)", y = "CO\u2082 (ml/min)") +
     theme_minimal() +
