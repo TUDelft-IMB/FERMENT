@@ -954,12 +954,18 @@ server <- function(input, output, session) {
   )
   output$avgHplcPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_hplc(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_hplc(avg_data_list(), avg_exp_labels(), names(avg_data_list())),
+      tooltip = "text"
+    )
   })
 
   output$endHplcPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_end_hplc(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_end_hplc(avg_data_list(), avg_exp_labels(), names(avg_data_list())),
+      tooltip = "text"
+    )
   })
   
   # GC Esters: stacked bar charts — ethyl esters and acetate esters
@@ -971,7 +977,10 @@ server <- function(input, output, session) {
   )
   output$avgEthylEstersBarPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_ethyl_esters_bar(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_ethyl_esters_bar(avg_data_list(), avg_exp_labels(), names(avg_data_list())),
+      tooltip = "text"
+    )
   })
 
   export_plot_data(
@@ -982,7 +991,10 @@ server <- function(input, output, session) {
   )
   output$avgAcetateEstersBarPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_acetate_esters_bar(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_acetate_esters_bar(avg_data_list(), avg_exp_labels(), names(avg_data_list())),
+      tooltip = "text"
+    )
   })
 
   # Higher Alcohols: stacked bar chart
@@ -994,7 +1006,10 @@ server <- function(input, output, session) {
   )
   output$avgHigherAlcoholsBarPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_higher_alcohols_bar(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_higher_alcohols_bar(avg_data_list(), avg_exp_labels(), names(avg_data_list())),
+      tooltip = "text"
+    )
   })
 
   # Vicinal Diketones: diacetyl and 2,3-pentanedione over time
@@ -1006,13 +1021,19 @@ server <- function(input, output, session) {
   )
   output$avgDiketonesPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_diketones(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_diketones(avg_data_list(), avg_exp_labels(), names(avg_data_list())),
+      tooltip = "text"
+    )
   })
   
   # Final diacetyl and pentanedione
   output$endDiketonesPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_end_diketones(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_end_diketones(avg_data_list(), avg_exp_labels(), names(avg_data_list())),
+      tooltip = "text"
+    )
   })
   
   # GC Ratio plot
@@ -1024,7 +1045,10 @@ server <- function(input, output, session) {
   )
   output$avg_gc_ratio_plot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_gc_ratio_bar(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_gc_ratio_bar(avg_data_list(), avg_exp_labels(), names(avg_data_list())),
+      tooltip = "text"
+    )
   })
 
   # Attenuation, pH, Cell Count, Viability: one line per experiment
@@ -1036,7 +1060,10 @@ server <- function(input, output, session) {
   )
   output$avgAttenuationPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_attenuation(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_attenuation(avg_data_list(), avg_exp_labels(), names(avg_data_list())),
+      tooltip = "text"
+    )
   })
 
   export_plot_data(
@@ -1047,7 +1074,10 @@ server <- function(input, output, session) {
   )
   output$avgPhPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_ph(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_ph(avg_data_list(), avg_exp_labels(), names(avg_data_list())),
+      tooltip = "text"
+    )
   })
 
   export_plot_data(
@@ -1058,7 +1088,10 @@ server <- function(input, output, session) {
   )
   output$avgCellCountPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_cell_count(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_cell_count(avg_data_list(), avg_exp_labels(), names(avg_data_list())),
+      tooltip = "text"
+    )
   })
 
   export_plot_data(
@@ -1069,7 +1102,10 @@ server <- function(input, output, session) {
   )
   output$avgViabilityPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_viability(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_viability(avg_data_list(), avg_exp_labels(), names(avg_data_list())),
+      tooltip = "text"
+    )
   })
 
   # Cone Viability: one bar per experiment with error bars
@@ -1097,7 +1133,10 @@ server <- function(input, output, session) {
       )
     }
     
-    ggplotly(plot_avg_cone_viability(dfs, labels))
+    ggplotly(
+      plot_avg_cone_viability(dfs, labels, names(dfs)),
+      tooltip = "text"
+    )
   })
 
   # ---------------------------------------------------------------------------
