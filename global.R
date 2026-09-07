@@ -270,7 +270,7 @@ filename_label <- function(filename) {
 }
 
 hover_label <- function(filename, value) {
-  paste0("Filename: ", filename, "<br>value: ", value)
+  paste0("Filename: ", filename_label(filename), "<br>value: ", value)
 }
 
 # Each function accepts one data frame (one sheet from a loaded workbook)
