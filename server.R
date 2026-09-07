@@ -665,57 +665,87 @@ server <- function(input, output, session) {
   export_plot_data("download_hplc", hplc, "hplc")
   output$hplcTT1Plot <- renderPlotly({
     req(hplc())
-    ggplotly(plot_hplc_tube(hplc(), tube_num = 1))
+    ggplotly(
+      plot_hplc_tube(hplc(), tube_num = 1, filename_label(input$experiment)),
+      tooltip = "text"
+    )
   })
   output$hplcTT2Plot <- renderPlotly({
     req(hplc())
-    ggplotly(plot_hplc_tube(hplc(), tube_num = 2))
+    ggplotly(
+      plot_hplc_tube(hplc(), tube_num = 2, filename_label(input$experiment)),
+      tooltip = "text"
+    )
   })
 
   # GC Esters: volatile esters over time, TT1 and TT2 side by side
   export_plot_data("download_gc_esters", gc_esters, "gc_esters")
   output$gcEstersTT1Plot <- renderPlotly({
     req(gc_esters())
-    ggplotly(plot_gc_esters_tube(gc_esters(), tube_num = 1))
+    ggplotly(
+      plot_gc_esters_tube(gc_esters(), tube_num = 1, filename_label(input$experiment)),
+      tooltip = "text"
+    )
   })
   output$gcEstersTT2Plot <- renderPlotly({
     req(gc_esters())
-    ggplotly(plot_gc_esters_tube(gc_esters(), tube_num = 2))
+    ggplotly(
+      plot_gc_esters_tube(gc_esters(), tube_num = 2, filename_label(input$experiment)),
+      tooltip = "text"
+    )
   })
 
   # GC Ketones: diacetyl and 2,3-pentanedione over time, TT1 and TT2
   export_plot_data("download_gc_ketones", gc_ketones, "gc_ketones")
   output$gcKetonesTT1Plot <- renderPlotly({
     req(gc_ketones())
-    ggplotly(plot_gc_ketones_tube(gc_ketones(), tube_num = 1))
+    ggplotly(
+      plot_gc_ketones_tube(gc_ketones(), tube_num = 1, filename_label(input$experiment)),
+      tooltip = "text"
+    )
   })
   output$gcKetonesTT2Plot <- renderPlotly({
     req(gc_ketones())
-    ggplotly(plot_gc_ketones_tube(gc_ketones(), tube_num = 2))
+    ggplotly(
+      plot_gc_ketones_tube(gc_ketones(), tube_num = 2, filename_label(input$experiment)),
+      tooltip = "text"
+    )
   })
 
   # Attenuation and pH: one line per tube (TT1 and TT2)
   export_plot_data("download_att", att, "attenuation")
   output$attPlot <- renderPlotly({
     req(att())
-    ggplotly(plot_att(att()))
+    ggplotly(
+      plot_att(att(), filename_label(input$experiment)),
+      tooltip = "text"
+    )
   })
   export_plot_data("download_ph", ph, "ph")
   output$phPlot <- renderPlotly({
     req(ph())
-    ggplotly(plot_ph(ph()))
+    ggplotly(
+      plot_ph(ph(), filename_label(input$experiment)),
+      tooltip = "text"
+    )
   })
 
   # Cell Count and Viability: one line per tube (TT1 and TT2)
   export_plot_data("download_cell_count", viability, "cell_count")
   output$cellCountPlot <- renderPlotly({
     req(viability())
-    ggplotly(plot_cell_count(viability()))
+    ggplotly(
+      plot_cell_count(viability(), filename_label(input$experiment)),
+      tooltip = "text"
+    )
   })
   export_plot_data("download_viability", viability, "viability")
   output$viabilityPlot <- renderPlotly({
     req(viability())
-    ggplotly(plot_viability(viability()))
+    ggplotly(
+      plot_viability(viability(), filename_label(input$experiment)),
+      tooltip = "text"
+    )
   })
 
   # Cell Count and Viability: one line per tube (TT1 and TT2)
@@ -726,7 +756,10 @@ server <- function(input, output, session) {
       showNotification("No CO\u2082 data available for this experiment.", type = "warning", duration = 8)
       return(plotly_empty())
     }
-    ggplotly(plot_CO2(CO2()))
+    ggplotly(
+      plot_CO2(CO2(), filename_label(input$experiment)),
+      tooltip = "text"
+    )
   })
   # ---------------------------------------------------------------------------
   # Step 11: Averages — filter the pool of available experiments.
