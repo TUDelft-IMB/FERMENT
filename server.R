@@ -1253,7 +1253,10 @@ server <- function(input, output, session) {
   )
   output$cmpHplcPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_hplc(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(
+      plot_cmp_hplc(cmp_data_list(), cmp_exp_labels(), names(cmp_data_list())),
+      tooltip = "text"
+    )
   })
 
   # GC Esters: one line per compound per experiment, TT1 and TT2 overlaid
@@ -1266,7 +1269,10 @@ server <- function(input, output, session) {
   )
   output$cmpGcEstersPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_gc_esters(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(
+      plot_cmp_gc_esters(cmp_data_list(), cmp_exp_labels(), names(cmp_data_list())),
+      tooltip = "text"
+    )
   })
 
   # GC Ketones: one line per compound per experiment, TT1 and TT2 overlaid
@@ -1279,7 +1285,10 @@ server <- function(input, output, session) {
   )
   output$cmpGcKetonesPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_gc_ketones(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(
+      plot_cmp_gc_ketones(cmp_data_list(), cmp_exp_labels(), names(cmp_data_list())),
+      tooltip = "text"
+    )
   })
 
   # Attenuation: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
@@ -1292,7 +1301,10 @@ server <- function(input, output, session) {
   )
   output$cmpAttPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_att(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(
+      plot_cmp_att(cmp_data_list(), cmp_exp_labels(), names(cmp_data_list())),
+      tooltip = "text"
+    )
   })
 
   # pH: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
@@ -1305,7 +1317,10 @@ server <- function(input, output, session) {
   )
   output$cmpPhPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_ph(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(
+      plot_cmp_ph(cmp_data_list(), cmp_exp_labels(), names(cmp_data_list())),
+      tooltip = "text"
+    )
   })
 
   cmp_cell_count_export <- cmp_sheet_data("CellCount_Viability")
@@ -1319,7 +1334,10 @@ server <- function(input, output, session) {
   )
   output$cmpCellCountPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_cell_count(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(
+      plot_cmp_cell_count(cmp_data_list(), cmp_exp_labels(), names(cmp_data_list())),
+      tooltip = "text"
+    )
   })
 
   # Viability: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
@@ -1331,7 +1349,10 @@ server <- function(input, output, session) {
   )
   output$cmpViabilityPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_viability(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(
+      plot_cmp_viability(cmp_data_list(), cmp_exp_labels(), names(cmp_data_list())),
+      tooltip = "text"
+    )
   })
 
   # CO2: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
@@ -1360,6 +1381,9 @@ server <- function(input, output, session) {
       )
     }
 
-    ggplotly(plot_cmp_CO2(dfs, labels))
+    ggplotly(
+      plot_cmp_CO2(dfs, labels, names(dfs)),
+      tooltip = "text"
+    )
   })
 } # end server
