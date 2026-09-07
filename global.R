@@ -1260,7 +1260,7 @@ plot_cmp_gc_ketones <- function(df_list, exp_labels, filename_labels = exp_label
 # linetype = tube       (solid = TT1, dashed = TT2)
 # Legend labels: "Experiment #N TT1", "Experiment #N TT2"
 # -----------------------------------------------------------------------------
-plot_cmp_att <- function(df_list, exp_labels) {
+plot_cmp_att <- function(df_list, exp_labels, filename_labels = exp_labels) {
   tube_cols <- c("TT1", "TT2")
   tube_lty <- c("TT1" = "solid", "TT2" = "dashed")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
@@ -1272,6 +1272,7 @@ plot_cmp_att <- function(df_list, exp_labels) {
         time = as.numeric(df[["Time (h)"]]),
         value = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
         experiment = exp_labels[e],
+        tooltip = hover_label(filename_labels[e], value),
         tube = tc,
         # trace_id used for the group aesthetic so lines don't cross tubes
         trace_id = paste(exp_labels[e], tc),
@@ -1285,6 +1286,7 @@ plot_cmp_att <- function(df_list, exp_labels) {
     plot_data,
     aes(
       x = time, y = value,
+      text = tooltip,
       colour = experiment,
       linetype = tube,
       group = trace_id
@@ -1303,7 +1305,7 @@ plot_cmp_att <- function(df_list, exp_labels) {
 # plot_cmp_ph()
 # Y-axis fixed at 0-7. Same encoding as plot_cmp_att().
 # -----------------------------------------------------------------------------
-plot_cmp_ph <- function(df_list, exp_labels) {
+plot_cmp_ph <- function(df_list, exp_labels, filename_labels = exp_labels) {
   tube_cols <- c("TT1", "TT2")
   tube_lty <- c("TT1" = "solid", "TT2" = "dashed")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
@@ -1315,6 +1317,7 @@ plot_cmp_ph <- function(df_list, exp_labels) {
         time = as.numeric(df[["Time (h)"]]),
         value = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
         experiment = exp_labels[e],
+        tooltip = hover_label(filename_labels[e], value),
         tube = tc,
         trace_id = paste(exp_labels[e], tc),
         stringsAsFactors = FALSE
@@ -1327,6 +1330,7 @@ plot_cmp_ph <- function(df_list, exp_labels) {
     plot_data,
     aes(
       x = time, y = value,
+      text = tooltip,
       colour = experiment,
       linetype = tube,
       group = trace_id
@@ -1347,7 +1351,7 @@ plot_cmp_ph <- function(df_list, exp_labels) {
 # Total cell count over time — BOTH tubes for ALL experiments in one chart.
 # tube_col_tt1 / tube_col_tt2: column names in the CellCount_Viability sheet.
 # -----------------------------------------------------------------------------
-plot_cmp_cell_count <- function(df_list, exp_labels) {
+plot_cmp_cell_count <- function(df_list, exp_labels, filename_labels = exp_labels) {
   tube_cols <- c("TT1" = "1 Total cells", "TT2" = "2 Total cells")
   tube_lty <- c("TT1" = "solid", "TT2" = "dashed")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
@@ -1360,6 +1364,7 @@ plot_cmp_cell_count <- function(df_list, exp_labels) {
         time = as.numeric(df[["Time (h)"]]),
         value = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
         experiment = exp_labels[e],
+        tooltip = hover_label(filename_labels[e], value),
         tube = tube_label,
         trace_id = paste(exp_labels[e], tube_label),
         stringsAsFactors = FALSE
@@ -1372,6 +1377,7 @@ plot_cmp_cell_count <- function(df_list, exp_labels) {
     plot_data,
     aes(
       x = time, y = value,
+      text = tooltip,
       colour = experiment,
       linetype = tube,
       group = trace_id
@@ -1390,7 +1396,7 @@ plot_cmp_cell_count <- function(df_list, exp_labels) {
 # plot_cmp_viability()
 # Y-axis fixed at 0-1.
 # -----------------------------------------------------------------------------
-plot_cmp_viability <- function(df_list, exp_labels) {
+plot_cmp_viability <- function(df_list, exp_labels, filename_labels = exp_labels) {
   tube_cols <- c("TT1" = "1 Viability (%)", "TT2" = "2 Viability (%)")
   tube_lty <- c("TT1" = "solid", "TT2" = "dashed")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
@@ -1404,6 +1410,7 @@ plot_cmp_viability <- function(df_list, exp_labels) {
         time = as.numeric(df[["Time (h)"]]),
         value = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
         experiment = exp_labels[e],
+        tooltip = hover_label(filename_labels[e], value),
         tube = tube_label,
         trace_id = paste(exp_labels[e], tube_label),
         stringsAsFactors = FALSE
@@ -1416,6 +1423,7 @@ plot_cmp_viability <- function(df_list, exp_labels) {
     plot_data,
     aes(
       x = time, y = value,
+      text = tooltip,
       colour = experiment,
       linetype = tube,
       group = trace_id
@@ -1437,7 +1445,7 @@ plot_cmp_viability <- function(df_list, exp_labels) {
 # Experiments whose workbook has no CO2 sheet (or an empty one) are silently
 # skipped instead of breaking the whole plot.
 # -----------------------------------------------------------------------------
-plot_cmp_CO2 <- function(df_list, exp_labels) {
+plot_cmp_CO2 <- function(df_list, exp_labels, filename_labels = exp_labels) {
   tube_cols <- c("TT1", "TT2")
   tube_lty <- c("TT1" = "solid", "TT2" = "solid")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
@@ -1459,6 +1467,7 @@ plot_cmp_CO2 <- function(df_list, exp_labels) {
         time = time_h,
         value = if (tc %in% names(df)) as.numeric(df[[tc]]) else rep(NA_real_, length(time_h)),
         experiment = exp_labels[e],
+        tooltip = hover_label(filename_labels[e], value),
         tube = tc,
         # trace_id used for the group aesthetic so lines don't cross tubes
         trace_id = paste(exp_labels[e], tc),
@@ -1481,6 +1490,7 @@ plot_cmp_CO2 <- function(df_list, exp_labels) {
     plot_data,
     aes(
       x = time, y = value,
+      text = tooltip,
       colour = experiment,
       linetype = tube,
       group = trace_id
