@@ -1083,6 +1083,7 @@ server <- function(input, output, session) {
     req(avg_data_list())
     dfs <- avg_data_list()
     labels <- avg_exp_labels()
+    filenames <- names(dfs)
     
     missing_exps <- labels[sapply(dfs, function(d) {
       val <- suppressWarnings(as.numeric(d$Cone_viability_average[1]))
@@ -1097,7 +1098,14 @@ server <- function(input, output, session) {
       )
     }
     
-    ggplotly(plot_avg_cone_viability(dfs, labels))
+    ggplotly(
+      plot_avg_cone_viability(
+        df_list = dfs,
+        exp_labels = labels,
+        experiment_names = filenames
+      ),
+      tooltip = "text"
+    )
   })
 
   # ---------------------------------------------------------------------------
