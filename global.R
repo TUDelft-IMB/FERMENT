@@ -1026,13 +1026,22 @@ plot_avg_higher_alcohols_bar <- function(df_list, exp_labels) {
 # Experiments with a valid average but missing/blank Stdev are still shown
 # as a bar, just without a whisker.
 # -----------------------------------------------------------------------------
-plot_avg_cone_viability <- function(df_list, exp_labels) {
+plot_avg_cone_viability <- function(df_list, exp_labels, 
+                                    experiment_names = names(df_list)) {
   bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
+    value <- suppressWarnings(as.numeric(df$Cone_viability_average[1]))
+    value = round(value, digits = 3)
+    sd <- suppressWarnings(as.numeric(df$Stdev_cone_viability[1]))
+    sd = round(sd, digits = 3)
     data.frame(
       experiment = exp_labels[e],
-      value = suppressWarnings(as.numeric(df$Cone_viability_average[1])),
-      sd = suppressWarnings(as.numeric(df$Stdev_cone_viability[1])),
+      value = value,
+      sd = sd,
+      hover_text = paste0(
+        "experiment: ", sub(".xlsx", "", experiment_names[e]), 
+        "<br>value: ", value,
+        "<br>sd: ", sd),
       stringsAsFactors = FALSE
     )
   }))
@@ -1051,7 +1060,10 @@ plot_avg_cone_viability <- function(df_list, exp_labels) {
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
   errorbar_data <- bar_data[!is.na(bar_data$sd), ]
   
-  p <- ggplot(bar_data, aes(x = experiment, y = value, fill = experiment)) +
+  p <- ggplot(
+     bar_data, 
+     aes(x = experiment, y = value, fill = experiment, text = hover_text)
+    ) +
     geom_col(width = 0.6) +
     scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
     labs(title = "Cone Viability", x = "Experiment", y = "Cone Viability (%)") +
