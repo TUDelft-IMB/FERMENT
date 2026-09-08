@@ -895,8 +895,8 @@ plot_avg_hplc <- function(df_list, exp_labels) {
 }
 
 # Final sample HPLC stacked bar
-plot_end_hplc <- function(df_list, exp_labels) {
-  plot_avg_stacked_bar(df_list, exp_labels,
+plot_end_hplc <- function(df_list, exp_labels, experiment_names = names(df_list)) {
+  plot_avg_stacked_bar(df_list, exp_labels, experiment_names = experiment_names,
                        avg_cols = c(
                          "Fructose_avg","Glucose_avg", "Maltose_avg","Maltotriose_avg"
                        ), 
@@ -924,8 +924,8 @@ plot_avg_diketones <- function(df_list, exp_labels) {
 }
 
 #Final Diacetyl and pentanedione concentrations
-plot_end_diketones <- function(df_list, exp_labels) {
-  plot_avg_stacked_bar(df_list, exp_labels,
+plot_end_diketones <- function(df_list, exp_labels, experiment_names = names(df_list)) {
+  plot_avg_stacked_bar(df_list, exp_labels, experiment_names = experiment_names,
                        avg_cols = c(
                          "2,3-pentanedione_avg_normalized","Diacetyl_avg_normalized"
                        ),
