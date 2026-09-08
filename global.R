@@ -1037,7 +1037,7 @@ plot_avg_ethyl_esters_bar <- function(df_list, exp_labels) {
 
 # Acetate esters stacked bar — uses acetate_labels and acetate_colours
 plot_avg_acetate_esters_bar <- function(df_list, exp_labels) {
-  plot_avg_stacked_bar(df_list, exp_labels,
+  plot_avg_stacked_bar(df_list, exp_labels, experiment_names = names(df_list),
     avg_cols = c(
       "Ethyl_acetate_avg_normalized", "Isobutyl_acetate_avg_normalized",
       "Isoamyl_acetate_avg_normalized"
@@ -1054,7 +1054,7 @@ plot_avg_acetate_esters_bar <- function(df_list, exp_labels) {
 
 # Higher alcohols stacked bar — uses alcohol_labels and alcohol_colours
 plot_avg_higher_alcohols_bar <- function(df_list, exp_labels) {
-  plot_avg_stacked_bar(df_list, exp_labels,
+  plot_avg_stacked_bar(df_list, exp_labels, experiment_names = names(df_list),
     avg_cols     = c("Isobutanol_avg_normalized", "Isoamyl_alcohol_avg_normalized"),
     sd_cols     = c("Isobutanol_stdev_normalized", "Isoamyl_alcohol_stdev_normalized"),
     comp_colours = alcohol_colours,
