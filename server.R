@@ -988,7 +988,13 @@ server <- function(input, output, session) {
   )
   output$avgAcetateEstersBarPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_acetate_esters_bar(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_acetate_esters_bar(
+        df_list = avg_data_list(),
+        exp_labels = avg_exp_labels()
+      ),
+      tooltip = "text"
+    )
   })
 
   # Higher Alcohols: stacked bar chart
@@ -1000,7 +1006,13 @@ server <- function(input, output, session) {
   )
   output$avgHigherAlcoholsBarPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_higher_alcohols_bar(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_higher_alcohols_bar(
+        df_list = avg_data_list(),
+        exp_labels = avg_exp_labels()
+      ),
+      tooltip = "text"
+    )
   })
 
   # Vicinal Diketones: diacetyl and 2,3-pentanedione over time
