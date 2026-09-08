@@ -851,7 +851,8 @@ plot_avg_by_experiment <- function(df_list, exp_labels,
 # -----------------------------------------------------------------------------
 plot_avg_stacked_bar <- function(df_list, exp_labels,
                                  avg_cols, sd_cols, comp_colours, comp_labels,
-                                 title = "", y_label = "") {
+                                 title = "", y_label = "",
+                                 experiment_names = names(df_list)) {
   bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
     do.call(rbind, lapply(seq_along(avg_cols), function(i) {
@@ -860,11 +861,21 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
       
       valid_idx <- which(!is.na(vals))
       last_idx  <- if (length(valid_idx) > 0) tail(valid_idx, 1) else NA
+      value <- if (!is.na(last_idx)) vals[last_idx] else NA_real_
+      sd <- if (!is.na(last_idx)) sds[last_idx] else NA_real_
+      
       data.frame(
         experiment = exp_labels[e],
         compound = comp_labels[i],
-        value = if (!is.na(last_idx)) vals[last_idx] else NA_real_,
-        sd = if (!is.na(last_idx)) sds[last_idx] else NA_real_,
+        value = value,
+        sd = sd,
+        hover_text = paste0(
+          "experiment: ",
+          sub("\\.xlsx$", "", experiment_names[e], ignore.case = TRUE),
+          "<br>compound: ", comp_labels[i],
+          "<br>value: ", round(value, 3),
+          if (!is.na(sd)) paste0("<br>sd: ", round(sd, 3)) else ""
+        ),
         stringsAsFactors = FALSE
       )
     }))
@@ -884,7 +895,7 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
   bar_width <- 0.6
   
   ggplot(bar_data, aes(x = experiment, y = value, fill = compound)) +
-    geom_col(position = "stack", width = bar_width) +
+    geom_col(aes(text = hover_text), position = "stack", width = bar_width) +
     geom_errorbar(
       aes(x = experiment, ymin = err_ymin, ymax = err_ymax),
       width = bar_width * 0.9,
@@ -1009,7 +1020,7 @@ plot_avg_viability <- function(df_list, exp_labels) {
 
 # Ethyl esters stacked bar — uses ethyl_ester_labels and ethyl_ester_colours
 plot_avg_ethyl_esters_bar <- function(df_list, exp_labels) {
-  plot_avg_stacked_bar(df_list, exp_labels,
+  plot_avg_stacked_bar(df_list, exp_labels, experiment_names = names(df_list),
     avg_cols = c(
       "Ethyl_butyrate_avg_normalized", "Ethyl_hexanoate_avg_normalized",
       "Ethyl_octanoate_avg_normalized", "Ethyl_decanoate_avg_normalized"

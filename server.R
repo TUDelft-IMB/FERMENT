@@ -971,7 +971,13 @@ server <- function(input, output, session) {
   )
   output$avgEthylEstersBarPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_ethyl_esters_bar(avg_data_list(), avg_exp_labels()))
+    ggplotly(
+      plot_avg_ethyl_esters_bar(
+        df_list = avg_data_list(),
+        exp_labels = avg_exp_labels()
+      ),
+      tooltip = "text"
+    )
   })
 
   export_plot_data(
