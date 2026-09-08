@@ -512,7 +512,7 @@ server <- function(input, output, session) {
   observe({
     choices <- filtered_files()
     display_choices <- setNames(choices, sub("\\.xlsx$", "", choices, ignore.case = TRUE))
-    
+
     updateSelectInput(
       session,
       "experiment",
@@ -752,10 +752,10 @@ server <- function(input, output, session) {
   observe({
     choices <- avg_filtered_files()
     display_choices <- setNames(choices, sub("\\.xlsx$", "", choices, ignore.case = TRUE))
-    
+
     updateSelectizeInput(session, "avg_experiments",
-                         choices = display_choices,
-                         server = TRUE
+      choices = display_choices,
+      server = TRUE
     )
   })
 
@@ -969,7 +969,7 @@ server <- function(input, output, session) {
       tooltip = "text"
     )
   })
-  
+
   # GC Esters: stacked bar charts — ethyl esters and acetate esters
   export_plot_data(
     "download_avg_ethyl_esters",
@@ -1034,7 +1034,7 @@ server <- function(input, output, session) {
     req(avg_data_list())
     ggplotly(plot_avg_diketones(avg_data_list(), avg_exp_labels()))
   })
-  
+
   # Final diacetyl and pentanedione
   output$endDiketonesPlot <- renderPlotly({
     req(avg_data_list())
@@ -1048,7 +1048,7 @@ server <- function(input, output, session) {
       tooltip = "text"
     )
   })
-  
+
   # GC Ratio plot
   export_plot_data(
     "download_avg_gc_ratio",
@@ -1061,7 +1061,7 @@ server <- function(input, output, session) {
     dfs <- avg_data_list()
     labels <- avg_exp_labels()
     filenames <- names(dfs)
-    
+
     ggplotly(
       plot_avg_gc_ratio_bar(
         df_list = dfs,
@@ -1129,12 +1129,12 @@ server <- function(input, output, session) {
     dfs <- avg_data_list()
     labels <- avg_exp_labels()
     filenames <- names(dfs)
-    
+
     missing_exps <- labels[sapply(dfs, function(d) {
       val <- suppressWarnings(as.numeric(d$Cone_viability_average[1]))
       is.null(d) || !("Cone_viability_average" %in% names(d)) || is.na(val)
     })]
-    
+
     if (length(missing_exps) > 0) {
       showNotification(
         paste("No Cone Viability data available for:", paste(missing_exps, collapse = ", ")),
@@ -1142,7 +1142,7 @@ server <- function(input, output, session) {
         duration = 8
       )
     }
-    
+
     ggplotly(
       plot_avg_cone_viability(
         df_list = dfs,
@@ -1186,9 +1186,8 @@ server <- function(input, output, session) {
   observe({
     choices <- cmp_filtered_files()
     display_choices <- setNames(choices, sub("\\.xlsx$", "", choices, ignore.case = TRUE))
-    
-    updateSelectizeInput(session, "cmp_experiments", choices = display_choices, server = TRUE
-    )
+
+    updateSelectizeInput(session, "cmp_experiments", choices = display_choices, server = TRUE)
   })
 
   # Step 15a: Clear Compare filters.
