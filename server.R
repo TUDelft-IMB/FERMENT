@@ -959,7 +959,15 @@ server <- function(input, output, session) {
 
   output$endHplcPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_end_hplc(avg_data_list(), avg_exp_labels()))
+    dfs <- avg_data_list()
+    ggplotly(
+      plot_end_hplc(
+        df_list = dfs,
+        exp_labels = avg_exp_labels(),
+        experiment_names = names(dfs)
+      ),
+      tooltip = "text"
+    )
   })
   
   # GC Esters: stacked bar charts — ethyl esters and acetate esters
@@ -1030,7 +1038,15 @@ server <- function(input, output, session) {
   # Final diacetyl and pentanedione
   output$endDiketonesPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_end_diketones(avg_data_list(), avg_exp_labels()))
+    dfs <- avg_data_list()
+    ggplotly(
+      plot_end_diketones(
+        df_list = dfs,
+        exp_labels = avg_exp_labels(),
+        experiment_names = names(dfs)
+      ),
+      tooltip = "text"
+    )
   })
   
   # GC Ratio plot
