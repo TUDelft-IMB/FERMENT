@@ -478,7 +478,7 @@ plot_CO2 <- function(CO2) {
 
 prepare_avg_line_data <- function(df_list, exp_labels,
                                   avg_cols, sd_cols,
-                                  comp_labels) {
+                                  comp_labels, experiment_names = exp_labels) {
   plot_data <- dplyr::bind_rows(lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
 
@@ -486,20 +486,32 @@ prepare_avg_line_data <- function(df_list, exp_labels,
       avg_col <- avg_cols[i]
       sd_col <- sd_cols[i]
 
+      time_values <- as.numeric(df[["Time (h)"]])
+      values <- if (avg_col %in% names(df)) {
+        as.numeric(df[[avg_col]])
+      } else {
+        rep(NA_real_, length(time_values))
+      }
+      sd_values <- if (sd_col %in% names(df)) {
+        as.numeric(df[[sd_col]])
+      } else {
+        rep(NA_real_, length(time_values))
+      }
+      
       data.frame(
-        time = df[["Time (h)"]],
-        value = if (avg_col %in% names(df)) {
-          as.numeric(df[[avg_col]])
-        } else {
-          NA_real_
-        },
-        sd = if (sd_col %in% names(df)) {
-          as.numeric(df[[sd_col]])
-        } else {
-          NA_real_
-        },
+        time = time_values,
+        value = values,
+        sd = sd_values,
         compound = comp_labels[i],
         experiment = exp_labels[e],
+        filename = experiment_names[e],
+        hover_text = paste0(
+          "experiment: ", sub("\\.xlsx$", "", experiment_names[e], ignore.case = TRUE),
+          "<br>value: ", round(values, 3),
+          "<br>sd: ", round(sd_values, 3),
+          "<br>time: ", round(time_values, 3),
+          "<br>compound: ", comp_labels[i]
+        ),
         stringsAsFactors = FALSE
       )
     }))
@@ -508,10 +520,11 @@ prepare_avg_line_data <- function(df_list, exp_labels,
   plot_data[!is.na(plot_data$value), , drop = FALSE]
 }
 
-prepare_avg_hplc <- function(df_list, exp_labels, experiment_names = exp_labels) {
+prepare_avg_hplc <- function(df_list, exp_labels, experiment_names = names(df_list)) {
   prepare_avg_line_data(
     df_list = df_list,
-    exp_labels = experiment_names,
+    exp_labels = exp_labels,
+    experiment_names = experiment_names,
     avg_cols = c(
       "Maltotriose_avg", "Maltose_avg", "Glucose_avg",
       "Fructose_avg", "Glycerol_avg", "Ethanol_avg"
@@ -725,25 +738,40 @@ plot_averages <- function(plot_data, exp_labels,
   colour_map <- setNames(comp_colours, comp_labels)
   linetype_map <- setNames(linetypes, exp_labels)
 
-  p <- ggplot(
-    plot_data,
-    aes(
-      x = time,
-      y = value,
-      colour = compound,
-      linetype = experiment,
-      group = interaction(compound, experiment)
-    )
-  ) +
-    geom_line() +
-    geom_point() +
-    geom_errorbar(
-      aes(ymin = value - sd, ymax = value + sd),
-      width = 3,
-      na.rm = TRUE
+  p <- ggplot(plot_data) +
+    geom_line(
+      aes(
+        x = time,
+        y = value,
+        colour = compound,
+        linetype = experiment,
+        group = interaction(compound, experiment),
+        text = hover_text
+      )
     ) +
-    scale_colour_manual(name = "Compound", values = colour_map) +
-    scale_linetype_manual(name = "Experiment", values = linetype_map) +
+    geom_point(
+      aes(
+        x = time,
+        y = value,
+        colour = compound,
+        group = interaction(compound, experiment),
+        text = hover_text
+      )
+    ) +
+    geom_errorbar(
+      aes(
+        x = time,
+        ymin = value - sd,
+        ymax = value + sd,
+        colour = compound,
+        group = interaction(compound, experiment)
+      ),
+      width = 3,
+      na.rm = TRUE,
+      show.legend = FALSE
+    ) +
+    scale_colour_manual(name = "Compound", values = colour_map, drop = FALSE) +
+    scale_linetype_manual(name = "Experiment", values = linetype_map, drop = FALSE) +
     labs(title = title, x = "Time (h)", y = y_label) +
     theme_minimal() +
     theme(legend.position = "right")
@@ -881,8 +909,12 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
 # -----------------------------------------------------------------------------
 
 # Sugars & Ethanol: uses hplc_avg_labels (plain names) and hplc_colours
-plot_avg_hplc <- function(df_list, exp_labels) {
-  plot_data <- prepare_avg_hplc(df_list, exp_labels)
+plot_avg_hplc <- function(df_list, exp_labels, experiment_names = names(df_list)) {
+  plot_data <- prepare_avg_hplc(
+    df_list = df_list,
+    exp_labels = exp_labels,
+    experiment_names = experiment_names
+  )
 
   plot_averages(
     plot_data = plot_data,

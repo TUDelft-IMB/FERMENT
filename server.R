@@ -954,16 +954,25 @@ server <- function(input, output, session) {
   )
   output$avgHplcPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_hplc(avg_data_list(), avg_exp_labels()))
+    dfs <- avg_data_list()
+    ggplotly(
+      plot_avg_hplc(
+        df_list = dfs,
+        exp_labels = avg_exp_labels(),
+        experiment_names = names(dfs)
+      ),
+      tooltip = "text"
+    )
   })
 
   output$endHplcPlot <- renderPlotly({
     req(avg_data_list())
     dfs <- avg_data_list()
+    labels <- avg_exp_labels()
     ggplotly(
       plot_end_hplc(
         df_list = dfs,
-        exp_labels = avg_exp_labels(),
+        exp_labels = labels,
         experiment_names = names(dfs)
       ),
       tooltip = "text"
