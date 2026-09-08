@@ -177,8 +177,8 @@ read_avg_sheet <- function(file_path) {
 # with a wine red instead of the recycled black.
 okabe <- unname(palette.colors(9, palette = "Okabe-Ito"))
 okabe10 <- unname(palette.colors(10, palette = "Okabe-Ito", recycle = TRUE))
-okabe10[1] <- "#722F37"   # wine red now first, replaces black
-okabe10[10] <- "#000000"  # black moved to last position
+okabe10[1] <- "#722F37" # wine red now first, replaces black
+okabe10[10] <- "#000000" # black moved to last position
 
 # --- HPLC: 6 metabolites -----------------------------------------------------
 hplc_labels <- c(
@@ -214,7 +214,7 @@ gc_ketone_labels <- c("Diacetyl", "2,3-Pentanedione")
 gc_ketone_colours <- okabe[c(3, 7)]
 
 gc_ketone_end_colours <- okabe[c(7, 3)]
-gc_ketone_end_labels<- c("2,3-Pentanedione","Diacetyl")
+gc_ketone_end_labels <- c("2,3-Pentanedione", "Diacetyl")
 
 # --- TT1 vs TT2: Attenuation, Cell Count, Viability --------------------------
 tt_colours <- setNames(okabe[c(3, 7)], c("TT1", "TT2"))
@@ -823,13 +823,13 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
     df <- df_list[[e]]
     do.call(rbind, lapply(seq_along(avg_cols), function(i) {
       vals <- as.numeric(df[[avg_cols[i]]])
-      sds  <- as.numeric(df[[sd_cols[i]]])
-      
+      sds <- as.numeric(df[[sd_cols[i]]])
+
       valid_idx <- which(!is.na(vals))
-      last_idx  <- if (length(valid_idx) > 0) tail(valid_idx, 1) else NA
+      last_idx <- if (length(valid_idx) > 0) tail(valid_idx, 1) else NA
       value <- if (!is.na(last_idx)) vals[last_idx] else NA_real_
       sd <- if (!is.na(last_idx)) sds[last_idx] else NA_real_
-      
+
       data.frame(
         experiment = exp_labels[e],
         compound = comp_labels[i],
@@ -849,17 +849,17 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
   bar_data <- bar_data[!is.na(bar_data$value), ]
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
   bar_data$compound <- factor(bar_data$compound, levels = comp_labels)
-  
+
   bar_data <- bar_data[order(bar_data$experiment, -as.integer(bar_data$compound)), ]
   cum_y_list <- lapply(split(bar_data$value, bar_data$experiment), cumsum)
   bar_data$cum_y <- unlist(cum_y_list, use.names = FALSE)
-  
+
   threshold <- 1e-4 # Adjust if your low non-zero values are smaller
   bar_data$err_ymin <- ifelse(bar_data$value > threshold, pmax(0, bar_data$cum_y - bar_data$sd), NA_real_)
   bar_data$err_ymax <- ifelse(bar_data$value > threshold, bar_data$cum_y + bar_data$sd, NA_real_)
-  
+
   bar_width <- 0.6
-  
+
   ggplot(bar_data, aes(x = experiment, y = value, fill = compound)) +
     geom_col(aes(text = hover_text), position = "stack", width = bar_width) +
     geom_errorbar(
@@ -896,16 +896,16 @@ plot_avg_hplc <- function(df_list, exp_labels) {
 
 # Final sample HPLC stacked bar
 plot_end_hplc <- function(df_list, exp_labels, experiment_names = names(df_list)) {
-  plot_avg_stacked_bar(df_list, exp_labels, experiment_names = experiment_names,
-                       avg_cols = c(
-                         "Fructose_avg","Glucose_avg", "Maltose_avg","Maltotriose_avg"
-                       ), 
-                       sd_cols = c("Fructose_stdev","Glucose_stdev","Maltose_stdev","Maltotriose_stdev"
-                       ),
-                       comp_colours = hplc_end_colours,
-                       comp_labels = hplc_end_labels,
-                       title = "Final sugar concentration",
-                       y_label = "Final concentration (g/L)"
+  plot_avg_stacked_bar(df_list, exp_labels,
+    experiment_names = experiment_names,
+    avg_cols = c(
+      "Fructose_avg", "Glucose_avg", "Maltose_avg", "Maltotriose_avg"
+    ),
+    sd_cols = c("Fructose_stdev", "Glucose_stdev", "Maltose_stdev", "Maltotriose_stdev"),
+    comp_colours = hplc_end_colours,
+    comp_labels = hplc_end_labels,
+    title = "Final sugar concentration",
+    y_label = "Final concentration (g/L)"
   )
 }
 
@@ -923,18 +923,18 @@ plot_avg_diketones <- function(df_list, exp_labels) {
   )
 }
 
-#Final Diacetyl and pentanedione concentrations
+# Final Diacetyl and pentanedione concentrations
 plot_end_diketones <- function(df_list, exp_labels, experiment_names = names(df_list)) {
-  plot_avg_stacked_bar(df_list, exp_labels, experiment_names = experiment_names,
-                       avg_cols = c(
-                         "2,3-pentanedione_avg_normalized","Diacetyl_avg_normalized"
-                       ),
-                       sd_cols = c("2,3-pentanedione_stdev_normalized","Diacetyl_stdev_normalized"
-                       ),
-                       comp_colours = gc_ketone_end_colours,
-                       comp_labels = gc_ketone_end_labels,
-                       title = "Final normalized diketone concentration",
-                       y_label = "Final concentration (mg/L)"
+  plot_avg_stacked_bar(df_list, exp_labels,
+    experiment_names = experiment_names,
+    avg_cols = c(
+      "2,3-pentanedione_avg_normalized", "Diacetyl_avg_normalized"
+    ),
+    sd_cols = c("2,3-pentanedione_stdev_normalized", "Diacetyl_stdev_normalized"),
+    comp_colours = gc_ketone_end_colours,
+    comp_labels = gc_ketone_end_labels,
+    title = "Final normalized diketone concentration",
+    y_label = "Final concentration (mg/L)"
   )
 }
 
@@ -986,14 +986,16 @@ plot_avg_viability <- function(df_list, exp_labels) {
 
 # Ethyl esters stacked bar — uses ethyl_ester_labels and ethyl_ester_colours
 plot_avg_ethyl_esters_bar <- function(df_list, exp_labels) {
-  plot_avg_stacked_bar(df_list, exp_labels, experiment_names = names(df_list),
+  plot_avg_stacked_bar(df_list, exp_labels,
+    experiment_names = names(df_list),
     avg_cols = c(
       "Ethyl_butyrate_avg_normalized", "Ethyl_hexanoate_avg_normalized",
       "Ethyl_octanoate_avg_normalized", "Ethyl_decanoate_avg_normalized"
     ),
-    sd_cols = c("Ethyl_butyrate_stdev_normalized", "Ethyl_hexanoate_stdev_normalized",
-                "Ethyl_octanoate_stdev_normalized", "Ethyl_decanoate_stdev_normalized"
-    ), 
+    sd_cols = c(
+      "Ethyl_butyrate_stdev_normalized", "Ethyl_hexanoate_stdev_normalized",
+      "Ethyl_octanoate_stdev_normalized", "Ethyl_decanoate_stdev_normalized"
+    ),
     comp_colours = ethyl_ester_colours,
     comp_labels = ethyl_ester_labels,
     title = "Ethyl Esters",
@@ -1003,14 +1005,16 @@ plot_avg_ethyl_esters_bar <- function(df_list, exp_labels) {
 
 # Acetate esters stacked bar — uses acetate_labels and acetate_colours
 plot_avg_acetate_esters_bar <- function(df_list, exp_labels) {
-  plot_avg_stacked_bar(df_list, exp_labels, experiment_names = names(df_list),
+  plot_avg_stacked_bar(df_list, exp_labels,
+    experiment_names = names(df_list),
     avg_cols = c(
       "Ethyl_acetate_avg_normalized", "Isobutyl_acetate_avg_normalized",
       "Isoamyl_acetate_avg_normalized"
     ),
-    sd_cols = c("Ethyl_acetate_stdev_normalized", "Isobutyl_acetate_stdev_normalized",
-                "Isoamyl_acetate_stdev_normalized"
-    ), 
+    sd_cols = c(
+      "Ethyl_acetate_stdev_normalized", "Isobutyl_acetate_stdev_normalized",
+      "Isoamyl_acetate_stdev_normalized"
+    ),
     comp_colours = acetate_colours,
     comp_labels = acetate_labels,
     title = "Acetates",
@@ -1020,13 +1024,14 @@ plot_avg_acetate_esters_bar <- function(df_list, exp_labels) {
 
 # Higher alcohols stacked bar — uses alcohol_labels and alcohol_colours
 plot_avg_higher_alcohols_bar <- function(df_list, exp_labels) {
-  plot_avg_stacked_bar(df_list, exp_labels, experiment_names = names(df_list),
-    avg_cols     = c("Isobutanol_avg_normalized", "Isoamyl_alcohol_avg_normalized"),
-    sd_cols     = c("Isobutanol_stdev_normalized", "Isoamyl_alcohol_stdev_normalized"),
+  plot_avg_stacked_bar(df_list, exp_labels,
+    experiment_names = names(df_list),
+    avg_cols = c("Isobutanol_avg_normalized", "Isoamyl_alcohol_avg_normalized"),
+    sd_cols = c("Isobutanol_stdev_normalized", "Isoamyl_alcohol_stdev_normalized"),
     comp_colours = alcohol_colours,
-    comp_labels  = alcohol_labels,
-    title        = "Higher Alcohols",
-    y_label      = "Concentration (mg/L, normalised)"
+    comp_labels = alcohol_labels,
+    title = "Higher Alcohols",
+    y_label = "Concentration (mg/L, normalised)"
   )
 }
 
@@ -1037,50 +1042,52 @@ plot_avg_higher_alcohols_bar <- function(df_list, exp_labels) {
 # Experiments with a valid average but missing/blank Stdev are still shown
 # as a bar, just without a whisker.
 # -----------------------------------------------------------------------------
-plot_avg_cone_viability <- function(df_list, exp_labels, 
+plot_avg_cone_viability <- function(df_list, exp_labels,
                                     experiment_names = names(df_list)) {
   bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
     value <- suppressWarnings(as.numeric(df$Cone_viability_average[1]))
-    value = round(value, digits = 3)
+    value <- round(value, digits = 3)
     sd <- suppressWarnings(as.numeric(df$Stdev_cone_viability[1]))
-    sd = round(sd, digits = 3)
+    sd <- round(sd, digits = 3)
     data.frame(
       experiment = exp_labels[e],
       value = value,
       sd = sd,
       hover_text = paste0(
-        "experiment: ", sub(".xlsx", "", experiment_names[e]), 
+        "experiment: ", sub(".xlsx", "", experiment_names[e]),
         "<br>value: ", value,
-        "<br>sd: ", sd),
+        "<br>sd: ", sd
+      ),
       stringsAsFactors = FALSE
     )
   }))
-  
+
   bar_data <- bar_data[!is.na(bar_data$value), ]
-  
+
   # No experiment has usable data — return an empty plot instead of letting
   # ggplot/ggplotly error out on a zero-row factor column.
   if (nrow(bar_data) == 0) {
     return(
-      ggplot() + theme_minimal() +
+      ggplot() +
+        theme_minimal() +
         labs(title = "Cone Viability", x = "Experiment", y = "Cone Viability")
     )
   }
-  
+
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
   errorbar_data <- bar_data[!is.na(bar_data$sd), ]
-  
+
   p <- ggplot(
-     bar_data, 
-     aes(x = experiment, y = value, fill = experiment, text = hover_text)
-    ) +
+    bar_data,
+    aes(x = experiment, y = value, fill = experiment, text = hover_text)
+  ) +
     geom_col(width = 0.6) +
     scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
     labs(title = "Cone Viability", x = "Experiment", y = "Cone Viability (%)") +
     theme_minimal() +
     theme(legend.position = "none")
-  
+
   if (nrow(errorbar_data) > 0) {
     p <- p + geom_errorbar(
       data = errorbar_data,
@@ -1090,12 +1097,12 @@ plot_avg_cone_viability <- function(df_list, exp_labels,
       colour = alpha("black", 0.3)
     )
   }
-  
+
   p
 }
 
 # Ethyl Acetate / Isoamyl Acetate ratio — one bar per experiment (final value)
-plot_avg_gc_ratio_bar <- function(df_list, exp_labels, 
+plot_avg_gc_ratio_bar <- function(df_list, exp_labels,
                                   experiment_names = names(df_list)) {
   bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
@@ -1105,8 +1112,9 @@ plot_avg_gc_ratio_bar <- function(df_list, exp_labels,
       experiment = exp_labels[e],
       value = last_val,
       hover_text = paste0(
-        "experiment: ", sub(".xlsx", "", experiment_names[e]), 
-        "<br>value: ", round(last_val, digits = 3)),
+        "experiment: ", sub(".xlsx", "", experiment_names[e]),
+        "<br>value: ", round(last_val, digits = 3)
+      ),
       stringsAsFactors = FALSE
     )
   }))
@@ -1114,9 +1122,9 @@ plot_avg_gc_ratio_bar <- function(df_list, exp_labels,
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
 
   ggplot(
-     bar_data, 
-     aes(x = experiment, y = value, fill = experiment, text = hover_text)
-    ) +
+    bar_data,
+    aes(x = experiment, y = value, fill = experiment, text = hover_text)
+  ) +
     geom_col(width = 0.6) +
     scale_fill_manual(values = setNames(cmp_exp_colours[seq_along(exp_labels)], exp_labels)) +
     labs(title = "GC Ratio (Ethyl Acetate / Isoamyl Acetate)", x = "Experiment", y = "Ratio") +
