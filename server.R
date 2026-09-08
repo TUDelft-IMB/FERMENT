@@ -972,7 +972,7 @@ server <- function(input, output, session) {
     ggplotly(
       plot_end_hplc(
         df_list = dfs,
-        exp_labels = labels,
+        exp_labels = avg_exp_labels(),
         experiment_names = names(dfs)
       ),
       tooltip = "text"
@@ -1041,7 +1041,16 @@ server <- function(input, output, session) {
   )
   output$avgDiketonesPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_diketones(avg_data_list(), avg_exp_labels()))
+    dfs <- avg_data_list()
+    labels <- avg_exp_labels()
+    ggplotly(
+      plot_avg_diketones(
+        df_list = dfs,
+        exp_labels = labels,
+        experiment_names = names(dfs)
+      ),
+      tooltip = "text"
+    )
   })
 
   # Final diacetyl and pentanedione
