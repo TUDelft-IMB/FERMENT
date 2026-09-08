@@ -1118,7 +1118,8 @@ plot_avg_cone_viability <- function(df_list, exp_labels,
 }
 
 # Ethyl Acetate / Isoamyl Acetate ratio — one bar per experiment (final value)
-plot_avg_gc_ratio_bar <- function(df_list, exp_labels) {
+plot_avg_gc_ratio_bar <- function(df_list, exp_labels, 
+                                  experiment_names = names(df_list)) {
   bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
     vals <- as.numeric(df[["Ratio_Ethylacetate_isoamyl_acetate"]])
@@ -1126,13 +1127,19 @@ plot_avg_gc_ratio_bar <- function(df_list, exp_labels) {
     data.frame(
       experiment = exp_labels[e],
       value = last_val,
+      hover_text = paste0(
+        "experiment: ", sub(".xlsx", "", experiment_names[e]), 
+        "<br>value: ", round(last_val, digits = 3)),
       stringsAsFactors = FALSE
     )
   }))
   bar_data <- bar_data[!is.na(bar_data$value), ]
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
 
-  ggplot(bar_data, aes(x = experiment, y = value, fill = experiment)) +
+  ggplot(
+     bar_data, 
+     aes(x = experiment, y = value, fill = experiment, text = hover_text)
+    ) +
     geom_col(width = 0.6) +
     scale_fill_manual(values = setNames(cmp_exp_colours[seq_along(exp_labels)], exp_labels)) +
     labs(title = "GC Ratio (Ethyl Acetate / Isoamyl Acetate)", x = "Experiment", y = "Ratio") +

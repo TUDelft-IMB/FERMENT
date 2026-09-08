@@ -1024,7 +1024,18 @@ server <- function(input, output, session) {
   )
   output$avg_gc_ratio_plot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_gc_ratio_bar(avg_data_list(), avg_exp_labels()))
+    dfs <- avg_data_list()
+    labels <- avg_exp_labels()
+    filenames <- names(dfs)
+    
+    ggplotly(
+      plot_avg_gc_ratio_bar(
+        df_list = dfs,
+        exp_labels = labels,
+        experiment_names = filenames
+      ),
+      tooltip = "text"
+    )
   })
 
   # Attenuation, pH, Cell Count, Viability: one line per experiment
