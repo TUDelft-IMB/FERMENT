@@ -1110,7 +1110,7 @@ server <- function(input, output, session) {
   )
   output$avgPhPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_ph(avg_data_list(), avg_exp_labels()))
+    ggplotly(plot_avg_ph(avg_data_list(), avg_exp_labels()), tooltip = "text")
   })
 
   export_plot_data(
@@ -1121,7 +1121,7 @@ server <- function(input, output, session) {
   )
   output$avgCellCountPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_cell_count(avg_data_list(), avg_exp_labels()))
+    ggplotly(plot_avg_cell_count(avg_data_list(), avg_exp_labels()), tooltip = "text")
   })
 
   export_plot_data(
@@ -1132,7 +1132,7 @@ server <- function(input, output, session) {
   )
   output$avgViabilityPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_viability(avg_data_list(), avg_exp_labels()))
+    ggplotly(plot_avg_viability(avg_data_list(), avg_exp_labels()), tooltip = "text")
   })
 
   # Cone Viability: one bar per experiment with error bars
