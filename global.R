@@ -587,19 +587,30 @@ prepare_avg_single_series <- function(df_list, exp_labels, experiment_names,
   plot_data <- dplyr::bind_rows(lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
 
+    time_values <- as.numeric(df[["Time (h)"]])
+    values <- if (avg_col %in% names(df)) {
+      as.numeric(df[[avg_col]])
+    } else {
+      rep(NA_real_, length(time_values))
+    }
+    sd_values <- if (sd_col %in% names(df)) {
+      as.numeric(df[[sd_col]])
+    } else {
+      rep(NA_real_, length(time_values))
+    }
+    
     data.frame(
-      time = df[["Time (h)"]],
-      value = if (avg_col %in% names(df)) {
-        as.numeric(df[[avg_col]])
-      } else {
-        NA_real_
-      },
-      sd = if (sd_col %in% names(df)) {
-        as.numeric(df[[sd_col]])
-      } else {
-        NA_real_
-      },
-      experiment = experiment_names[e],
+      time = time_values,
+      value = values,
+      sd = sd_values,
+      experiment = exp_labels[e],
+      filename = experiment_names[e],
+      hover_text = paste0(
+        "experiment: ", sub("\\.xlsx$", "", experiment_names[e], ignore.case = TRUE),
+        "<br>value: ", round(values, 3),
+        "<br>sd: ", round(sd_values, 3),
+        "<br>time: ", round(time_values, 3)
+      ),
       stringsAsFactors = FALSE
     )
   }))
@@ -837,11 +848,21 @@ plot_avg_by_experiment <- function(df_list, exp_labels,
 
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
+    time_values <- as.numeric(df[["Time (h)"]])
+    values <- if (avg_col %in% names(df)) as.numeric(df[[avg_col]]) else NA_real_
+    sd_values <- if (!is.null(sd_col) && sd_col %in% names(df)) as.numeric(df[[sd_col]]) else NA_real_
+    
     data.frame(
-      time = as.numeric(df[["Time (h)"]]),
-      value = if (avg_col %in% names(df)) as.numeric(df[[avg_col]]) else NA_real_,
-      sd = if (!is.null(sd_col) && sd_col %in% names(df)) as.numeric(df[[sd_col]]) else NA_real_,
+      time = time_values,
+      value = values,
+      sd = sd_values,
       experiment = exp_labels[e],
+      hover_text = paste0(
+        "experiment: ", sub("\\.xlsx$", "", names(df_list)[e], ignore.case = TRUE),
+        "<br>value: ", round(values, 3),
+        "<br>sd: ", round(sd_values, 3),
+        "<br>time: ", round(time_values, 3)
+      ),
       stringsAsFactors = FALSE
     )
   }))
@@ -857,8 +878,8 @@ plot_avg_by_experiment <- function(df_list, exp_labels,
     plot_data,
     aes(x = time, y = value, colour = experiment, group = experiment)
   ) +
-    geom_line() +
-    geom_point() +
+    geom_line(aes(text = hover_text)) +
+    geom_point(aes(text = hover_text)) +
     geom_errorbar(aes(ymin = value - sd, ymax = value + sd), width = 3, na.rm = TRUE) +
     scale_colour_manual(name = "Experiment", values = colour_map) +
     labs(title = title, x = "Time (h)", y = y_label) +

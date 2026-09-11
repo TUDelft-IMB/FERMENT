@@ -1099,7 +1099,7 @@ server <- function(input, output, session) {
   )
   output$avgAttenuationPlot <- renderPlotly({
     req(avg_data_list())
-    ggplotly(plot_avg_attenuation(avg_data_list(), avg_exp_labels()))
+    ggplotly(plot_avg_attenuation(avg_data_list(), avg_exp_labels()), tooltip = "text")
   })
 
   export_plot_data(
