@@ -688,22 +688,46 @@ server <- function(input, output, session) {
   export_plot_data("download_gc_esters", gc_esters, "gc_esters")
   output$gcEstersTT1Plot <- renderPlotly({
     req(gc_esters())
-    ggplotly(plot_gc_esters_tube(gc_esters(), tube_num = 1))
+    ggplotly(
+      plot_gc_esters_tube(
+        df_list = setNames(list(gc_esters()), input$experiment),
+        tube_num = 1
+      ),
+      tooltip = "text"
+    )
   })
   output$gcEstersTT2Plot <- renderPlotly({
     req(gc_esters())
-    ggplotly(plot_gc_esters_tube(gc_esters(), tube_num = 2))
+    ggplotly(
+      plot_gc_esters_tube(
+        df_list = setNames(list(gc_esters()), input$experiment),
+        tube_num = 2
+      ),
+      tooltip = "text"
+    )
   })
 
   # GC Ketones: diacetyl and 2,3-pentanedione over time, TT1 and TT2
   export_plot_data("download_gc_ketones", gc_ketones, "gc_ketones")
   output$gcKetonesTT1Plot <- renderPlotly({
     req(gc_ketones())
-    ggplotly(plot_gc_ketones_tube(gc_ketones(), tube_num = 1))
+    ggplotly(
+      plot_gc_ketones_tube(
+        df_list = setNames(list(gc_ketones()), input$experiment),
+        tube_num = 1
+      ),
+      tooltip = "text"
+    )
   })
   output$gcKetonesTT2Plot <- renderPlotly({
     req(gc_ketones())
-    ggplotly(plot_gc_ketones_tube(gc_ketones(), tube_num = 2))
+    ggplotly(
+      plot_gc_ketones_tube(
+        df_list = setNames(list(gc_ketones()), input$experiment),
+        tube_num = 2
+      ),
+      tooltip = "text"
+    )
   })
 
   # Attenuation and pH: one line per tube (TT1 and TT2)
