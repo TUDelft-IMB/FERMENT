@@ -1375,7 +1375,7 @@ server <- function(input, output, session) {
   )
   output$cmpPhPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_ph(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(plot_cmp_ph(cmp_data_list(), cmp_exp_labels()), tooltip = "text")
   })
 
   cmp_cell_count_export <- cmp_sheet_data("CellCount_Viability")
