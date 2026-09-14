@@ -1260,21 +1260,37 @@ plot_cmp_tube_overlay <- function(df_list, exp_labels,
 
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][[sheet_name]]
+    filename <- names(df_list)[e]
+    filename_label <- sub("\\.xlsx$", "", filename, ignore.case = TRUE)
 
     do.call(rbind, lapply(compound_labels, function(base_metab) {
       do.call(rbind, lapply(c(1, 2), function(tube_num) {
         val_col <- paste(tube_num, base_metab)
         stdev_col <- paste("StDev", val_col)
+        tube <- paste0("TT", tube_num)
 
         data.frame(
-          time = df[["Time (h)"]],
+          time = as.numeric(df[["Time (h)"]]),
           value = if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_,
           sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
           compound = base_metab,
           experiment = exp_labels[e],
-          tube = paste0("TT", tube_num),
-          exp_tube = paste0(exp_labels[e], " ", paste0("TT", tube_num)),
-          trace_id = paste(exp_labels[e], paste0("TT", tube_num), base_metab),
+          filename = filename_label,
+          tube = tube,
+          exp_tube = paste0(exp_labels[e], " ", tube),
+          trace_id = paste(exp_labels[e], tube, base_metab),
+          hover_text = paste0(
+            "experiment: ", filename_label,
+            "<br>value: ", round(if (val_col %in% names(df)) as.numeric(df[[val_col]]) else NA_real_, 3),
+            "<br>sd: ", ifelse(
+              stdev_col %in% names(df),
+              round(as.numeric(df[[stdev_col]]), 3),
+              "NA"
+            ),
+            "<br>time: ", round(as.numeric(df[["Time (h)"]]), 3),
+            "<br>tube: ", tube,
+            "<br>compound: ", base_metab
+          ),
           stringsAsFactors = FALSE
         )
       }))
@@ -1299,7 +1315,7 @@ plot_cmp_tube_overlay <- function(df_list, exp_labels,
       group = trace_id
     )
   ) +
-    geom_line() +
+    geom_line(aes(text = hover_text)) +
     geom_errorbar(
       aes(ymin = value - sd, ymax = value + sd),
       width = 3,
@@ -1309,13 +1325,15 @@ plot_cmp_tube_overlay <- function(df_list, exp_labels,
       data = subset(plot_data, tube == "TT1"),
       shape = 16,
       size = 2,
-      show.legend = FALSE
+      show.legend = FALSE,
+      aes(text = hover_text)
     ) +
     geom_point(
       data = subset(plot_data, tube == "TT2"),
       shape = 1,
       size = 2,
-      show.legend = FALSE
+      show.legend = FALSE,
+      aes(text = hover_text)
     ) +
     scale_colour_manual(name = "Compound", values = metabolites_map) +
     scale_linetype_manual(name = "Experiment", values = linetype_values) +
