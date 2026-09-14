@@ -1401,7 +1401,7 @@ server <- function(input, output, session) {
   )
   output$cmpViabilityPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_viability(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(plot_cmp_viability(cmp_data_list(), cmp_exp_labels()), tooltip = "text")
   })
 
   # CO2: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
@@ -1430,6 +1430,6 @@ server <- function(input, output, session) {
       )
     }
 
-    ggplotly(plot_cmp_CO2(dfs, labels))
+    ggplotly(plot_cmp_CO2(dfs, labels), tooltip = "text")
   })
 } # end server
