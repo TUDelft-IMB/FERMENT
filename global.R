@@ -804,16 +804,89 @@ plot_viability <- function(df_list) {
 }
 
 # -----------------------------------------------------------------------------
-# plot_CO2() — CO2 production (ml/min over time, TT1 vs TT2
-# Uses tt_colours from section 4 via scale_colour_manual().
-# --------------------------------------------------------------------------
-plot_CO2 <- function(CO2) {
-  CO2[["Time (h)"]] <- CO2[["Time (days)"]] * 24
-  ggplot(CO2) +
-    geom_line(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
-    geom_line(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
-    scale_colour_manual(name = "Tube", values = tt_colours) +
-    labs(title = "CO\u2082 production", x = "Time (h)", y = "CO\u2082 (ml/min)") +
+# plot_co2() — CO2 over time, TT1 vs TT2
+# df_list : named list containing the CO2 sheet data frame for one experiment
+#           e.g. list("my_experiment.xlsx" = CO2())
+# -----------------------------------------------------------------------------
+plot_co2 <- function(df_list) {
+  df <- df_list[[1]]
+  exp_labels <- sub("\\.xlsx$", "", names(df_list), ignore.case = TRUE)
+  
+  time_col <- if ("Time (h)" %in% names(df)) {
+    "Time (h)"
+  } else if ("Time (days)" %in% names(df)) {
+    "Time (days)"
+  } else {
+    stop("CO2 sheet must contain either 'Time (h)' or 'Time (days)'.")
+  }
+  
+  tube_cols <- c("TT1" = "TT1", "TT2" = "TT2")
+  tube_lty <- c("TT1" = "solid", "TT2" = "dashed")
+  colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
+  
+  plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
+    df <- df_list[[e]]
+    
+    if (is.null(df) || nrow(df) == 0) {
+      return(NULL)
+    }
+    
+    time_values <- if (time_col %in% c("Time (days)", "Time (day)")) {
+      as.numeric(df[[time_col]]) * 24
+    } else {
+      as.numeric(df[[time_col]])
+    }
+    
+    filename_label <- sub("\\.xlsx$", "", names(df_list)[e], ignore.case = TRUE)
+    
+    do.call(rbind, lapply(names(tube_cols), function(tube) {
+      value_col <- tube_cols[[tube]]
+      
+      value <- if (value_col %in% names(df)) {
+        as.numeric(df[[value_col]])
+      } else {
+        NA_real_
+      }
+      
+      data.frame(
+        time = time_values,
+        value = value,
+        experiment = exp_labels[e],
+        filename = filename_label,
+        tube = tube,
+        trace_id = paste(exp_labels[e], tube),
+        hover_text = paste0(
+          "experiment: ", filename_label,
+          "<br>value: ", round(value, 3),
+          "<br>time: ", round(time_values, 3),
+          "<br>tube: ", tube
+        ),
+        stringsAsFactors = FALSE
+      )
+    }))
+  }))
+  
+  plot_data <- plot_data[!is.na(plot_data$value), ]
+  
+  ggplot(
+    plot_data,
+    aes(
+      x = time,
+      y = value,
+      colour = experiment,
+      linetype = tube,
+      group = trace_id
+    )
+  ) +
+    geom_line(aes(text = hover_text)) +
+    #geom_point(aes(text = hover_text)) +
+    scale_colour_manual(name = "Experiment", values = colour_map) +
+    scale_linetype_manual(name = "TT", values = tube_lty) +
+    labs(
+      title = "CO\u2082 production",
+      x = "Time (h)",
+      y = "CO\u2082 (ml/min)"
+    ) +
     theme_minimal() +
     theme(legend.position = "right")
 }
