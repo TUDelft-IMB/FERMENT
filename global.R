@@ -516,17 +516,63 @@ plot_gc_ketones_tube <- function(df_list, tube_num) {
 }
 
 # -----------------------------------------------------------------------------
-# plot_att() — attenuation (degrees P) over time, TT1 vs TT2
-# Uses tt_colours from section 4 via scale_colour_manual().
+# plot_att() — attenuation over time, TT1 vs TT2
+# df_list : named list containing the Attenuation sheet data frame for one experiment
+#           e.g. list("my_experiment.xlsx" = att())
 # -----------------------------------------------------------------------------
-plot_att <- function(att) {
-  ggplot(att) +
-    geom_line(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
-    geom_point(aes(x = `Time (h)`, y = `TT1`, colour = "TT1")) +
-    geom_line(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
-    geom_point(aes(x = `Time (h)`, y = `TT2`, colour = "TT2")) +
+plot_att <- function(df_list) {
+  df <- df_list[[1]]
+  experiment_label <- sub("\\.xlsx$", "", names(df_list)[1], ignore.case = TRUE)
+  
+  plot_data <- do.call(rbind, lapply(c("TT1", "TT2"), function(tube) {
+    value_col <- tube
+    stdev_col <- paste0(tube, "_stdev")
+    
+    data.frame(
+      time = as.numeric(df[["Time (h)"]]),
+      value = if (value_col %in% names(df)) as.numeric(df[[value_col]]) else NA_real_,
+      sd = if (stdev_col %in% names(df)) as.numeric(df[[stdev_col]]) else NA_real_,
+      tube = tube,
+      hover_text = paste0(
+        "experiment: ", experiment_label,
+        "<br>value: ", round(if (value_col %in% names(df)) as.numeric(df[[value_col]]) else NA_real_, 3),
+        "<br>sd: ", ifelse(
+          stdev_col %in% names(df),
+          round(as.numeric(df[[stdev_col]]), 3),
+          "NA"
+        ),
+        "<br>time: ", round(as.numeric(df[["Time (h)"]]), 3),
+        "<br>tube: ", tube
+      ),
+      stringsAsFactors = FALSE
+    )
+  }))
+  
+  plot_data <- plot_data[!is.na(plot_data$value), ]
+  
+  ggplot(
+    plot_data,
+    aes(x = time, y = value, colour = tube, group = tube)
+  ) +
+    geom_line(aes(text = hover_text)) +
+    geom_point(aes(text = hover_text)) +
+    geom_errorbar(
+      aes(
+        x = time,
+        ymin = value - sd,
+        ymax = value + sd,
+        colour = tube
+      ),
+      width = 3,
+      na.rm = TRUE,
+      show.legend = FALSE
+    ) +
     scale_colour_manual(name = "Tube", values = tt_colours) +
-    labs(title = "Attenuation", x = "Time (h)", y = "Attenuation (degrees P)") +
+    labs(
+      title = "Attenuation",
+      x = "Time (h)",
+      y = "Attenuation (degrees P)"
+    ) +
     theme_minimal() +
     theme(legend.position = "right")
 }

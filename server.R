@@ -734,7 +734,12 @@ server <- function(input, output, session) {
   export_plot_data("download_att", att, "attenuation")
   output$attPlot <- renderPlotly({
     req(att())
-    ggplotly(plot_att(att()))
+    ggplotly(
+      plot_att(
+        df_list = setNames(list(att()), input$experiment)
+      ),
+      tooltip = "text"
+    )
   })
   export_plot_data("download_ph", ph, "ph")
   output$phPlot <- renderPlotly({
