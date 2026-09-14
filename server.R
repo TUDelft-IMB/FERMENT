@@ -756,7 +756,12 @@ server <- function(input, output, session) {
   export_plot_data("download_cell_count", viability, "cell_count")
   output$cellCountPlot <- renderPlotly({
     req(viability())
-    ggplotly(plot_cell_count(viability()))
+    ggplotly(
+      plot_cell_count(
+        df_list = setNames(list(viability()), input$experiment)
+      ),
+      tooltip = "text"
+    )
   })
   export_plot_data("download_viability", viability, "viability")
   output$viabilityPlot <- renderPlotly({
