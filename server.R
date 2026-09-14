@@ -639,7 +639,7 @@ server <- function(input, output, session) {
     req(tt_data())
     tt_data()[["pH"]]
   })
-  viability <- reactive({
+  cc_viability <- reactive({
     req(tt_data())
     tt_data()[["CellCount_Viability"]]
   })
@@ -753,20 +753,25 @@ server <- function(input, output, session) {
   })
 
   # Cell Count and Viability: one line per tube (TT1 and TT2)
-  export_plot_data("download_cell_count", viability, "cell_count")
+  export_plot_data("download_cell_count", cc_viability, "cell_count")
   output$cellCountPlot <- renderPlotly({
-    req(viability())
+    req(cc_viability())
     ggplotly(
       plot_cell_count(
-        df_list = setNames(list(viability()), input$experiment)
+        df_list = setNames(list(cc_viability()), input$experiment)
       ),
       tooltip = "text"
     )
   })
-  export_plot_data("download_viability", viability, "viability")
+  export_plot_data("download_viability", cc_viability, "viability")
   output$viabilityPlot <- renderPlotly({
-    req(viability())
-    ggplotly(plot_viability(viability()))
+    req(cc_viability())
+    ggplotly(
+      plot_viability(
+        df_list = setNames(list(cc_viability()), input$experiment)
+      ),
+      tooltip = "text"
+    )
   })
 
   # Cell Count and Viability: one line per tube (TT1 and TT2)
