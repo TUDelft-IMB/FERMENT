@@ -744,7 +744,12 @@ server <- function(input, output, session) {
   export_plot_data("download_ph", ph, "ph")
   output$phPlot <- renderPlotly({
     req(ph())
-    ggplotly(plot_ph(ph()))
+    ggplotly(
+      plot_ph(
+        df_list = setNames(list(ph()), input$experiment)
+      ),
+      tooltip = "text"
+    )
   })
 
   # Cell Count and Viability: one line per tube (TT1 and TT2)
