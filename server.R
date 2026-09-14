@@ -1389,7 +1389,7 @@ server <- function(input, output, session) {
   )
   output$cmpCellCountPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_cell_count(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(plot_cmp_cell_count(cmp_data_list(), cmp_exp_labels()), tooltip = "text")
   })
 
   # Viability: both TT1 and TT2 in one chart; colour = experiment, linetype = tube

@@ -1512,18 +1512,46 @@ plot_cmp_cell_count <- function(df_list, exp_labels) {
 
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["CellCount_Viability"]]
+    if (is.null(df) || nrow(df) == 0) {
+      return(NULL)
+    }
+    
+    filename_label <- sub("\\.xlsx$", "", names(df_list)[e], ignore.case = TRUE)
+    
     do.call(rbind, lapply(names(tube_cols), function(tube_label) {
       col <- tube_cols[[tube_label]]
+      
+      sd_col <- paste0(tube_label, "_stdev")
+      sd_values <- if (sd_col %in% names(df)) {
+        as.numeric(df[[sd_col]])
+      } else {
+        rep(NA_real_, nrow(df))
+      }
+      
       data.frame(
         time = as.numeric(df[["Time (h)"]]),
         value = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
+        sd = sd_values,
         experiment = exp_labels[e],
+        filename = filename_label,
         tube = tube_label,
         trace_id = paste(exp_labels[e], tube_label),
+        hover_text = paste0(
+          "experiment: ", filename_label,
+          "<br>value: ", round(if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_, 3),
+          "<br>sd: ", ifelse(
+            sd_col %in% names(df),
+            round(sd_values, 3),
+            "NA"
+          ),
+          "<br>time: ", round(as.numeric(df[["Time (h)"]]), 3),
+          "<br>tube: ", tube_label
+        ),
         stringsAsFactors = FALSE
       )
     }))
   }))
+  
   plot_data <- plot_data[!is.na(plot_data$value), ]
 
   ggplot(
@@ -1535,8 +1563,8 @@ plot_cmp_cell_count <- function(df_list, exp_labels) {
       group = trace_id
     )
   ) +
-    geom_line() +
-    geom_point() +
+    geom_line(aes(text = hover_text)) +
+    geom_point(aes(text = hover_text)) +
     scale_colour_manual(name = "Experiment", values = colour_map) +
     scale_linetype_manual(name = "TT", values = tube_lty) +
     labs(title = "Cell Count", x = "Time (h)", y = "Cell count (cells/ml)") +
