@@ -665,11 +665,23 @@ server <- function(input, output, session) {
   export_plot_data("download_hplc", hplc, "hplc")
   output$hplcTT1Plot <- renderPlotly({
     req(hplc())
-    ggplotly(plot_hplc_tube(hplc(), tube_num = 1))
+    ggplotly(
+      plot_hplc_tube(
+        df_list = setNames(list(hplc()), input$experiment),
+        tube_num = 1
+      ),
+      tooltip = "text"
+    )
   })
   output$hplcTT2Plot <- renderPlotly({
     req(hplc())
-    ggplotly(plot_hplc_tube(hplc(), tube_num = 2))
+    ggplotly(
+      plot_hplc_tube(
+        df_list = setNames(list(hplc()), input$experiment),
+        tube_num = 2
+      ),
+      tooltip = "text"
+    )
   })
 
   # GC Esters: volatile esters over time, TT1 and TT2 side by side
