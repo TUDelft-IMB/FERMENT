@@ -395,34 +395,77 @@ plot_hplc_tube <- function(df_list, tube_num) {
 
 # -----------------------------------------------------------------------------
 # plot_gc_esters_tube() — volatile esters over fermentation time
-# df       : the GC_esters sheet data frame
-# tube_num : 1 or 2
+# df_list : named list containing the GC_esters sheet data frame for one experiment
+#           e.g. list("my_experiment.xlsx" = gc_esters())
+# tube_num: 1 or 2 (selects the TT1 or TT2 columns)
 # -----------------------------------------------------------------------------
-plot_gc_esters_tube <- function(df, tube_num) {
+plot_gc_esters_tube <- function(df_list, tube_num) {
+  df <- df_list[[1]]
+  experiment_label <- sub("\\.xlsx$", "", names(df_list)[1], ignore.case = TRUE)
+  
   metabolites_map <- setNames(gc_ester_colours, gc_ester_labels)
-
+  
   p <- ggplot(df, aes(x = `Time (h)`))
-
+  
   for (base_metab in names(metabolites_map)) {
     val_col <- paste(tube_num, base_metab)
     stdev_col <- paste("StDev", val_col)
-
+    
     p <- p +
-      geom_line(aes(y = .data[[val_col]], colour = !!base_metab)) +
-      geom_point(aes(y = .data[[val_col]], colour = !!base_metab)) +
-      geom_errorbar(aes(
-        ymin   = .data[[val_col]] - .data[[stdev_col]],
-        ymax   = .data[[val_col]] + .data[[stdev_col]],
-        colour = !!base_metab
-      ), width = 3)
+      geom_line(
+        aes(
+          y = .data[[val_col]],
+          colour = !!base_metab,
+          group = !!base_metab,
+          text = paste0(
+            "experiment: ", experiment_label,
+            "<br>value: ", round(.data[[val_col]], 3),
+            "<br>sd: ", ifelse(
+              is.na(.data[[stdev_col]]),
+              "NA",
+              round(.data[[stdev_col]], 3)
+            ),
+            "<br>time: ", round(.data[["Time (h)"]], 3),
+            "<br>tube: ", paste0("TT", tube_num),
+            "<br>compound: ", !!base_metab
+          )
+        )
+      ) +
+      geom_point(
+        aes(
+          y = .data[[val_col]],
+          colour = !!base_metab,
+          group = !!base_metab,
+          text = paste0(
+            "experiment: ", experiment_label,
+            "<br>value: ", round(.data[[val_col]], 3),
+            "<br>sd: ", ifelse(
+              is.na(.data[[stdev_col]]),
+              "NA",
+              round(.data[[stdev_col]], 3)
+            ),
+            "<br>time: ", round(.data[["Time (h)"]], 3),
+            "<br>tube: ", paste0("TT", tube_num),
+            "<br>compound: ", !!base_metab
+          )
+        )
+      ) +
+      geom_errorbar(
+        aes(
+          ymin = .data[[val_col]] - .data[[stdev_col]],
+          ymax = .data[[val_col]] + .data[[stdev_col]],
+          colour = !!base_metab
+        ),
+        width = 3
+      )
   }
-
+  
   p +
     scale_color_manual(name = "Metabolites", values = metabolites_map) +
     labs(
       title = paste0("GC Esters TT", tube_num),
-      x     = "Time (h)",
-      y     = "Concentration (mg/L)"
+      x = "Time (h)",
+      y = "Concentration (mg/L)"
     ) +
     theme_minimal() +
     theme(legend.position = "right")
@@ -430,34 +473,77 @@ plot_gc_esters_tube <- function(df, tube_num) {
 
 # -----------------------------------------------------------------------------
 # plot_gc_ketones_tube() — diacetyl and 2,3-pentanedione over time
-# df       : the GC_ketones sheet data frame
-# tube_num : 1 or 2
+# df_list : named list containing the GC_ketones sheet data frame for one experiment
+#           e.g. list("my_experiment.xlsx" = gc_ketones())
+# tube_num: 1 or 2 (selects the TT1 or TT2 columns)
 # -----------------------------------------------------------------------------
-plot_gc_ketones_tube <- function(df, tube_num) {
+plot_gc_ketones_tube <- function(df_list, tube_num) {
+  df <- df_list[[1]]
+  experiment_label <- sub("\\.xlsx$", "", names(df_list)[1], ignore.case = TRUE)
+  
   metabolites_map <- setNames(gc_ketone_colours, gc_ketone_labels)
-
+  
   p <- ggplot(df, aes(x = `Time (h)`))
-
+  
   for (base_metab in names(metabolites_map)) {
     val_col <- paste(tube_num, base_metab)
     stdev_col <- paste("StDev", val_col)
-
+    
     p <- p +
-      geom_line(aes(y = .data[[val_col]], colour = !!base_metab)) +
-      geom_point(aes(y = .data[[val_col]], colour = !!base_metab)) +
-      geom_errorbar(aes(
-        ymin   = .data[[val_col]] - .data[[stdev_col]],
-        ymax   = .data[[val_col]] + .data[[stdev_col]],
-        colour = !!base_metab
-      ), width = 3)
+      geom_line(
+        aes(
+          y = .data[[val_col]],
+          colour = !!base_metab,
+          group = !!base_metab,
+          text = paste0(
+            "experiment: ", experiment_label,
+            "<br>value: ", round(.data[[val_col]], 3),
+            "<br>sd: ", ifelse(
+              is.na(.data[[stdev_col]]),
+              "NA",
+              round(.data[[stdev_col]], 3)
+            ),
+            "<br>time: ", round(.data[["Time (h)"]], 3),
+            "<br>tube: ", paste0("TT", tube_num),
+            "<br>compound: ", !!base_metab
+          )
+        )
+      ) +
+      geom_point(
+        aes(
+          y = .data[[val_col]],
+          colour = !!base_metab,
+          group = !!base_metab,
+          text = paste0(
+            "experiment: ", experiment_label,
+            "<br>value: ", round(.data[[val_col]], 3),
+            "<br>sd: ", ifelse(
+              is.na(.data[[stdev_col]]),
+              "NA",
+              round(.data[[stdev_col]], 3)
+            ),
+            "<br>time: ", round(.data[["Time (h)"]], 3),
+            "<br>tube: ", paste0("TT", tube_num),
+            "<br>compound: ", !!base_metab
+          )
+        )
+      ) +
+      geom_errorbar(
+        aes(
+          ymin = .data[[val_col]] - .data[[stdev_col]],
+          ymax = .data[[val_col]] + .data[[stdev_col]],
+          colour = !!base_metab
+        ),
+        width = 3
+      )
   }
-
+  
   p +
     scale_color_manual(name = "Metabolites", values = metabolites_map) +
     labs(
       title = paste0("GC Ketones TT", tube_num),
-      x     = "Time (h)",
-      y     = "Concentration (mg/L)"
+      x = "Time (h)",
+      y = "Concentration (mg/L)"
     ) +
     theme_minimal() +
     theme(legend.position = "right")
