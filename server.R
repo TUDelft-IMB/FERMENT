@@ -774,16 +774,23 @@ server <- function(input, output, session) {
     )
   })
 
-  # Cell Count and Viability: one line per tube (TT1 and TT2)
+  # CO2: one line per tube (TT1 and TT2)
   export_plot_data("download_co2", CO2, "co2")
   output$CO2Plot <- renderPlotly({
     req(tt_data())
+    req(CO2)
     if (is.null(CO2()) || nrow(CO2()) == 0) {
       showNotification("No CO\u2082 data available for this experiment.", type = "warning", duration = 8)
       return(plotly_empty())
     }
-    ggplotly(plot_CO2(CO2()))
+    ggplotly(
+      plot_co2(
+        df_list = setNames(list(CO2()), input$experiment)
+      ),
+      tooltip = "text"
+    )
   })
+  
   # ---------------------------------------------------------------------------
   # Step 11: Averages — filter the pool of available experiments.
   # ---------------------------------------------------------------------------
