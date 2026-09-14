@@ -1336,7 +1336,7 @@ server <- function(input, output, session) {
   )
   output$cmpGcEstersPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_gc_esters(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(plot_cmp_gc_esters(cmp_data_list(), cmp_exp_labels()), tooltip = "text")
   })
 
   # GC Ketones: one line per compound per experiment, TT1 and TT2 overlaid
@@ -1349,7 +1349,7 @@ server <- function(input, output, session) {
   )
   output$cmpGcKetonesPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_gc_ketones(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(plot_cmp_gc_ketones(cmp_data_list(), cmp_exp_labels()), tooltip = "text")
   })
 
   # Attenuation: both TT1 and TT2 in one chart; colour = experiment, linetype = tube
@@ -1362,7 +1362,7 @@ server <- function(input, output, session) {
   )
   output$cmpAttPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_att(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(plot_cmp_att(cmp_data_list(), cmp_exp_labels()), tooltip = "text")
   })
 
   # pH: both TT1 and TT2 in one chart; colour = experiment, linetype = tube

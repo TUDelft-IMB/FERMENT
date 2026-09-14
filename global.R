@@ -1367,18 +1367,49 @@ plot_cmp_att <- function(df_list, exp_labels) {
 
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]][["Attenuation"]]
+    if (is.null(df) || nrow(df) == 0) {
+      return(NULL)
+    }
+    
+    filename_label <- sub("\\.xlsx$", "", names(df_list)[e], ignore.case = TRUE)
+    
     do.call(rbind, lapply(tube_cols, function(tc) {
+      stdev_col <- switch(
+        tc,
+        "TT1" = "TT1_stdev",
+        "TT2" = "TT2_stdev"
+      )
+      
+      sd_values <- if (stdev_col %in% names(df)) {
+        as.numeric(df[[stdev_col]])
+      } else {
+        rep(NA_real_, nrow(df))
+      }
+      
       data.frame(
         time = as.numeric(df[["Time (h)"]]),
         value = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
+        sd = sd_values,
         experiment = exp_labels[e],
+        filename = filename_label,
         tube = tc,
-        # trace_id used for the group aesthetic so lines don't cross tubes
         trace_id = paste(exp_labels[e], tc),
+        hover_text = paste0(
+          "experiment: ", filename_label,
+          "<br>value: ", round(if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_, 3),
+          "<br>sd: ", ifelse(
+            stdev_col %in% names(df),
+            round(sd_values, 3),
+            "NA"
+          ),
+          "<br>time: ", round(as.numeric(df[["Time (h)"]]), 3),
+          "<br>tube: ", tc
+        ),
         stringsAsFactors = FALSE
       )
     }))
   }))
+  
   plot_data <- plot_data[!is.na(plot_data$value), ]
 
   ggplot(
@@ -1390,8 +1421,8 @@ plot_cmp_att <- function(df_list, exp_labels) {
       group = trace_id
     )
   ) +
-    geom_line() +
-    geom_point() +
+    geom_line(aes(text = hover_text)) +
+    geom_point(aes(text = hover_text)) +
     scale_colour_manual(name = "Experiment", values = colour_map) +
     scale_linetype_manual(name = "TT", values = tube_lty) +
     labs(title = "Attenuation", x = "Time (h)", y = "Attenuation (degrees P)") +
