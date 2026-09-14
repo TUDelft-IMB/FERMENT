@@ -283,38 +283,77 @@ cmp_exp_colours <- c(okabe10, polychrome_extra)
 
 # -----------------------------------------------------------------------------
 # plot_hplc_tube() — sugars and ethanol over fermentation time
-# df       : the HPLC sheet data frame
-# tube_num : 1 or 2 (selects the TT1 or TT2 columns)
+# df_list : named list containing the HPLC sheet data frame for one experiment
+#           e.g. list("my_experiment.xlsx" = hplc())
+# tube_num: 1 or 2 (selects the TT1 or TT2 columns)
 # -----------------------------------------------------------------------------
-plot_hplc_tube <- function(df, tube_num) {
-  # Build named colour map from section 4 vectors.
-  # Names = compound labels (used as colour aesthetic keys and legend text).
-  # Values = colour strings (used by scale_color_manual).
+plot_hplc_tube <- function(df_list, tube_num) {
+  df <- df_list[[1]]
+  experiment_label <- sub("\\.xlsx$", "", names(df_list)[1], ignore.case = TRUE)
+  
   metabolites_map <- setNames(hplc_colours, hplc_labels)
-
+  
   p <- ggplot(df, aes(x = `Time (h)`))
-
+  
   for (base_metab in names(metabolites_map)) {
-    # Construct full column names: e.g. "1 Maltotriose (g/L)", "StDev 1 Maltotriose (g/L)"
     val_col <- paste(tube_num, base_metab)
     stdev_col <- paste("StDev", val_col)
-
+    
     p <- p +
-      geom_line(aes(y = .data[[val_col]], colour = !!base_metab)) +
-      geom_point(aes(y = .data[[val_col]], colour = !!base_metab)) +
-      geom_errorbar(aes(
-        ymin   = .data[[val_col]] - .data[[stdev_col]],
-        ymax   = .data[[val_col]] + .data[[stdev_col]],
-        colour = !!base_metab
-      ), width = 3)
+      geom_line(
+        aes(
+          y = .data[[val_col]],
+          colour = !!base_metab,
+          group = !!base_metab,
+          text = paste0(
+            "experiment: ", experiment_label,
+            "<br>value: ", round(.data[[val_col]], 3),
+            "<br>sd: ", ifelse(
+              is.na(.data[[stdev_col]]),
+              "NA",
+              round(.data[[stdev_col]], 3)
+            ),
+            "<br>time: ", round(.data[["Time (h)"]], 3),
+            "<br>tube: ", paste0("TT", tube_num),
+            "<br>compound: ", !!base_metab
+          )
+        )
+      ) +
+      geom_point(
+        aes(
+          y = .data[[val_col]],
+          colour = !!base_metab,
+          group = !!base_metab,
+          text = paste0(
+            "experiment: ", experiment_label,
+            "<br>value: ", round(.data[[val_col]], 3),
+            "<br>sd: ", ifelse(
+              is.na(.data[[stdev_col]]),
+              "NA",
+              round(.data[[stdev_col]], 3)
+            ),
+            "<br>time: ", round(.data[["Time (h)"]], 3),
+            "<br>tube: ", paste0("TT", tube_num),
+            "<br>compound: ", !!base_metab
+          )
+        )
+      ) +
+      geom_errorbar(
+        aes(
+          ymin = .data[[val_col]] - .data[[stdev_col]],
+          ymax = .data[[val_col]] + .data[[stdev_col]],
+          colour = !!base_metab
+        ),
+        width = 3
+      )
   }
-
+  
   p +
     scale_color_manual(name = "Metabolites", values = metabolites_map) +
     labs(
       title = paste0("HPLC TT", tube_num),
-      x     = "Time (h)",
-      y     = "Concentration (g/L)"
+      x = "Time (h)",
+      y = "Concentration (g/L)"
     ) +
     theme_minimal() +
     theme(legend.position = "right")
