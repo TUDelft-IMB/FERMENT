@@ -1323,7 +1323,7 @@ server <- function(input, output, session) {
   )
   output$cmpHplcPlot <- renderPlotly({
     req(cmp_data_list())
-    ggplotly(plot_cmp_hplc(cmp_data_list(), cmp_exp_labels()))
+    ggplotly(plot_cmp_hplc(cmp_data_list(), cmp_exp_labels()), tooltip = "text")
   })
 
   # GC Esters: one line per compound per experiment, TT1 and TT2 overlaid
