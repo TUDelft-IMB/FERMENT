@@ -1289,7 +1289,8 @@ plot_avg_by_experiment <- function(df_list, exp_labels,
 plot_avg_stacked_bar <- function(df_list, exp_labels,
                                  avg_cols, sd_cols, comp_colours, comp_labels,
                                  title = "", y_label = "",
-                                 experiment_names = names(df_list)) {
+                                 experiment_names = names(df_list),
+                                 reverse_stack = FALSE) {
   bar_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
     do.call(rbind, lapply(seq_along(avg_cols), function(i) {
@@ -1320,8 +1321,11 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
   bar_data <- bar_data[!is.na(bar_data$value), ]
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
   bar_data$compound <- factor(bar_data$compound, levels = comp_labels)
-
-  bar_data <- bar_data[order(bar_data$experiment, as.integer(bar_data$compound)), ]
+  
+  # Stacking direction only — does not touch which label belongs to which
+  # data, since comp_labels/avg_cols pairing is untouched.
+  sort_key <- if (reverse_stack) -as.integer(bar_data$compound) else as.integer(bar_data$compound)
+  bar_data <- bar_data[order(bar_data$experiment, sort_key), ]
   cum_y_list <- lapply(split(bar_data$value, bar_data$experiment), cumsum)
   bar_data$ymax <- unlist(cum_y_list, use.names = FALSE)
   bar_data$ymin <- bar_data$ymax - bar_data$value
@@ -1419,7 +1423,8 @@ plot_end_diketones <- function(df_list, exp_labels, experiment_names = names(df_
     comp_colours = gc_ketone_end_colours,
     comp_labels = gc_ketone_end_labels,
     title = "Final normalized diketone concentration",
-    y_label = "Final concentration (mg/L)"
+    y_label = "Final concentration (mg/L)",
+    reverse_stack = TRUE
   )
 }
 
