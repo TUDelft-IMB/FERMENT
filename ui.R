@@ -371,12 +371,7 @@ ui <- tagList(
                 fluidRow(
                   column(
                     6,
-                    spinner(plotlyOutput("cellCountPlot", height = "400px")),
-                    div(
-                      style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_cell_count", "Export CSV"),
-                      export_tooltip("download_cell_count")
-                    )
+                    spinner(plotlyOutput("cellCountPlot", height = "400px"))
                   ),
                   column(
                     6,
@@ -600,12 +595,7 @@ ui <- tagList(
                 fluidRow(
                   column(
                     6,
-                    spinner(plotlyOutput("cmpCellCountPlot", height = "450px")),
-                    div(
-                      style = "text-align:right; margin-bottom:6px;",
-                      downloadButton("download_cmp_cell_count", "Export CSV"),
-                      export_tooltip("download_cmp_cell_count")
-                    )
+                    spinner(plotlyOutput("cmpCellCountPlot", height = "450px"))
                   ),
                   column(
                     6,
