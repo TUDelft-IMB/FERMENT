@@ -1477,8 +1477,8 @@ plot_avg_ethyl_esters_bar <- function(df_list, exp_labels) {
     ),
     comp_colours = ethyl_ester_colours,
     comp_labels = ethyl_ester_labels,
-    title = "Ethyl Esters",
-    y_label = "Concentration (mg/L, normalised)",
+    title = "Final normalized Ethyl Esters",
+    y_label = "Concentration (mg/L)",
     reverse_stack = TRUE
   )
 }
@@ -1497,8 +1497,8 @@ plot_avg_acetate_esters_bar <- function(df_list, exp_labels) {
     ),
     comp_colours = acetate_colours,
     comp_labels = acetate_labels,
-    title = "Acetates",
-    y_label = "Concentration (mg/L, normalised)",
+    title = "Final normalized acetate esters",
+    y_label = "Concentration (mg/L)",
     reverse_stack = TRUE
   )
 }
@@ -1511,8 +1511,8 @@ plot_avg_higher_alcohols_bar <- function(df_list, exp_labels) {
     sd_cols = c("Isobutanol_stdev_normalized", "Isoamyl_alcohol_stdev_normalized"),
     comp_colours = alcohol_colours,
     comp_labels = alcohol_labels,
-    title = "Higher Alcohols",
-    y_label = "Concentration (mg/L, normalised)"
+    title = "Final Normalized Higher Alcohols",
+    y_label = "Concentration (mg/L)"
   )
 }
 
