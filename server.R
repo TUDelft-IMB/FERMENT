@@ -614,6 +614,7 @@ server <- function(input, output, session) {
       content = function(file) {
         data <- data_reactive()
         validate(need(!is.null(data) && nrow(data) > 0, "No data available for export"))
+        data <- data[, !(names(data) %in% c("hover_text", "text")), drop = FALSE]
         write.csv(data, file, row.names = FALSE)
       }
     )
