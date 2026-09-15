@@ -164,6 +164,40 @@ read_avg_sheet <- function(file_path) {
   )
 }
 
+# -----------------------------------------------------------------------------
+# read_export_descriptions()
+# Parses a simple two-column markdown pipe table (id | description) into a
+# named character vector, so export button tooltips can be edited in a plain
+# text file instead of inside ui.R. Returns a fallback message for any ID not
+# found in the file, so a typo or missing row never breaks the UI.
+# -----------------------------------------------------------------------------
+read_export_descriptions <- function(path) {
+  if (!file.exists(path)) {
+    return(character(0))
+  }
+  lines <- readLines(path, warn = FALSE)
+  lines <- lines[trimws(lines) != ""]
+  # Drop the header row and the "|---|---|" separator row
+  lines <- lines[-c(1, 2)]
+  
+  parsed <- lapply(lines, function(line) {
+    parts <- strsplit(line, "\\|")[[1]]
+    parts <- trimws(parts)
+    parts <- parts[parts != ""]
+    if (length(parts) < 2) return(NULL)
+    list(id = parts[1], description = parts[2])
+  })
+  parsed <- Filter(Negate(is.null), parsed)
+  
+  if (length(parsed) == 0) {
+    return(character(0))
+  }
+  ids <- vapply(parsed, function(x) x$id, character(1))
+  descs <- vapply(parsed, function(x) x$description, character(1))
+  setNames(descs, ids)
+}
+
+export_descriptions <- read_export_descriptions("export_descriptions.md")
 
 # =============================================================================
 # 4. COLOUR PALETTES — single source of truth
