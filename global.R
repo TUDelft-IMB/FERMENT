@@ -1489,7 +1489,8 @@ plot_avg_ethyl_esters_bar <- function(df_list, exp_labels) {
     comp_colours = ethyl_ester_colours,
     comp_labels = ethyl_ester_labels,
     title = "Ethyl Esters",
-    y_label = "Concentration (mg/L, normalised)"
+    y_label = "Concentration (mg/L, normalised)",
+    reverse_stack = TRUE
   )
 }
 
@@ -1508,7 +1509,8 @@ plot_avg_acetate_esters_bar <- function(df_list, exp_labels) {
     comp_colours = acetate_colours,
     comp_labels = acetate_labels,
     title = "Acetates",
-    y_label = "Concentration (mg/L, normalised)"
+    y_label = "Concentration (mg/L, normalised)",
+    reverse_stack = TRUE
   )
 }
 
