@@ -1171,33 +1171,22 @@ plot_averages <- function(plot_data, exp_labels,
   colour_map <- setNames(comp_colours, comp_labels)
   linetype_map <- setNames(linetypes, exp_labels)
 
-  p <- ggplot(plot_data) +
-    geom_line(
-      aes(
-        x = time,
-        y = value,
-        colour = compound,
-        linetype = experiment,
-        group = interaction(compound, experiment),
-        text = hover_text
-      )
+  p <- ggplot(
+    plot_data,
+    aes(
+      x = time,
+      y = value,
+      colour = compound,
+      linetype = experiment,
+      group = interaction(compound, experiment),
+     )
     ) +
-    geom_point(
-      aes(
-        x = time,
-        y = value,
-        colour = compound,
-        group = interaction(compound, experiment),
-        text = hover_text
-      )
-    ) +
+    geom_line(aes(text = hover_text)) +
+    geom_point(aes(text = hover_text)) +
     geom_errorbar(
       aes(
-        x = time,
         ymin = value - sd,
-        ymax = value + sd,
-        colour = compound,
-        group = interaction(compound, experiment)
+        ymax = value + sd#,
       ),
       width = 3,
       na.rm = TRUE,
