@@ -1321,26 +1321,32 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
   bar_data$compound <- factor(bar_data$compound, levels = comp_labels)
 
-  bar_data <- bar_data[order(bar_data$experiment, -as.integer(bar_data$compound)), ]
+  bar_data <- bar_data[order(bar_data$experiment, as.integer(bar_data$compound)), ]
   cum_y_list <- lapply(split(bar_data$value, bar_data$experiment), cumsum)
-  bar_data$cum_y <- unlist(cum_y_list, use.names = FALSE)
-
-  threshold <- 1e-4 # Adjust if your low non-zero values are smaller
-  bar_data$err_ymin <- ifelse(bar_data$value > threshold, pmax(0, bar_data$cum_y - bar_data$sd), NA_real_)
-  bar_data$err_ymax <- ifelse(bar_data$value > threshold, bar_data$cum_y + bar_data$sd, NA_real_)
-
+  bar_data$ymax <- unlist(cum_y_list, use.names = FALSE)
+  bar_data$ymin <- bar_data$ymax - bar_data$value
+  
+  bar_data$x_center <- as.numeric(bar_data$experiment)
   bar_width <- 0.6
-
-  ggplot(bar_data, aes(x = experiment, y = value, fill = compound)) +
-    geom_col(aes(text = hover_text), position = "stack", width = bar_width) +
+  bar_data$xmin <- bar_data$x_center - bar_width / 2
+  bar_data$xmax <- bar_data$x_center + bar_width / 2
+  
+  threshold <- 1e-4
+  bar_data$err_ymin <- ifelse(bar_data$value > threshold, pmax(0, bar_data$ymax - bar_data$sd), NA_real_)
+  bar_data$err_ymax <- ifelse(bar_data$value > threshold, bar_data$ymax + bar_data$sd, NA_real_)
+  
+  ggplot(bar_data) +
+    geom_rect(
+      aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = compound, text = hover_text)
+    ) +
     geom_errorbar(
-      aes(x = experiment, ymin = err_ymin, ymax = err_ymax),
-      width = bar_width * 0.9,
+      aes(x = x_center, ymin = err_ymin, ymax = err_ymax),
+      width = bar_width * 0.4,
       linewidth = 0.1,
-      colour = alpha("black", 0.3),
-      inherit.aes = FALSE
+      colour = alpha("black", 0.3)
     ) +
     scale_fill_manual(name = "Compound", values = setNames(comp_colours, comp_labels)) +
+    scale_x_continuous(breaks = seq_along(exp_labels), labels = exp_labels) +
     labs(title = title, x = "Experiment", y = y_label) +
     theme_minimal() +
     theme(legend.position = "right")
