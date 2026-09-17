@@ -621,7 +621,7 @@ server <- function(input, output, session) {
   }
   
   # ---------------------------------------------------------------------------
-  # Step 9: Sheet accessors — single experiment.
+  # Step 10: Sheet accessors — single experiment.
   #
   # Each reactive extracts one named sheet from the loaded workbook.
   # req() ensures the downstream plot code only runs once a workbook is loaded.
@@ -658,7 +658,7 @@ server <- function(input, output, session) {
   })
 
   # ---------------------------------------------------------------------------
-  # Step 10: Render single-experiment plots.
+  # Step 11: Render single-experiment plots.
   #
   # Each output calls the matching ggplot function from global.R, then wraps
   # it in ggplotly() so the chart is interactive:
@@ -801,7 +801,7 @@ server <- function(input, output, session) {
   })
   
   # ---------------------------------------------------------------------------
-  # Step 11: Averages — filter the pool of available experiments.
+  # Step 12: Averages — filter the pool of available experiments.
   # ---------------------------------------------------------------------------
   avg_filtered_files <- reactive({
     meta <- file_metadata()
@@ -820,7 +820,7 @@ server <- function(input, output, session) {
     matched$filename
   })
 
-  # Step 11a: Keep avg_experiments in sync with filters.
+  # Step 12a: Keep avg_experiments in sync with filters.
   observe({
     choices <- avg_filtered_files()
     display_choices <- setNames(choices, sub("\\.xlsx$", "", choices, ignore.case = TRUE))
@@ -831,7 +831,7 @@ server <- function(input, output, session) {
     )
   })
 
-  # Step 11b: Clear Averages filters.
+  # Step 12b: Clear Averages filters.
   observeEvent(input$avg_clear_filters, {
     updateSelectizeInput(session, "avg_species", selected = character(0))
     updateSelectizeInput(session, "avg_strain", selected = character(0))
@@ -840,7 +840,7 @@ server <- function(input, output, session) {
     updateSelectizeInput(session, "avg_temperature", selected = character(0))
   })
 
-  # Step 12: Load averages data for selected experiments.
+  # Step 12c: Load averages data for selected experiments.
   avg_data_list <- reactive({
     req(input$avg_experiments)
 
@@ -994,7 +994,7 @@ server <- function(input, output, session) {
     )
   })
 
-  # Step 12a: Averages summary table — one row per selected experiment.
+  # Step 12d: Averages summary table — one row per selected experiment.
   output$avg_summary_table <- renderDT(
     {
       req(input$avg_experiments)
