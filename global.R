@@ -41,6 +41,7 @@
 # DT      - renders the interactive experiment/conditions tables
 # shinycssloaders - loading spinners shown while plots/tables render
 # bsicons - Bootstrap icons used in the UI (buttons, tab labels, etc.)
+# styler  - used for automating formatting of the codebase
 
 library(shiny)
 library(readxl)
