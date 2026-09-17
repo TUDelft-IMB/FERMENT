@@ -15,7 +15,7 @@
 # All plotlyOutput() calls are wrapped in withSpinner() from the
 # shinycssloaders package. This shows an animated spinner inside the plot
 # area while the reactive is computing, rather than leaving a blank space.
-# Spinner colour matches the app's primary colour (#0072B2).
+# Spinner colour matches the app's primary colour (#009E73).
 #
 # =============================================================================
 
