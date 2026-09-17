@@ -21,8 +21,11 @@ server <- function(input, output, session) {
   # It returns a data frame with one row per experiment file, containing the
   # key experimental conditions used to populate and filter the dropdowns.
   #
-  # reactive() means this code re-runs automatically if EXCEL_DIR changes.
-  # In practice it runs once at startup.
+  # reactive() here is just session-level memoization: EXCEL_DIR itself is a
+  # static value fixed once at app startup (in global.R) and never changes
+  # during a session. The actual re-scan triggered by cache changes
+  # below — if any .xlsx file in EXCEL_DIR is added, removed, or edited since
+  # the last scan, the cache is invalidated and the folder is re-read.
   # ---------------------------------------------------------------------------
 
   # Build metadata table from Experimental_parameters sheet
