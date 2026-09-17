@@ -37,6 +37,10 @@
 # scales  - percent_format() used in the cone viability plot
 # plotly  - ggplotly() is called in server.R to make every chart interactive;
 #           loading it here ensures it is available at startup
+# bslib   - Bootstrap theming for the app's overall look and layout
+# DT      - renders the interactive experiment/conditions tables
+# shinycssloaders - loading spinners shown while plots/tables render
+# bsicons - Bootstrap icons used in the UI (buttons, tab labels, etc.)
 
 library(shiny)
 library(readxl)
