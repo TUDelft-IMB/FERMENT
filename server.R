@@ -579,7 +579,7 @@ server <- function(input, output, session) {
     rownames = FALSE,
     escape = FALSE
   )
-  
+
   # ---------------------------------------------------------------------------
   # Step 9: CSV export helper
   #
@@ -587,7 +587,7 @@ server <- function(input, output, session) {
   # every export button across all three tabs (defined here since single
   # experiment is the first tab that needs it). Returns a CSV file.
   # ---------------------------------------------------------------------------
-  
+
   export_plot_data <- function(
     output_id,
     data_reactive,
@@ -602,7 +602,7 @@ server <- function(input, output, session) {
           } else {
             tools::file_path_sans_ext(input$experiment)
           }
-          
+
           paste0(
             filename_prefix, "_", exp_name, "_",
             format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv"
@@ -619,7 +619,7 @@ server <- function(input, output, session) {
       }
     )
   }
-  
+
   # ---------------------------------------------------------------------------
   # Step 10: Sheet accessors — single experiment.
   #
@@ -799,7 +799,7 @@ server <- function(input, output, session) {
       tooltip = "text"
     )
   })
-  
+
   # ---------------------------------------------------------------------------
   # Step 12: Averages — filter the pool of available experiments.
   # ---------------------------------------------------------------------------
