@@ -15,7 +15,7 @@
 # All plotlyOutput() calls are wrapped in withSpinner() from the
 # shinycssloaders package. This shows an animated spinner inside the plot
 # area while the reactive is computing, rather than leaving a blank space.
-# Spinner colour matches the app's primary colour (#009E73).
+# Spinner colour matches the app's secondary colour (#009E73).
 #
 # =============================================================================
 
@@ -420,7 +420,7 @@ ui <- tagList(
       # Each analytical tab shows the same chart types as Single Experiment but
       # with multiple experiments overlaid.
       #
-      # Filter logic (server.R Step 13):
+      # Filter logic (server.R Step 14):
       # - Leaving a filter empty = no filter applied for that dimension (all pass).
       # - Selecting one or more values = only experiments matching ANY of those
       #   values are included (OR within a dimension, AND across dimensions).
@@ -502,7 +502,7 @@ ui <- tagList(
 
             # -------------------------------------------------------------------
             # Experiment multi-select
-            # Populated dynamically by server.R (Step 14) with only the
+            # Populated dynamically by server.R (Step 15) with only the
             # experiments that pass the active filters above.
             # The user picks which of those to actually overlay on the plots.
             # -------------------------------------------------------------------
