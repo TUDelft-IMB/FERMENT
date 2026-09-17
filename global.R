@@ -902,8 +902,10 @@ plot_co2 <- function(df_list) {
 # =============================================================================
 # 6. PLOT FUNCTIONS — AVERAGES
 # =============================================================================
-
-# prep helpers
+# Each function accepts a named list of "averages_to_plot" sheets (one per
+# selected experiment, already averaged across replicates in Excel) and a
+# matching character vector of experiment labels, and returns a ggplot
+# object. server.R wraps the return value in ggplotly().
 
 prepare_avg_line_data <- function(df_list, exp_labels,
                                   avg_cols, sd_cols,
