@@ -579,6 +579,14 @@ server <- function(input, output, session) {
     rownames = FALSE,
     escape = FALSE
   )
+  
+  # ---------------------------------------------------------------------------
+  # Step 9: CSV export helper
+  #
+  # export_plot_data() below is the shared download-handler builder used by
+  # every export button across all three tabs (defined here since single
+  # experiment is the first tab that needs it). Returns a CSV file.
+  # ---------------------------------------------------------------------------
 
   # ---------------------------------------------------------------------------
   # Step 9: Sheet accessors — single experiment.
@@ -588,9 +596,6 @@ server <- function(input, output, session) {
   # Sheet names must exactly match those in the Excel files.
   # ---------------------------------------------------------------------------
 
-  # Helper: export plot data.
-  # To be used by all three tab output plots (single and multiple, so far).
-  # Returns a csv file.
   export_plot_data <- function(
     output_id,
     data_reactive,
@@ -1375,9 +1380,10 @@ server <- function(input, output, session) {
   # (same layout as Single Experiment) but each chart now overlays all
   # selected experiments.
   #
-  # Attenuation, pH, Cell Count, and Viability pass explicit tube_col and
-  # tube_label strings rather than a tube number, because their raw sheet
-  # column names don't follow the "N compound" pattern that HPLC/GC use.
+  # Attenuation, pH, Cell Count, and Viability each have their own tube
+  # column names internally in global.R (their raw sheet columns don't follow
+  # the "N compound" pattern that HPLC/GC use) — but from server.R's side,
+  # every plot_cmp_*() call below uses the same (df_list, exp_labels) signature.
   # ---------------------------------------------------------------------------
 
   # HPLC: one line per compound per experiment, TT1 and TT2 overlaid
