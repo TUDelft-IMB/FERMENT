@@ -4,12 +4,13 @@
 # Everything defined here is available to both ui.R and server.R.
 #
 # This file contains:
-#   1. Library imports
-#   2. Config (path to Excel folder)
-#   3. Data-loading functions (workbook + averages sheet)
-#   4. Colour palettes for all plot types
-#   5. Plot functions — single experiment (return ggplot objects)
-#   6. Plot functions — averages (return ggplot objects)
+# 1. Library imports
+# 2. Config (path to Excel folder)
+# 3. Data-loading functions (workbook + averages sheet)
+# 4. Colour palettes for all plot types
+# 5. Plot functions - single experiment (return ggplot objects)
+# 6. Plot functions - averages (return ggplot objects)
+# 7. Plot functions - compare (multiple raw experiments overlaid)
 #
 # All plot functions return plain ggplot objects. server.R wraps every one
 # in ggplotly() so the charts are interactive in the browser. Keeping the
