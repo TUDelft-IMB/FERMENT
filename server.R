@@ -587,15 +587,7 @@ server <- function(input, output, session) {
   # every export button across all three tabs (defined here since single
   # experiment is the first tab that needs it). Returns a CSV file.
   # ---------------------------------------------------------------------------
-
-  # ---------------------------------------------------------------------------
-  # Step 9: Sheet accessors — single experiment.
-  #
-  # Each reactive extracts one named sheet from the loaded workbook.
-  # req() ensures the downstream plot code only runs once a workbook is loaded.
-  # Sheet names must exactly match those in the Excel files.
-  # ---------------------------------------------------------------------------
-
+  
   export_plot_data <- function(
     output_id,
     data_reactive,
@@ -610,7 +602,7 @@ server <- function(input, output, session) {
           } else {
             tools::file_path_sans_ext(input$experiment)
           }
-
+          
           paste0(
             filename_prefix, "_", exp_name, "_",
             format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv"
@@ -627,6 +619,14 @@ server <- function(input, output, session) {
       }
     )
   }
+  
+  # ---------------------------------------------------------------------------
+  # Step 9: Sheet accessors — single experiment.
+  #
+  # Each reactive extracts one named sheet from the loaded workbook.
+  # req() ensures the downstream plot code only runs once a workbook is loaded.
+  # Sheet names must exactly match those in the Excel files.
+  # ---------------------------------------------------------------------------
 
   hplc <- reactive({
     req(tt_data())
