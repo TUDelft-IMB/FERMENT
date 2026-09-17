@@ -16,7 +16,7 @@
 # shinycssloaders package. This shows an animated spinner inside the plot
 # area while the reactive is computing, rather than leaving a blank space.
 # Spinner colour matches the app's primary colour (#0072B2).
-# plotlyOutput() here must match renderPlotly() in server.R exactly by ID.
+#
 # =============================================================================
 
 # Convenience alias so the rest of the file stays readable.
