@@ -917,6 +917,25 @@ plot_co2 <- function(df_list) {
 #      - plot_averages() : compound x experiment line overlays
 #      - plot_avg_by_experiment() : single-series line, one colour per experiment
 #      - plot_avg_stacked_bar() : one stacked bar per experiment
+#
+# The visual encoding:
+# HPLC (Sugars & Ethanol) / Vicinal Diketones:
+#   colour = compound (from section 4 palettes)
+#   linetype = experiment (from exp_linetypes_palette)
+#   Compound and experiment share one legend key per combination,
+#   e.g. "(Ethanol, Experiment #3)".
+#
+# Attenuation / pH / Cell Count / Viability:
+#   colour = experiment (from cmp_exp_colours, colourblind-safe)
+#   No linetype split - each experiment only has one averaged reading per
+#   metric, so there is no second dimension to encode.
+#
+# GC Esters / Acetate Esters / Higher Alcohols / Final HPLC sugars /
+# Final Diketones (stacked bars):
+#   fill = compound (from section 4 palettes), one bar per experiment,
+#   using the LAST non-NA value of each compound column as the bar height
+#   (i.e. the fermentation endpoint concentration).
+# -----------------------------------------------------------------------------
 
 prepare_avg_line_data <- function(df_list, exp_labels,
                                   avg_cols, sd_cols,
