@@ -4,12 +4,13 @@
 # Everything defined here is available to both ui.R and server.R.
 #
 # This file contains:
-#   1. Library imports
-#   2. Config (path to Excel folder)
-#   3. Data-loading functions (workbook + averages sheet)
-#   4. Colour palettes for all plot types
-#   5. Plot functions — single experiment (return ggplot objects)
-#   6. Plot functions — averages (return ggplot objects)
+# 1. Library imports
+# 2. Config (path to Excel folder)
+# 3. Data-loading functions (workbook + averages sheet)
+# 4. Colour palettes for all plot types
+# 5. Plot functions - single experiment (return ggplot objects)
+# 6. Plot functions - averages (return ggplot objects)
+# 7. Plot functions - compare (multiple raw experiments overlaid)
 #
 # All plot functions return plain ggplot objects. server.R wraps every one
 # in ggplotly() so the charts are interactive in the browser. Keeping the
@@ -36,6 +37,11 @@
 # scales  - percent_format() used in the cone viability plot
 # plotly  - ggplotly() is called in server.R to make every chart interactive;
 #           loading it here ensures it is available at startup
+# bslib   - Bootstrap theming for the app's overall look and layout
+# DT      - renders the interactive experiment/conditions tables
+# shinycssloaders - loading spinners shown while plots/tables render
+# bsicons - Bootstrap icons used in the UI (buttons, tab labels, etc.)
+# styler  - used for automating formatting of the codebase
 
 library(shiny)
 library(readxl)
@@ -179,16 +185,18 @@ read_export_descriptions <- function(path) {
   lines <- lines[trimws(lines) != ""]
   # Drop the header row and the "|---|---|" separator row
   lines <- lines[-c(1, 2)]
-  
+
   parsed <- lapply(lines, function(line) {
     parts <- strsplit(line, "\\|")[[1]]
     parts <- trimws(parts)
     parts <- parts[parts != ""]
-    if (length(parts) < 2) return(NULL)
+    if (length(parts) < 2) {
+      return(NULL)
+    }
     list(id = parts[1], description = parts[2])
   })
   parsed <- Filter(Negate(is.null), parsed)
-  
+
   if (length(parsed) == 0) {
     return(character(0))
   }
@@ -324,15 +332,15 @@ cmp_exp_colours <- c(okabe10, polychrome_extra)
 plot_hplc_tube <- function(df_list, tube_num) {
   df <- df_list[[1]]
   experiment_label <- sub("\\.xlsx$", "", names(df_list)[1], ignore.case = TRUE)
-  
+
   metabolites_map <- setNames(hplc_colours, hplc_labels)
-  
+
   p <- ggplot(df, aes(x = `Time (h)`))
-  
+
   for (base_metab in names(metabolites_map)) {
     val_col <- paste(tube_num, base_metab)
     stdev_col <- paste("StDev", val_col)
-    
+
     p <- p +
       geom_line(
         aes(
@@ -381,7 +389,7 @@ plot_hplc_tube <- function(df_list, tube_num) {
         width = 3
       )
   }
-  
+
   p +
     scale_color_manual(name = "Metabolites", values = metabolites_map) +
     labs(
@@ -402,15 +410,15 @@ plot_hplc_tube <- function(df_list, tube_num) {
 plot_gc_esters_tube <- function(df_list, tube_num) {
   df <- df_list[[1]]
   experiment_label <- sub("\\.xlsx$", "", names(df_list)[1], ignore.case = TRUE)
-  
+
   metabolites_map <- setNames(gc_ester_colours, gc_ester_labels)
-  
+
   p <- ggplot(df, aes(x = `Time (h)`))
-  
+
   for (base_metab in names(metabolites_map)) {
     val_col <- paste(tube_num, base_metab)
     stdev_col <- paste("StDev", val_col)
-    
+
     p <- p +
       geom_line(
         aes(
@@ -459,7 +467,7 @@ plot_gc_esters_tube <- function(df_list, tube_num) {
         width = 3
       )
   }
-  
+
   p +
     scale_color_manual(name = "Metabolites", values = metabolites_map) +
     labs(
@@ -480,15 +488,15 @@ plot_gc_esters_tube <- function(df_list, tube_num) {
 plot_gc_ketones_tube <- function(df_list, tube_num) {
   df <- df_list[[1]]
   experiment_label <- sub("\\.xlsx$", "", names(df_list)[1], ignore.case = TRUE)
-  
+
   metabolites_map <- setNames(gc_ketone_colours, gc_ketone_labels)
-  
+
   p <- ggplot(df, aes(x = `Time (h)`))
-  
+
   for (base_metab in names(metabolites_map)) {
     val_col <- paste(tube_num, base_metab)
     stdev_col <- paste("StDev", val_col)
-    
+
     p <- p +
       geom_line(
         aes(
@@ -537,7 +545,7 @@ plot_gc_ketones_tube <- function(df_list, tube_num) {
         width = 3
       )
   }
-  
+
   p +
     scale_color_manual(name = "Metabolites", values = metabolites_map) +
     labs(
@@ -557,11 +565,11 @@ plot_gc_ketones_tube <- function(df_list, tube_num) {
 plot_att <- function(df_list) {
   df <- df_list[[1]]
   experiment_label <- sub("\\.xlsx$", "", names(df_list)[1], ignore.case = TRUE)
-  
+
   plot_data <- do.call(rbind, lapply(c("TT1", "TT2"), function(tube) {
     value_col <- tube
     stdev_col <- paste0(tube, "_stdev")
-    
+
     data.frame(
       time = as.numeric(df[["Time (h)"]]),
       value = if (value_col %in% names(df)) as.numeric(df[[value_col]]) else NA_real_,
@@ -581,9 +589,9 @@ plot_att <- function(df_list) {
       stringsAsFactors = FALSE
     )
   }))
-  
+
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
+
   ggplot(
     plot_data,
     aes(x = time, y = value, colour = tube, group = tube)
@@ -619,11 +627,11 @@ plot_att <- function(df_list) {
 plot_ph <- function(df_list) {
   df <- df_list[[1]]
   experiment_label <- sub("\\.xlsx$", "", names(df_list)[1], ignore.case = TRUE)
-  
+
   plot_data <- do.call(rbind, lapply(c("TT1", "TT2"), function(tube) {
     value_col <- tube
     stdev_col <- paste0(tube, "_stdev")
-    
+
     data.frame(
       time = as.numeric(df[["Time (h)"]]),
       value = if (value_col %in% names(df)) as.numeric(df[[value_col]]) else NA_real_,
@@ -643,9 +651,9 @@ plot_ph <- function(df_list) {
       stringsAsFactors = FALSE
     )
   }))
-  
+
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
+
   ggplot(
     plot_data,
     aes(x = time, y = value, colour = tube, group = tube)
@@ -682,13 +690,13 @@ plot_ph <- function(df_list) {
 plot_cell_count <- function(df_list) {
   df <- df_list[[1]]
   experiment_label <- sub("\\.xlsx$", "", names(df_list)[1], ignore.case = TRUE)
-  
+
   tube_cols <- c("TT1" = "1 Total cells", "TT2" = "2 Total cells")
-  
+
   plot_data <- do.call(rbind, lapply(names(tube_cols), function(tube) {
     value_col <- tube_cols[[tube]]
     stdev_col <- paste0(tube, "_stdev")
-    
+
     data.frame(
       time = as.numeric(df[["Time (h)"]]),
       value = if (value_col %in% names(df)) as.numeric(df[[value_col]]) else NA_real_,
@@ -708,9 +716,9 @@ plot_cell_count <- function(df_list) {
       stringsAsFactors = FALSE
     )
   }))
-  
+
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
+
   ggplot(
     plot_data,
     aes(x = time, y = value, colour = tube, group = tube)
@@ -746,13 +754,13 @@ plot_cell_count <- function(df_list) {
 plot_viability <- function(df_list) {
   df <- df_list[[1]]
   experiment_label <- sub("\\.xlsx$", "", names(df_list)[1], ignore.case = TRUE)
-  
+
   tube_cols <- c("TT1" = "1 Viability (%)", "TT2" = "2 Viability (%)")
-  
+
   plot_data <- do.call(rbind, lapply(names(tube_cols), function(tube) {
     value_col <- tube_cols[[tube]]
     stdev_col <- paste0(tube, "_stdev")
-    
+
     data.frame(
       time = as.numeric(df[["Time (h)"]]),
       value = if (value_col %in% names(df)) as.numeric(df[[value_col]]) else NA_real_,
@@ -772,9 +780,9 @@ plot_viability <- function(df_list) {
       stringsAsFactors = FALSE
     )
   }))
-  
+
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
+
   ggplot(
     plot_data,
     aes(x = time, y = value, colour = tube, group = tube)
@@ -811,7 +819,7 @@ plot_viability <- function(df_list) {
 plot_co2 <- function(df_list) {
   df <- df_list[[1]]
   exp_labels <- sub("\\.xlsx$", "", names(df_list), ignore.case = TRUE)
-  
+
   time_col <- if ("Time (h)" %in% names(df)) {
     "Time (h)"
   } else if ("Time (days)" %in% names(df)) {
@@ -819,35 +827,35 @@ plot_co2 <- function(df_list) {
   } else {
     stop("CO2 sheet must contain either 'Time (h)' or 'Time (days)'.")
   }
-  
+
   tube_cols <- c("TT1" = "TT1", "TT2" = "TT2")
   tube_lty <- c("TT1" = "solid", "TT2" = "dashed")
   colour_map <- setNames(cmp_exp_colours[seq_along(df_list)], exp_labels)
-  
+
   plot_data <- do.call(rbind, lapply(seq_along(df_list), function(e) {
     df <- df_list[[e]]
-    
+
     if (is.null(df) || nrow(df) == 0) {
       return(NULL)
     }
-    
+
     time_values <- if (time_col %in% c("Time (days)", "Time (day)")) {
       as.numeric(df[[time_col]]) * 24
     } else {
       as.numeric(df[[time_col]])
     }
-    
+
     filename_label <- sub("\\.xlsx$", "", names(df_list)[e], ignore.case = TRUE)
-    
+
     do.call(rbind, lapply(names(tube_cols), function(tube) {
       value_col <- tube_cols[[tube]]
-      
+
       value <- if (value_col %in% names(df)) {
         as.numeric(df[[value_col]])
       } else {
         NA_real_
       }
-      
+
       data.frame(
         time = time_values,
         value = value,
@@ -865,9 +873,9 @@ plot_co2 <- function(df_list) {
       )
     }))
   }))
-  
+
   plot_data <- plot_data[!is.na(plot_data$value), ]
-  
+
   ggplot(
     plot_data,
     aes(
@@ -879,7 +887,7 @@ plot_co2 <- function(df_list) {
     )
   ) +
     geom_line(aes(text = hover_text)) +
-    #geom_point(aes(text = hover_text)) +
+    # geom_point(aes(text = hover_text)) +
     scale_colour_manual(name = "Experiment", values = colour_map) +
     scale_linetype_manual(name = "TT", values = tube_lty) +
     labs(
@@ -894,8 +902,40 @@ plot_co2 <- function(df_list) {
 # =============================================================================
 # 6. PLOT FUNCTIONS — AVERAGES
 # =============================================================================
-
-# prep helpers
+# Each function accepts a named list of "averages_to_plot" sheets (one per
+# selected experiment, already averaged across replicates in Excel) and a
+# matching character vector of experiment labels, and returns a ggplot
+# object. server.R wraps the return value in ggplotly().
+#
+# This section is split into two layers:
+# 1. "prepare_*" helpers - reshape the wide averages sheet into a long
+#    data frame (time, value, sd, compound, experiment, hover_text) that
+#    ggplot can plot directly. These are also called directly by server.R
+#    for CSV export, so the exported columns always match what's plotted.
+# 2. "plot_*" wrappers - call the matching prepare_* helper (where one is
+#    needed), then hand the result to one of three shared plotting helpers:
+#      - plot_averages() : compound x experiment line overlays
+#      - plot_avg_by_experiment() : single-series line, one colour per experiment
+#      - plot_avg_stacked_bar() : one stacked bar per experiment
+#
+# The visual encoding:
+# HPLC (Sugars & Ethanol) / Vicinal Diketones:
+#   colour = compound (from section 4 palettes)
+#   linetype = experiment (from exp_linetypes_palette)
+#   Compound and experiment share one legend key per combination,
+#   e.g. "(Ethanol, Experiment #3)".
+#
+# Attenuation / pH / Cell Count / Viability:
+#   colour = experiment (from cmp_exp_colours, colourblind-safe)
+#   No linetype split - each experiment only has one averaged reading per
+#   metric, so there is no second dimension to encode.
+#
+# GC Esters / Acetate Esters / Higher Alcohols / Final HPLC sugars /
+# Final Diketones (stacked bars):
+#   fill = compound (from section 4 palettes), one bar per experiment,
+#   using the LAST non-NA value of each compound column as the bar height
+#   (i.e. the fermentation endpoint concentration).
+# -----------------------------------------------------------------------------
 
 prepare_avg_line_data <- function(df_list, exp_labels,
                                   avg_cols, sd_cols,
@@ -985,7 +1025,7 @@ prepare_avg_single_series <- function(df_list, exp_labels, experiment_names,
     } else {
       rep(NA_real_, length(time_values))
     }
-    
+
     data.frame(
       time = time_values,
       value = values,
@@ -1153,16 +1193,22 @@ prepare_avg_cone_viability <- function(df_list, exp_labels, experiment_names = e
 
 # -----------------------------------------------------------------------------
 # plot_averages() — generic line overlay helper used by HPLC, diketones,
-#                   attenuation, pH, cell count, and viability averages.
+# attenuation, pH, cell count, and viability averages.
 #
-# avg_cols    : character vector of column names in the averages sheet
-# sd_cols     : matching SD column names (or NULL for no error bars)
-# comp_colours: colour string per compound — from section 4 (same order as avg_cols)
-# comp_labels : display label per compound — from section 4 (same order as avg_cols)
-# title       : plot title
-# y_label     : y-axis label
-# y_limits    : optional c(min, max) to fix the y-axis range
+# Expects plot_data already shaped by prepare_avg_line_data() (or one of its
+# wrappers, e.g. prepare_avg_hplc() / prepare_avg_diketones()) with columns:
+# time, value, sd, compound, experiment, hover_text.
+#
+# plot_data : prepared long-format data frame (see above)
+# exp_labels : character vector of "Experiment #N" labels, same length/order
+# as the experiments present in plot_data
+# comp_colours: colour string per compound — from section 4 (same order as comp_labels)
+# comp_labels : display label per compound — from section 4 (same order as comp_colours)
+# title : plot title
+# y_label : y-axis label
+# y_limits : optional c(min, max) to fix the y-axis range
 # -----------------------------------------------------------------------------
+
 plot_averages <- function(plot_data, exp_labels,
                           comp_colours, comp_labels,
                           title = "", y_label = "", y_limits = NULL) {
@@ -1179,14 +1225,14 @@ plot_averages <- function(plot_data, exp_labels,
       colour = compound,
       linetype = experiment,
       group = interaction(compound, experiment),
-     )
-    ) +
+    )
+  ) +
     geom_line(aes(text = hover_text)) +
     geom_point(aes(text = hover_text)) +
     geom_errorbar(
       aes(
         ymin = value - sd,
-        ymax = value + sd#,
+        ymax = value + sd # ,
       ),
       width = 3,
       na.rm = TRUE,
@@ -1227,7 +1273,7 @@ plot_avg_by_experiment <- function(df_list, exp_labels,
     time_values <- as.numeric(df[["Time (h)"]])
     values <- if (avg_col %in% names(df)) as.numeric(df[[avg_col]]) else NA_real_
     sd_values <- if (!is.null(sd_col) && sd_col %in% names(df)) as.numeric(df[[sd_col]]) else NA_real_
-    
+
     data.frame(
       time = time_values,
       value = values,
@@ -1310,7 +1356,7 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
   bar_data <- bar_data[!is.na(bar_data$value), ]
   bar_data$experiment <- factor(bar_data$experiment, levels = exp_labels)
   bar_data$compound <- factor(bar_data$compound, levels = comp_labels)
-  
+
   # Stacking direction only — does not touch which label belongs to which
   # data, since comp_labels/avg_cols pairing is untouched.
   sort_key <- if (reverse_stack) -as.integer(bar_data$compound) else as.integer(bar_data$compound)
@@ -1318,16 +1364,16 @@ plot_avg_stacked_bar <- function(df_list, exp_labels,
   cum_y_list <- lapply(split(bar_data$value, bar_data$experiment), cumsum)
   bar_data$ymax <- unlist(cum_y_list, use.names = FALSE)
   bar_data$ymin <- bar_data$ymax - bar_data$value
-  
+
   bar_data$x_center <- as.numeric(bar_data$experiment)
   bar_width <- 0.6
   bar_data$xmin <- bar_data$x_center - bar_width / 2
   bar_data$xmax <- bar_data$x_center + bar_width / 2
-  
+
   threshold <- 1e-4
   bar_data$err_ymin <- ifelse(bar_data$value > threshold, pmax(0, bar_data$ymax - bar_data$sd), NA_real_)
   bar_data$err_ymax <- ifelse(bar_data$value > threshold, bar_data$ymax + bar_data$sd, NA_real_)
-  
+
   ggplot(bar_data) +
     geom_rect(
       aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = compound, text = hover_text)
@@ -1793,22 +1839,21 @@ plot_cmp_att <- function(df_list, exp_labels) {
     if (is.null(df) || nrow(df) == 0) {
       return(NULL)
     }
-    
+
     filename_label <- sub("\\.xlsx$", "", names(df_list)[e], ignore.case = TRUE)
-    
+
     do.call(rbind, lapply(tube_cols, function(tc) {
-      stdev_col <- switch(
-        tc,
+      stdev_col <- switch(tc,
         "TT1" = "TT1_stdev",
         "TT2" = "TT2_stdev"
       )
-      
+
       sd_values <- if (stdev_col %in% names(df)) {
         as.numeric(df[[stdev_col]])
       } else {
         rep(NA_real_, nrow(df))
       }
-      
+
       data.frame(
         time = as.numeric(df[["Time (h)"]]),
         value = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
@@ -1832,7 +1877,7 @@ plot_cmp_att <- function(df_list, exp_labels) {
       )
     }))
   }))
-  
+
   plot_data <- plot_data[!is.na(plot_data$value), ]
 
   ggplot(
@@ -1867,9 +1912,9 @@ plot_cmp_ph <- function(df_list, exp_labels) {
     if (is.null(df) || nrow(df) == 0) {
       return(NULL)
     }
-    
+
     filename_label <- sub("\\.xlsx$", "", names(df_list)[e], ignore.case = TRUE)
-    
+
     do.call(rbind, lapply(tube_cols, function(tc) {
       stdev_col <- paste0(tc, "_stdev")
       sd_values <- if (stdev_col %in% names(df)) {
@@ -1877,7 +1922,7 @@ plot_cmp_ph <- function(df_list, exp_labels) {
       } else {
         rep(NA_real_, nrow(df))
       }
-      
+
       data.frame(
         time = as.numeric(df[["Time (h)"]]),
         value = if (tc %in% names(df)) as.numeric(df[[tc]]) else NA_real_,
@@ -1901,7 +1946,7 @@ plot_cmp_ph <- function(df_list, exp_labels) {
       )
     }))
   }))
-  
+
   plot_data <- plot_data[!is.na(plot_data$value), ]
 
   ggplot(
@@ -1938,19 +1983,19 @@ plot_cmp_cell_count <- function(df_list, exp_labels) {
     if (is.null(df) || nrow(df) == 0) {
       return(NULL)
     }
-    
+
     filename_label <- sub("\\.xlsx$", "", names(df_list)[e], ignore.case = TRUE)
-    
+
     do.call(rbind, lapply(names(tube_cols), function(tube_label) {
       col <- tube_cols[[tube_label]]
-      
+
       sd_col <- paste0(tube_label, "_stdev")
       sd_values <- if (sd_col %in% names(df)) {
         as.numeric(df[[sd_col]])
       } else {
         rep(NA_real_, nrow(df))
       }
-      
+
       data.frame(
         time = as.numeric(df[["Time (h)"]]),
         value = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
@@ -1974,7 +2019,7 @@ plot_cmp_cell_count <- function(df_list, exp_labels) {
       )
     }))
   }))
-  
+
   plot_data <- plot_data[!is.na(plot_data$value), ]
 
   ggplot(
@@ -2009,19 +2054,19 @@ plot_cmp_viability <- function(df_list, exp_labels) {
     if (is.null(df) || nrow(df) == 0) {
       return(NULL)
     }
-    
+
     filename_label <- sub("\\.xlsx$", "", names(df_list)[e], ignore.case = TRUE)
-    
+
     do.call(rbind, lapply(names(tube_cols), function(tube_label) {
       col <- tube_cols[[tube_label]]
       sd_col <- paste0(tube_label, "_stdev")
-      
+
       sd_values <- if (sd_col %in% names(df)) {
         as.numeric(df[[sd_col]])
       } else {
         rep(NA_real_, nrow(df))
       }
-      
+
       data.frame(
         time = as.numeric(df[["Time (h)"]]),
         value = if (col %in% names(df)) as.numeric(df[[col]]) else NA_real_,
@@ -2045,7 +2090,7 @@ plot_cmp_viability <- function(df_list, exp_labels) {
       )
     }))
   }))
-  
+
   plot_data <- plot_data[!is.na(plot_data$value), ]
 
   ggplot(

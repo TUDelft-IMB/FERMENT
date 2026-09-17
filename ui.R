@@ -15,8 +15,8 @@
 # All plotlyOutput() calls are wrapped in withSpinner() from the
 # shinycssloaders package. This shows an animated spinner inside the plot
 # area while the reactive is computing, rather than leaving a blank space.
-# Spinner colour matches the app's primary colour (#0072B2).
-# plotlyOutput() here must match renderPlotly() in server.R exactly by ID.
+# Spinner colour matches the app's secondary colour (#009E73).
+#
 # =============================================================================
 
 # Convenience alias so the rest of the file stays readable.
@@ -110,26 +110,26 @@ ui <- tagList(
     id = "app-zoom-wrapper",
     navbarPage(
       title = tagList(
-      tags$img(
-        src = "https://avatars.githubusercontent.com/u/260685340?s=200&v=4",
-        height = "28px", width = "28px",
-        #style = "border-radius: 50%; vertical-align: middle; margin-right: 8px;",
-        alt = "FERMENT logo"
-      ),
-      "FERMENT",
-      tags$a(
-        href = "https://github.com/TUDelft-IMB/FERMENT",
-        target = "_blank",
-        rel = "noopener noreferrer",
-        title = "View on GitHub",
-        style = "margin-left: 8px; display: inline-flex; vertical-align: middle;",
         tags$img(
-          src = "https://cdn.simpleicons.org/github/333333",
-          height = "18px", width = "18px",
-          alt = "GitHub repository"
+          src = "https://avatars.githubusercontent.com/u/260685340?s=200&v=4",
+          height = "28px", width = "28px",
+          # style = "border-radius: 50%; vertical-align: middle; margin-right: 8px;",
+          alt = "FERMENT logo"
+        ),
+        "FERMENT",
+        tags$a(
+          href = "https://github.com/TUDelft-IMB/FERMENT",
+          target = "_blank",
+          rel = "noopener noreferrer",
+          title = "View on GitHub",
+          style = "margin-left: 8px; display: inline-flex; vertical-align: middle;",
+          tags$img(
+            src = "https://cdn.simpleicons.org/github/333333",
+            height = "18px", width = "18px",
+            alt = "GitHub repository"
+          )
         )
-      )
-    ),
+      ),
       theme = bs_theme(
         bootswatch = "minty",
         primary = "#0072B2",
@@ -336,7 +336,7 @@ ui <- tagList(
                     spinner(plotlyOutput("gcKetonesTT2Plot", height = "400px")),
                     div(
                       style = "text-align:right; margin-bottom:6px;",
-                      #downloadButton("download_gc_ketones_tt2", "Export CSV")
+                      # downloadButton("download_gc_ketones_tt2", "Export CSV")
                       downloadButton("download_gc_ketones", "Export CSV"),
                       export_tooltip("download_gc_ketones")
                     )
@@ -420,7 +420,7 @@ ui <- tagList(
       # Each analytical tab shows the same chart types as Single Experiment but
       # with multiple experiments overlaid.
       #
-      # Filter logic (server.R Step 13):
+      # Filter logic (server.R Step 14):
       # - Leaving a filter empty = no filter applied for that dimension (all pass).
       # - Selecting one or more values = only experiments matching ANY of those
       #   values are included (OR within a dimension, AND across dimensions).
@@ -502,7 +502,7 @@ ui <- tagList(
 
             # -------------------------------------------------------------------
             # Experiment multi-select
-            # Populated dynamically by server.R (Step 14) with only the
+            # Populated dynamically by server.R (Step 15) with only the
             # experiments that pass the active filters above.
             # The user picks which of those to actually overlay on the plots.
             # -------------------------------------------------------------------
@@ -727,8 +727,8 @@ ui <- tagList(
                   ),
                   column(
                     5, spinner(plotlyOutput("endHplcPlot", height = "450px"))
-                 )
-               )
+                  )
+                )
               ),
               tabPanel(
                 "GC Esters",

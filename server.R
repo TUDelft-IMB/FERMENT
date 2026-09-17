@@ -21,8 +21,11 @@ server <- function(input, output, session) {
   # It returns a data frame with one row per experiment file, containing the
   # key experimental conditions used to populate and filter the dropdowns.
   #
-  # reactive() means this code re-runs automatically if EXCEL_DIR changes.
-  # In practice it runs once at startup.
+  # reactive() here is just session-level memoization: EXCEL_DIR itself is a
+  # static value fixed once at app startup (in global.R) and never changes
+  # during a session. The actual re-scan triggered by cache changes
+  # below — if any .xlsx file in EXCEL_DIR is added, removed, or edited since
+  # the last scan, the cache is invalidated and the folder is re-read.
   # ---------------------------------------------------------------------------
 
   # Build metadata table from Experimental_parameters sheet
@@ -578,16 +581,13 @@ server <- function(input, output, session) {
   )
 
   # ---------------------------------------------------------------------------
-  # Step 9: Sheet accessors — single experiment.
+  # Step 9: CSV export helper
   #
-  # Each reactive extracts one named sheet from the loaded workbook.
-  # req() ensures the downstream plot code only runs once a workbook is loaded.
-  # Sheet names must exactly match those in the Excel files.
+  # export_plot_data() below is the shared download-handler builder used by
+  # every export button across all three tabs (defined here since single
+  # experiment is the first tab that needs it). Returns a CSV file.
   # ---------------------------------------------------------------------------
 
-  # Helper: export plot data.
-  # To be used by all three tab output plots (single and multiple, so far).
-  # Returns a csv file.
   export_plot_data <- function(
     output_id,
     data_reactive,
@@ -620,6 +620,14 @@ server <- function(input, output, session) {
     )
   }
 
+  # ---------------------------------------------------------------------------
+  # Step 10: Sheet accessors — single experiment.
+  #
+  # Each reactive extracts one named sheet from the loaded workbook.
+  # req() ensures the downstream plot code only runs once a workbook is loaded.
+  # Sheet names must exactly match those in the Excel files.
+  # ---------------------------------------------------------------------------
+
   hplc <- reactive({
     req(tt_data())
     tt_data()[["HPLC"]]
@@ -650,7 +658,7 @@ server <- function(input, output, session) {
   })
 
   # ---------------------------------------------------------------------------
-  # Step 10: Render single-experiment plots.
+  # Step 11: Render single-experiment plots.
   #
   # Each output calls the matching ggplot function from global.R, then wraps
   # it in ggplotly() so the chart is interactive:
@@ -791,9 +799,9 @@ server <- function(input, output, session) {
       tooltip = "text"
     )
   })
-  
+
   # ---------------------------------------------------------------------------
-  # Step 11: Averages — filter the pool of available experiments.
+  # Step 12: Averages — filter the pool of available experiments.
   # ---------------------------------------------------------------------------
   avg_filtered_files <- reactive({
     meta <- file_metadata()
@@ -812,7 +820,7 @@ server <- function(input, output, session) {
     matched$filename
   })
 
-  # Step 11a: Keep avg_experiments in sync with filters.
+  # Step 12a: Keep avg_experiments in sync with filters.
   observe({
     choices <- avg_filtered_files()
     display_choices <- setNames(choices, sub("\\.xlsx$", "", choices, ignore.case = TRUE))
@@ -823,7 +831,7 @@ server <- function(input, output, session) {
     )
   })
 
-  # Step 11b: Clear Averages filters.
+  # Step 12b: Clear Averages filters.
   observeEvent(input$avg_clear_filters, {
     updateSelectizeInput(session, "avg_species", selected = character(0))
     updateSelectizeInput(session, "avg_strain", selected = character(0))
@@ -832,7 +840,7 @@ server <- function(input, output, session) {
     updateSelectizeInput(session, "avg_temperature", selected = character(0))
   })
 
-  # Step 12: Load averages data for selected experiments.
+  # Step 12c: Load averages data for selected experiments.
   avg_data_list <- reactive({
     req(input$avg_experiments)
 
@@ -986,7 +994,7 @@ server <- function(input, output, session) {
     )
   })
 
-  # Step 12a: Averages summary table — one row per selected experiment.
+  # Step 12d: Averages summary table — one row per selected experiment.
   output$avg_summary_table <- renderDT(
     {
       req(input$avg_experiments)
@@ -1372,9 +1380,10 @@ server <- function(input, output, session) {
   # (same layout as Single Experiment) but each chart now overlays all
   # selected experiments.
   #
-  # Attenuation, pH, Cell Count, and Viability pass explicit tube_col and
-  # tube_label strings rather than a tube number, because their raw sheet
-  # column names don't follow the "N compound" pattern that HPLC/GC use.
+  # Attenuation, pH, Cell Count, and Viability each have their own tube
+  # column names internally in global.R (their raw sheet columns don't follow
+  # the "N compound" pattern that HPLC/GC use) — but from server.R's side,
+  # every plot_cmp_*() call below uses the same (df_list, exp_labels) signature.
   # ---------------------------------------------------------------------------
 
   # HPLC: one line per compound per experiment, TT1 and TT2 overlaid
