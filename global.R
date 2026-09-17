@@ -906,6 +906,17 @@ plot_co2 <- function(df_list) {
 # selected experiment, already averaged across replicates in Excel) and a
 # matching character vector of experiment labels, and returns a ggplot
 # object. server.R wraps the return value in ggplotly().
+#
+# This section is split into two layers:
+# 1. "prepare_*" helpers - reshape the wide averages sheet into a long
+#    data frame (time, value, sd, compound, experiment, hover_text) that
+#    ggplot can plot directly. These are also called directly by server.R
+#    for CSV export, so the exported columns always match what's plotted.
+# 2. "plot_*" wrappers - call the matching prepare_* helper (where one is
+#    needed), then hand the result to one of three shared plotting helpers:
+#      - plot_averages() : compound x experiment line overlays
+#      - plot_avg_by_experiment() : single-series line, one colour per experiment
+#      - plot_avg_stacked_bar() : one stacked bar per experiment
 
 prepare_avg_line_data <- function(df_list, exp_labels,
                                   avg_cols, sd_cols,
