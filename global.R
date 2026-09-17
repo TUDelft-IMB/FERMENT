@@ -1154,16 +1154,22 @@ prepare_avg_cone_viability <- function(df_list, exp_labels, experiment_names = e
 
 # -----------------------------------------------------------------------------
 # plot_averages() — generic line overlay helper used by HPLC, diketones,
-#                   attenuation, pH, cell count, and viability averages.
+# attenuation, pH, cell count, and viability averages.
 #
-# avg_cols    : character vector of column names in the averages sheet
-# sd_cols     : matching SD column names (or NULL for no error bars)
-# comp_colours: colour string per compound — from section 4 (same order as avg_cols)
-# comp_labels : display label per compound — from section 4 (same order as avg_cols)
-# title       : plot title
-# y_label     : y-axis label
-# y_limits    : optional c(min, max) to fix the y-axis range
+# Expects plot_data already shaped by prepare_avg_line_data() (or one of its
+# wrappers, e.g. prepare_avg_hplc() / prepare_avg_diketones()) with columns:
+# time, value, sd, compound, experiment, hover_text.
+#
+# plot_data : prepared long-format data frame (see above)
+# exp_labels : character vector of "Experiment #N" labels, same length/order
+# as the experiments present in plot_data
+# comp_colours: colour string per compound — from section 4 (same order as comp_labels)
+# comp_labels : display label per compound — from section 4 (same order as comp_colours)
+# title : plot title
+# y_label : y-axis label
+# y_limits : optional c(min, max) to fix the y-axis range
 # -----------------------------------------------------------------------------
+
 plot_averages <- function(plot_data, exp_labels,
                           comp_colours, comp_labels,
                           title = "", y_label = "", y_limits = NULL) {
